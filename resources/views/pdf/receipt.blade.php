@@ -183,7 +183,7 @@
                     <td><strong>No. WhatsApp:</strong></td>
                     <td>{{ $booking->customer_phone }}</td>
                     <td><strong>Metode Bayar:</strong></td>
-                    <td>Transfer Manual BCA ({{ strtoupper($booking->payment_type) }})</td>
+                    <td>Transfer Bank (BCA / BRI a.n Ezzu Rakhmat Firdaus - {{ strtoupper($booking->payment_type) }})</td>
                 </tr>
             </table>
         </div>

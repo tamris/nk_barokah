@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reservasi Jadwal Pernikahan - NK Barokah Wedding Organizer</title>
-    
-    <!-- Google Fonts: Playfair Display (Serif) & Plus Jakarta Sans (Sans) -->
+    <title>Reserve Your Wedding Date | NK Barokah</title>
+
+    <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN & Alpine.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -18,28 +19,26 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
                     },
                     colors: {
-                        gold: {
-                            50: '#FBF9F4',
-                            100: '#F6F1E6',
-                            200: '#EBDDC3',
-                            300: '#DEC69B',
-                            400: '#D1AF73',
-                            500: '#C59A4D',
-                            600: '#A97E33',
-                            700: '#835F24',
-                            800: '#5F4419',
-                            900: '#3D2B0F',
-                        },
-                        cream: {
-                            50: '#FDFBF7',
-                            100: '#FAF6EE',
-                            200: '#F3EBD8',
-                        },
-                        obsidian: '#191614',
+                        brand: {
+                            50: '#F0FDF8',
+                            100: '#DCFCEE',
+                            200: '#BBF7DE',
+                            500: '#168579',
+                            600: '#045D56', // NK Barokah Primary Deep Emerald
+                            700: '#034B45',
+                            800: '#023B36',
+                            900: '#022E2A',
+                        }
+                    },
+                    boxShadow: {
+                        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.02)',
+                        'dock': '0 -4px 20px -2px rgba(0, 0, 0, 0.06)',
+                        'pill': '0 4px 14px -2px rgba(4, 93, 86, 0.28)',
                     }
                 }
             }
@@ -48,60 +47,80 @@
 
     <style>
         [x-cloak] { display: none !important; }
-        .gold-gradient-text {
-            background: linear-gradient(135deg, #A97E33 0%, #DEC69B 50%, #A97E33 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        * { -webkit-tap-highlight-color: transparent; }
+        html { scroll-behavior: smooth; }
+        
+        /* Prevent number spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
         }
-        .gold-border-gradient {
-            border-image: linear-gradient(to right, #DEC69B, #A97E33, #DEC69B) 1;
+        input[type=number] {
+            -moz-appearance: textfield;
         }
-        .luxury-card-shadow {
-            box-shadow: 0 10px 40px -10px rgba(25, 22, 20, 0.06), 0 2px 10px -2px rgba(25, 22, 20, 0.03);
+
+        /* Safe area support for iOS home bar */
+        .pb-safe {
+            padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+        }
+        .pt-safe {
+            padding-top: max(0.5rem, env(safe-area-inset-top));
         }
     </style>
 </head>
-<body class="bg-[#FAF8F5] text-stone-800 font-sans antialiased min-h-screen selection:bg-gold-200 selection:text-stone-900">
+<body class="min-h-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col justify-between selection:bg-brand-100"
+      x-data="bookingReservation({
+          packages: {{ json_encode($packages) }},
+          addons: {{ json_encode($addons) }},
+          bookedDates: {{ json_encode($bookedDates) }},
+          minDpAmount: {{ config('wo.min_dp_amount', 1000000) }},
+          oldEventDate: '{{ old('event_date', '') }}'
+      })"
+      x-cloak>
 
-    <!-- Decorative Top Accent Bar -->
-    <div class="h-1.5 w-full bg-gradient-to-r from-gold-300 via-gold-500 to-gold-300"></div>
-
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16" 
-         x-data="bookingApp({
-            packages: {{ json_encode($packages) }},
-            addons: {{ json_encode($addons) }},
-            bookedDates: {{ json_encode($bookedDates) }},
-            minDpAmount: {{ config('wo.min_dp_amount', 1000000) }}
-         })" 
-         x-cloak>
-
-        <!-- Brand Header Section -->
-        <header class="text-center mb-12 sm:mb-16 space-y-3">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cream-100 border border-gold-200/80 text-[11px] font-semibold tracking-widest text-gold-700 uppercase">
-                <span class="text-gold-500">✦</span>
-                <span>NK Barokah Wedding Planner & Organizer</span>
-                <span class="text-gold-500">✦</span>
-            </div>
-
-            <h1 class="font-serif text-3xl sm:text-5xl font-normal text-obsidian tracking-tight leading-tight">
-                Kunci Tanggal & <span class="italic font-serif font-light text-gold-600">Momen Bahagia</span> Anda
-            </h1>
-            
-            <p class="text-stone-600 text-xs sm:text-sm max-w-lg mx-auto font-light leading-relaxed">
-                Lengkapi reservasi digital untuk mengunci tim wedding organizer kami. Kuitansi resmi dan slot jadwal akan langsung diterbitkan secara instan.
-            </p>
-
-            <div class="w-16 h-0.5 bg-gradient-to-r from-transparent via-gold-400 to-transparent mx-auto mt-4"></div>
-        </header>
-
-        <!-- Error Notification Banner -->
-        @if ($errors->any())
-            <div class="mb-8 p-5 bg-rose-50/80 border border-rose-200 rounded-2xl shadow-sm text-xs text-rose-800">
-                <div class="flex items-center gap-2 font-bold mb-2">
-                    <span class="w-5 h-5 rounded-full bg-rose-200 text-rose-800 flex items-center justify-center text-[10px]">✕</span>
-                    <span>Mohon periksa data yang belum sesuai:</span>
+    <!-- ============================================================== -->
+    <!-- STICKY TOP APP HEADER                                          -->
+    <!-- ============================================================== -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 pt-safe">
+        <div class="max-w-2xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
+            <!-- Brand Identity -->
+            <a href="{{ url('/') }}" class="flex items-center gap-2.5">
+                <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-extrabold text-xs sm:text-sm tracking-tight shadow-sm">
+                    N
+                </span>
+                <div class="leading-none">
+                    <span class="block text-xs sm:text-sm font-bold tracking-tight text-slate-900">NK Barokah</span>
+                    <span class="block text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">Wedding Organizer</span>
                 </div>
-                <ul class="list-disc list-inside space-y-1 text-rose-700 pl-2">
+            </a>
+
+            <!-- Step Progress Indicator -->
+            <div class="flex flex-col items-end gap-1.5">
+                <span class="text-[11px] font-bold text-slate-700 tracking-tight" x-text="stepTitle"></span>
+                <div class="flex items-center gap-1">
+                    <template x-for="s in [1, 2, 3, 4]" :key="s">
+                        <div class="w-6 sm:w-8 h-1.5 rounded-full transition-all duration-300"
+                             :class="s <= step ? 'bg-brand-600' : 'bg-slate-200'"></div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================== -->
+    <!-- MAIN FORM BODY (BALANCED PADDING FOR DESKTOP & MOBILE)         -->
+    <!-- ============================================================== -->
+    <main class="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-5 pb-28 md:pb-12 flex-1">
+
+        <!-- Server Validation Errors -->
+        @if (isset($errors) && $errors->any())
+            <div class="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>Please correct the following errors:</span>
+                </div>
+                <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -109,350 +128,1205 @@
             </div>
         @endif
 
-        <!-- Main Booking Form -->
-        <form action="{{ route('booking.store') }}" method="POST" enctype="multipart/form-data" 
-              class="space-y-10 bg-white/90 backdrop-blur-sm rounded-3xl border border-stone-200/80 p-6 sm:p-12 luxury-card-shadow">
+        <form id="reservationForm" action="{{ route('booking.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <!-- STEP 1: IDENTITAS MEMPELAI -->
-            <section class="space-y-6">
-                <div class="flex items-center gap-3 border-b border-stone-100 pb-4">
-                    <span class="w-7 h-7 rounded-full bg-gold-100 text-gold-800 font-serif font-bold text-xs flex items-center justify-center border border-gold-200">
-                        1
-                    </span>
-                    <div>
-                        <h2 class="font-serif text-lg font-bold text-obsidian">Identitas Calon Mempelai</h2>
-                        <p class="text-[11px] text-stone-500">Nama resmi yang akan dicantumkan pada kuitansi dan rundown acara.</p>
-                    </div>
+            <!-- ============================================================== -->
+            <!-- STEP 1: DATE & CALENDAR AVAILABILITY                           -->
+            <!-- ============================================================== -->
+            <div x-show="step === 1"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="space-y-4 sm:space-y-5">
+
+                <!-- Step Title -->
+                <div class="space-y-1">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 1 of 4 • Event Schedule</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">When is your wedding date?</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                        We accept only 1 exclusive wedding per date. Pick an open date from the calendar.
+                    </p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-stone-700 mb-1.5 uppercase tracking-wider">
-                            Nama Lengkap Mempelai / Klien <span class="text-gold-600">*</span>
-                        </label>
-                        <input type="text" name="customer_name" required value="{{ old('customer_name') }}"
-                               class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-stone-200 text-sm focus:bg-white focus:ring-2 focus:ring-gold-400 focus:border-transparent focus:outline-none transition"
-                               placeholder="Contoh: Muhammad Reza Pratama & Dian Sastrowardoyo">
-                    </div>
+                <!-- Calendar Card -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-card space-y-4">
+                    
+                    <!-- Month Switcher Header with Custom Styled Dropdowns -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                        <!-- Custom Month & Year Dropdown Pills -->
+                        <div class="flex items-center gap-2">
+                            <!-- Custom Month Dropdown -->
+                            <div class="relative" @click.away="monthOpen = false">
+                                <button type="button" @click="monthOpen = !monthOpen; yearOpen = false"
+                                        class="inline-flex items-center justify-between gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
+                                    <span x-text="monthNames[calMonth]"></span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"
+                                         :class="{ 'rotate-180 text-brand-600': monthOpen }"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1.5 uppercase tracking-wider">
-                            Nomor WhatsApp Aktif <span class="text-gold-600">*</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-3 text-xs text-stone-400 font-mono">📱</span>
-                            <input type="tel" name="customer_phone" required value="{{ old('customer_phone') }}"
-                                   class="w-full pl-10 pr-4 py-3 rounded-xl bg-cream-50 border border-stone-200 text-sm focus:bg-white focus:ring-2 focus:ring-gold-400 focus:border-transparent focus:outline-none transition"
-                                   placeholder="081234567890">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1.5 uppercase tracking-wider">
-                            Alamat Email (Opsional)
-                        </label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-3 text-xs text-stone-400">✉️</span>
-                            <input type="email" name="customer_email" value="{{ old('customer_email') }}"
-                                   class="w-full pl-10 pr-4 py-3 rounded-xl bg-cream-50 border border-stone-200 text-sm focus:bg-white focus:ring-2 focus:ring-gold-400 focus:border-transparent focus:outline-none transition"
-                                   placeholder="mempelai@email.com">
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-stone-700 mb-1.5 uppercase tracking-wider">
-                            Tanggal Acara Pernikahan <span class="text-gold-600">*</span>
-                        </label>
-                        <div class="relative">
-                            <input type="date" name="event_date" required min="{{ date('Y-m-d') }}"
-                                   x-model="selectedDate" value="{{ old('event_date') }}"
-                                   class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-stone-200 text-sm focus:bg-white focus:ring-2 focus:ring-gold-400 focus:border-transparent focus:outline-none transition">
-                        </div>
-
-                        <!-- Date Overbooked Alert -->
-                        <div x-show="isDateBooked" class="mt-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2 text-xs text-rose-700 font-medium">
-                            <span>⚠️</span>
-                            <span>Maaf, jadwal pada tanggal tersebut sudah terisi penuh oleh klien lain. Silakan pilih tanggal lain yang masih tersedia.</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- STEP 2: PAKET & ADD-ON -->
-            <section class="space-y-6">
-                <div class="flex items-center gap-3 border-b border-stone-100 pb-4">
-                    <span class="w-7 h-7 rounded-full bg-gold-100 text-gold-800 font-serif font-bold text-xs flex items-center justify-center border border-gold-200">
-                        2
-                    </span>
-                    <div>
-                        <h2 class="font-serif text-lg font-bold text-obsidian">Pilihan Paket & Tambahan Layanan</h2>
-                        <p class="text-[11px] text-stone-500">Pilih paket utama dan tambahkan fasilitas ekstra sesuai kebutuhan resepsi Anda.</p>
-                    </div>
-                </div>
-
-                <!-- Package Selection Grid -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
-                        Pilih Paket Utama <span class="text-gold-600">*</span>
-                    </label>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <template x-for="pkg in packages" :key="pkg.id">
-                            <label class="relative flex flex-col justify-between p-5 rounded-2xl border cursor-pointer transition duration-200"
-                                   :class="selectedPackageId == pkg.id 
-                                       ? 'border-gold-500 bg-cream-50/70 ring-2 ring-gold-400 shadow-md' 
-                                       : 'border-stone-200 hover:border-gold-300 hover:bg-cream-50/30'">
-                                <input type="radio" name="package_id" :value="pkg.id" class="sr-only" x-model="selectedPackageId">
-                                
-                                <div>
-                                    <div class="flex items-center justify-between gap-1 mb-2">
-                                        <h3 class="font-serif font-bold text-base text-obsidian" x-text="pkg.name"></h3>
-                                        <div class="w-4 h-4 rounded-full border flex items-center justify-center transition"
-                                             :class="selectedPackageId == pkg.id ? 'border-gold-600 bg-gold-500' : 'border-stone-300'">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="selectedPackageId == pkg.id"></div>
-                                        </div>
-                                    </div>
-                                    <span class="font-serif font-bold text-base text-gold-700" x-text="formatRupiah(pkg.base_price)"></span>
-                                    <p class="text-xs text-stone-500 mt-2.5 leading-relaxed line-clamp-3" x-text="pkg.description"></p>
+                                <div x-show="monthOpen"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                     class="absolute left-0 mt-2 w-44 max-h-60 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
+                                     x-cloak>
+                                    <template x-for="(name, idx) in monthNames" :key="idx">
+                                        <button type="button"
+                                                @click="calMonth = idx; monthOpen = false"
+                                                :class="calMonth === idx ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'"
+                                                class="w-full text-left px-3.5 py-2 text-xs rounded-xl transition flex items-center justify-between cursor-pointer">
+                                            <span x-text="name"></span>
+                                            <span x-show="calMonth === idx" class="text-brand-600 font-bold text-xs">✓</span>
+                                        </button>
+                                    </template>
                                 </div>
+                            </div>
 
-                                <div class="mt-4 pt-3 border-t border-stone-200/60 flex items-center justify-between text-[11px]">
-                                    <span class="text-stone-400">Status</span>
-                                    <span class="font-medium text-emerald-700">Tersedia ✓</span>
+                            <!-- Custom Year Dropdown -->
+                            <div class="relative" @click.away="yearOpen = false">
+                                <button type="button" @click="yearOpen = !yearOpen; monthOpen = false"
+                                        class="inline-flex items-center justify-between gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
+                                    <span x-text="calYear"></span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"
+                                         :class="{ 'rotate-180 text-brand-600': yearOpen }"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+
+                                <div x-show="yearOpen"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                     class="absolute left-0 mt-2 w-32 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
+                                     x-cloak>
+                                    <template x-for="y in [2026, 2027, 2028, 2029]" :key="y">
+                                        <button type="button"
+                                                @click="calYear = y; yearOpen = false"
+                                                :class="calYear === y ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'"
+                                                class="w-full text-left px-3.5 py-2 text-xs rounded-xl transition flex items-center justify-between cursor-pointer">
+                                            <span x-text="y"></span>
+                                            <span x-show="calYear === y" class="text-brand-600 font-bold text-xs">✓</span>
+                                        </button>
+                                    </template>
                                 </div>
-                            </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation Chevrons & Today Button -->
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="prevCalMonth()"
+                                    class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer" title="Previous Month">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" @click="goToTodayMonth()"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 transition cursor-pointer">
+                                Today
+                            </button>
+                            <button type="button" @click="nextCalMonth()"
+                                    class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer" title="Next Month">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Days of Week Headers (7 Columns with Unique Index Key) -->
+                    <div class="grid grid-cols-7 gap-1 text-center">
+                        <template x-for="(dow, idx) in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="idx">
+                            <span class="text-[11px] font-bold text-slate-400 py-1" x-text="dow"></span>
                         </template>
                     </div>
-                </div>
 
-                <!-- Multi Add-ons Section -->
-                <div x-show="addons.length > 0" class="pt-4 space-y-3">
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
-                        Fasilitas Tambahan (Add-ons Opsional)
-                    </label>
+                    <!-- Calendar Grid -->
+                    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center">
+                        <template x-for="(cell, idx) in calendarGrid" :key="idx">
+                            <div class="relative">
+                                <!-- Active Month Days -->
+                                <template x-if="cell.isCurrentMonth">
+                                    <button type="button"
+                                            @click="!cell.isPast && !cell.isBooked && selectDate(cell.dateString)"
+                                            :disabled="cell.isPast || cell.isBooked"
+                                            class="w-full aspect-square rounded-xl flex flex-col items-center justify-center relative text-xs sm:text-sm font-semibold transition active:scale-95 cursor-pointer border"
+                                            :class="{
+                                                'bg-brand-600 border-brand-600 text-white font-extrabold shadow-pill': selectedDate === cell.dateString,
+                                                'bg-slate-50/70 border-slate-100 text-slate-300 cursor-not-allowed': cell.isPast,
+                                                'bg-rose-50/80 border-rose-100 text-rose-300 cursor-not-allowed': cell.isBooked && !cell.isPast,
+                                                'bg-white border-slate-200/80 text-slate-700 hover:border-brand-500 hover:bg-brand-50/50 hover:text-brand-800 shadow-subtle': !cell.isPast && !cell.isBooked && selectedDate !== cell.dateString,
+                                                'ring-2 ring-brand-600/30 border-brand-600': cell.isToday && selectedDate !== cell.dateString
+                                            }">
+                                        <span x-text="cell.day"></span>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <template x-for="(addon, idx) in addons" :key="addon.id">
-                            <div class="flex items-center justify-between p-4 rounded-2xl border border-stone-200/90 bg-cream-50/40 hover:bg-cream-50 transition">
-                                <div class="pr-2">
-                                    <h4 class="text-xs font-bold text-obsidian" x-text="addon.name"></h4>
-                                    <span class="text-[11px] font-medium text-gold-700" x-text="formatRupiah(addon.unit_price) + ' / ' + addon.unit"></span>
-                                </div>
+                                        <!-- Booked dot / label -->
+                                        <template x-if="cell.isBooked && !cell.isPast">
+                                            <span class="text-[8px] sm:text-[9px] font-bold text-rose-400 leading-none mt-0.5">FULL</span>
+                                        </template>
 
-                                <div class="flex items-center gap-2">
-                                    <input type="hidden" :name="`addons[${idx}][id]`" :value="addon.id">
-                                    
-                                    <button type="button" @click="addon.selectedQty = Math.max(0, (parseInt(addon.selectedQty) || 0) - 1)"
-                                            class="w-7 h-7 rounded-lg bg-white border border-stone-300 text-stone-600 font-bold hover:bg-stone-100 flex items-center justify-center text-xs transition">
-                                        -
+                                        <!-- Today micro dot -->
+                                        <template x-if="cell.isToday && selectedDate !== cell.dateString">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-brand-600 absolute bottom-1"></span>
+                                        </template>
                                     </button>
+                                </template>
 
-                                    <input type="number" :name="`addons[${idx}][qty]`" min="0" max="1000" 
-                                           x-model.number="addon.selectedQty"
-                                           class="w-14 px-2 py-1.5 rounded-lg border border-stone-300 bg-white text-center text-xs font-bold text-stone-800 focus:outline-none focus:ring-1 focus:ring-gold-500"
-                                           placeholder="0">
-
-                                    <button type="button" @click="addon.selectedQty = (parseInt(addon.selectedQty) || 0) + 1"
-                                            class="w-7 h-7 rounded-lg bg-white border border-stone-300 text-stone-600 font-bold hover:bg-stone-100 flex items-center justify-center text-xs transition">
-                                        +
-                                    </button>
-                                </div>
+                                <!-- Padding from adjacent months -->
+                                <template x-if="!cell.isCurrentMonth">
+                                    <div class="w-full aspect-square rounded-xl flex items-center justify-center text-xs text-slate-200 border border-transparent select-none">
+                                        <span x-text="cell.day"></span>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </div>
-                </div>
-            </section>
 
-            <!-- ORDER SUMMARY CARD (ELEGANT RECEIPT PREVIEW) -->
-            <section class="bg-gradient-to-br from-cream-100/80 via-cream-50 to-cream-100/40 border border-gold-200/80 rounded-2xl p-6 space-y-4">
-                <div class="flex items-center justify-between border-b border-gold-200/60 pb-3">
-                    <span class="font-serif font-bold text-xs uppercase tracking-widest text-gold-800">Rincian Perhitungan Biaya</span>
-                    <span class="text-[10px] text-stone-400 uppercase font-mono tracking-wider">Automated Quotation</span>
-                </div>
+                    <!-- Hidden input to submit via standard POST -->
+                    <input type="hidden" name="event_date" :value="selectedDate" required>
 
-                <div class="space-y-2 text-xs text-stone-600">
-                    <div class="flex justify-between items-center">
-                        <span>Paket: <strong class="text-stone-800" x-text="currentPackageName"></strong></span>
-                        <span class="font-medium text-stone-900" x-text="formatRupiah(currentPackagePrice)"></span>
+                    <!-- Selected Date Live Status Box -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0"
+                                  :class="selectedDate ? (isDateBooked ? 'bg-rose-500' : 'bg-emerald-500') : 'bg-slate-300'"></span>
+                            <span class="text-slate-600 leading-tight">
+                                <template x-if="!selectedDate">
+                                    <span>Please tap an open date above to check reservation availability.</span>
+                                </template>
+                                <template x-if="selectedDate && !isDateBooked">
+                                    <span>Selected: <strong class="text-slate-900 font-bold" x-text="formattedSelectedDate"></strong> (Available)</span>
+                                </template>
+                                <template x-if="selectedDate && isDateBooked">
+                                    <span class="text-rose-600 font-semibold">Date is already booked. Please choose another date.</span>
+                                </template>
+                            </span>
+                        </div>
                     </div>
 
-                    <template x-for="addon in activeAddons" :key="addon.id">
-                        <div class="flex justify-between items-center text-stone-600">
-                            <span>Add-on: <span x-text="addon.name + ' (' + addon.selectedQty + ' ' + addon.unit + ')'"></span></span>
-                            <span class="font-medium text-stone-900" x-text="formatRupiah(addon.selectedQty * addon.unit_price)"></span>
-                        </div>
+                    <!-- Step 1 Inline Error Alert -->
+                    <div x-show="formErrors.step1" x-cloak x-transition
+                         class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 shadow-subtle">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span class="font-medium" x-text="formErrors.step1"></span>
+                    </div>
+
+                    <!-- DESKTOP & TABLET INLINE ACTION FOOTER (RIGHT BENEATH THE CALENDAR!) -->
+                    <div class="hidden md:flex items-center justify-end pt-3 border-t border-slate-100">
+                        <button type="button" @click="goToStep(2)" :disabled="!selectedDate || isDateBooked"
+                                class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-subtle">
+                            <span>Continue to Package</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- STEP 2: WEDDING PACKAGE & ADD-ONS                              -->
+            <!-- ============================================================== -->
+            <div x-show="step === 2"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="space-y-4 sm:space-y-5" x-cloak>
+
+                <!-- Step Title -->
+                <div class="space-y-1">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 2 of 4 • Package & Services</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Choose your wedding package</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                        Tap a package to select. You can add extra services below.
+                    </p>
+                </div>
+
+                <!-- Step 2 Inline Error Alert -->
+                <div x-show="formErrors.step2" x-cloak x-transition
+                     class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 shadow-subtle">
+                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span class="font-medium" x-text="formErrors.step2"></span>
+                </div>
+
+                <!-- Package Cards -->
+                <div class="space-y-3">
+                    <template x-for="pkg in packages" :key="pkg.id">
+                        <label class="block p-4 sm:p-5 rounded-2xl border transition select-none cursor-pointer relative active:scale-[0.99]"
+                               :class="selectedPackageId == pkg.id 
+                                   ? 'bg-white border-brand-600 ring-2 ring-brand-600/10 shadow-card' 
+                                   : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-subtle'">
+                            
+                            <input type="radio" name="package_id" :value="pkg.id" x-model="selectedPackageId" class="sr-only">
+
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="space-y-1.5 flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition"
+                                             :class="selectedPackageId == pkg.id ? 'border-brand-600 bg-brand-600' : 'border-slate-300 bg-white'">
+                                            <span class="w-2 h-2 rounded-full bg-white" x-show="selectedPackageId == pkg.id"></span>
+                                        </div>
+                                        <h3 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight truncate" x-text="pkg.name"></h3>
+                                        <template x-if="pkg.id == 2">
+                                            <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold tracking-wide uppercase border border-brand-200/60 shrink-0">
+                                                Popular
+                                            </span>
+                                        </template>
+                                    </div>
+                                    <p class="text-xs text-slate-500 leading-relaxed pl-7" x-text="pkg.description"></p>
+                                </div>
+
+                                <div class="text-right shrink-0 pt-0.5">
+                                    <span class="text-xs sm:text-base font-bold font-mono text-slate-900 tracking-tight"
+                                          x-text="formatRupiah(pkg.base_price)"></span>
+                                </div>
+                            </div>
+                        </label>
                     </template>
                 </div>
 
-                <div class="border-t border-gold-200/60 pt-3 flex justify-between items-baseline">
-                    <span class="font-serif font-bold text-sm text-obsidian">Total Estimasi Biaya</span>
-                    <span class="font-serif font-bold text-xl text-gold-700" x-text="formatRupiah(grandTotal)"></span>
-                </div>
-            </section>
-
-            <!-- STEP 3: PEMBAYARAN & BUKTI TRANSFER -->
-            <section class="space-y-6">
-                <div class="flex items-center gap-3 border-b border-stone-100 pb-4">
-                    <span class="w-7 h-7 rounded-full bg-gold-100 text-gold-800 font-serif font-bold text-xs flex items-center justify-center border border-gold-200">
-                        3
-                    </span>
-                    <div>
-                        <h2 class="font-serif text-lg font-bold text-obsidian">Metode Pembayaran & Bukti Transfer</h2>
-                        <p class="text-[11px] text-stone-500">Pilih opsi pembayaran uang muka (DP) atau pelunasan 100%.</p>
-                    </div>
-                </div>
-
-                <!-- Payment Type Selector -->
-                <div class="grid grid-cols-2 gap-4">
-                    <label class="relative p-4 rounded-2xl border text-center cursor-pointer transition flex flex-col items-center justify-center"
-                           :class="paymentType === 'dp' 
-                               ? 'border-gold-500 bg-cream-50/70 ring-2 ring-gold-400 font-bold shadow-sm' 
-                               : 'border-stone-200 hover:border-gold-300'">
-                        <input type="radio" name="payment_type" value="dp" class="sr-only" x-model="paymentType">
-                        <span class="text-xs text-obsidian font-serif font-bold block">Uang Muka (DP)</span>
-                        <span class="text-[10px] text-stone-500 mt-0.5">Kunci tanggal dengan DP minimal</span>
-                    </label>
-
-                    <label class="relative p-4 rounded-2xl border text-center cursor-pointer transition flex flex-col items-center justify-center"
-                           :class="paymentType === 'lunas' 
-                               ? 'border-gold-500 bg-cream-50/70 ring-2 ring-gold-400 font-bold shadow-sm' 
-                               : 'border-stone-200 hover:border-gold-300'">
-                        <input type="radio" name="payment_type" value="lunas" class="sr-only" x-model="paymentType">
-                        <span class="text-xs text-obsidian font-serif font-bold block">Pelunasan Penuh (100%)</span>
-                        <span class="text-[10px] text-stone-500 mt-0.5">Selesaikan seluruh pembayaran</span>
-                    </label>
-                </div>
-
-                <!-- DP Nominal Input Box -->
-                <div x-show="paymentType === 'dp'" class="p-5 bg-cream-50/60 rounded-2xl border border-stone-200 space-y-2">
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
-                        Nominal DP yang Ditransfer <span class="text-gold-600">*</span>
-                    </label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-3 text-xs font-bold text-gold-700">Rp</span>
-                        <input type="number" name="nominal_dp" x-model.number="nominalDp"
-                               class="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-stone-200 text-sm font-semibold text-stone-900 focus:ring-2 focus:ring-gold-400 focus:outline-none transition"
-                               placeholder="5000000">
-                    </div>
-                    <div class="flex justify-between items-center text-xs text-stone-500 pt-1">
-                        <span>Sisa pelunasan nanti: <strong class="text-stone-800" x-text="formatRupiah(remainingBalance)"></strong></span>
-                        <span class="text-[11px] text-gold-700">Minimal DP: <span x-text="formatRupiah(minDpAmount)"></span></span>
-                    </div>
-                </div>
-
-                <!-- LUXURY METALLIC BANK CARD -->
-                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-stone-900 via-stone-800 to-obsidian p-6 text-white shadow-xl">
-                    <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-gold-400/10 blur-xl"></div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-xs font-mono font-bold tracking-widest text-gold-300 uppercase">Rekening Resmi Pembayaran</span>
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-gold-400/20 text-gold-300 border border-gold-400/30">Bank BCA</span>
-                    </div>
-                    <div class="space-y-1">
-                        <span class="text-[11px] text-stone-400 uppercase tracking-wider">Nomor Rekening:</span>
-                        <p class="font-mono text-xl sm:text-2xl font-bold tracking-widest text-gold-200">8831 294 819</p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-stone-700/60 flex items-center justify-between text-xs text-stone-300">
-                        <span>Atas Nama: <strong class="text-white">NK Barokah Wedding Organizer</strong></span>
-                        <span class="text-[10px] text-stone-400">Verifikasi 1x24 Jam</span>
-                    </div>
-                </div>
-
-                <!-- FILE UPLOAD DROPZONE WITH PREVIEW -->
-                <div class="space-y-2" x-data="{ previewUrl: null }">
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">
-                        Unggah Struk / Bukti Transfer <span class="text-gold-600">*</span>
-                    </label>
-
-                    <div class="relative border-2 border-dashed border-stone-300 rounded-2xl p-6 text-center hover:border-gold-400 bg-cream-50/30 transition">
-                        <input type="file" name="payment_proof" required accept="image/*,application/pdf"
-                               @change="const file = $event.target.files[0]; if (file && file.type.startsWith('image/')) { previewUrl = URL.createObjectURL(file); } else { previewUrl = null; }"
-                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-
-                        <div class="space-y-2">
-                            <span class="text-3xl block">📎</span>
-                            <div class="text-xs text-stone-600 font-medium">
-                                <span class="text-gold-700 font-bold underline">Pilih Berkas</span> atau tarik file bukti transfer ke sini
-                            </div>
-                            <p class="text-[11px] text-stone-400">Mendukung format JPG, PNG, atau PDF (Maksimal 3MB)</p>
+                <!-- Add-ons Selection -->
+                <div x-show="addons.length > 0" class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Optional Add-ons</h4>
+                            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Select additional venue amenities</p>
                         </div>
+                        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg transition"
+                              :class="activeAddons.length > 0 ? 'bg-brand-50 text-brand-700 border border-brand-200/80 shadow-xs' : 'bg-slate-100 text-slate-500'"
+                              x-text="`${activeAddons.length} added`"></span>
+                    </div>
 
-                        <!-- Image Preview -->
-                        <template x-if="previewUrl">
-                            <div class="mt-4 pt-4 border-t border-stone-200/60">
-                                <span class="text-[11px] text-stone-500 block mb-2 font-medium">Preview Struk Transfer:</span>
-                                <img :src="previewUrl" alt="Preview Bukti" class="max-h-48 mx-auto rounded-xl border border-stone-300 shadow-sm object-cover">
+                    <div class="space-y-2">
+                        <template x-for="(addon, idx) in addons" :key="addon.id">
+                            <div class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3 text-xs"
+                                 :class="addon.selectedQty > 0 
+                                     ? 'bg-brand-50/40 border-brand-200/80 shadow-xs' 
+                                     : 'bg-slate-50/40 hover:bg-slate-50/80 border-slate-200/60'">
+                                
+                                <div class="min-w-0 flex-1 space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-bold text-slate-800 tracking-tight truncate text-xs sm:text-sm" x-text="addon.name"></p>
+                                        <span x-show="addon.selectedQty > 0" x-cloak
+                                              class="px-1.5 py-0.5 rounded-md bg-brand-600 text-white font-mono font-bold text-[10px] shrink-0">
+                                            <span x-text="`${addon.selectedQty}x`"></span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-[11px]">
+                                        <span class="text-slate-500 font-mono font-medium"
+                                               x-text="`${formatRupiah(addon.unit_price)} / ${addon.unit}`"></span>
+                                        <template x-if="addon.selectedQty > 0">
+                                            <span class="text-brand-700 font-mono font-bold">
+                                                • Subtotal: <span x-text="formatRupiah(addon.selectedQty * addon.unit_price)"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-1 shrink-0 bg-white rounded-xl border border-slate-200 p-1 shadow-subtle">
+                                    <input type="hidden" :name="`addons[${idx}][id]`" :value="addon.id">
+                                    
+                                    <button type="button"
+                                            @click="addon.selectedQty = Math.max(0, (parseInt(addon.selectedQty) || 0) - 1)"
+                                            :disabled="!addon.selectedQty || addon.selectedQty <= 0"
+                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition"
+                                            :class="!addon.selectedQty || addon.selectedQty <= 0 
+                                                ? 'text-slate-300 cursor-not-allowed bg-transparent' 
+                                                : 'text-slate-700 hover:bg-slate-100 active:scale-95 cursor-pointer bg-slate-50'">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                                    </button>
+
+                                    <input type="number" :name="`addons[${idx}][qty]`" min="0" max="1000"
+                                           x-model.number="addon.selectedQty"
+                                           class="w-8 sm:w-10 text-center bg-transparent font-mono font-extrabold text-xs sm:text-sm text-slate-900 focus:outline-none" placeholder="0">
+
+                                    <button type="button"
+                                            @click="addon.selectedQty = (parseInt(addon.selectedQty) || 0) + 1"
+                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition active:scale-95 cursor-pointer"
+                                            :class="addon.selectedQty > 0 
+                                                ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-xs' 
+                                                : 'bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700'">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </template>
                     </div>
                 </div>
-            </section>
 
-            <!-- SUBMIT BUTTON -->
-            <div class="pt-4">
-                <button type="submit" :disabled="isDateBooked"
-                        class="w-full py-4 rounded-2xl bg-gradient-to-r from-obsidian via-stone-900 to-obsidian hover:from-gold-700 hover:to-gold-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-serif font-bold text-sm sm:text-base tracking-wide transition duration-300 shadow-lg hover:shadow-xl active:scale-[0.99] flex items-center justify-center gap-2">
-                    <span>Konfirmasi Reservasi & Dapatkan Kuitansi Resmi</span>
-                    <span class="text-gold-300">✦</span>
-                </button>
-                <p class="text-[11px] text-center text-stone-400 mt-3">
-                    Dengan menekan tombol di atas, data pesanan dan jadwal Anda akan langsung terdaftar di sistem kami.
-                </p>
+                <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
+                <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
+                    <button type="button" @click="goToStep(1)"
+                            class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Back</span>
+                    </button>
+                    <div class="flex items-center gap-4 sm:gap-5">
+                        <div class="text-right">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Estimated Total</span>
+                            <span class="text-base sm:text-lg font-extrabold font-mono text-brand-700" x-text="formatRupiah(grandTotal)"></span>
+                        </div>
+                        <button type="button" @click="goToStep(3)"
+                                class="px-6 py-2.5 sm:py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
+                            <span>Continue to Couple Details</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- STEP 3: COUPLE INFORMATION                                     -->
+            <!-- ============================================================== -->
+            <div x-show="step === 3"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="space-y-4 sm:space-y-5" x-cloak>
+
+                <div class="space-y-1">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 3 of 4 • Couple Details</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Who are we planning for?</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                        Enter couple names and WhatsApp contact for contract and coordination.
+                    </p>
+                </div>
+
+                <!-- Input Fields Card -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-card space-y-4">
+                    
+                    <!-- Step 3 Inline Error Alert -->
+                    <div x-show="formErrors.step3" x-cloak x-transition
+                         class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 shadow-subtle">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span class="font-medium" x-text="formErrors.step3"></span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                            Couple Names <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" name="customer_name" required x-model="customerName"
+                               @input="customerName = $event.target.value.toUpperCase(); formErrors.customer_name = null; formErrors.step3 = null"
+                               autocapitalize="characters" autocomplete="name"
+                               placeholder="e.g. MUHAMMAD REZA & DIAN SASTROWARDOYO"
+                               class="w-full px-4 py-3 rounded-xl border text-base sm:text-sm uppercase placeholder:normal-case placeholder:text-slate-400 focus:outline-none transition"
+                               :class="formErrors.customer_name 
+                                   ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/20 text-slate-900' 
+                                   : 'border-slate-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15'">
+                        <p x-show="formErrors.customer_name" x-cloak class="text-xs font-semibold text-rose-600 flex items-center gap-1.5 pt-0.5">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span x-text="formErrors.customer_name"></span>
+                        </p>
+                        <p x-show="!formErrors.customer_name" class="text-[11px] text-slate-400">Both bride and groom names to appear on the official contract.</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                            WhatsApp Phone Number <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 text-xs font-bold text-slate-400 select-none">+62</span>
+                            <input id="phoneInput" type="tel" required
+                                   :value="phoneDisplay"
+                                   @input="handlePhoneInput($event)"
+                                   inputmode="numeric"
+                                   placeholder="857-1234-5678"
+                                   class="w-full pl-14 pr-4 py-3 rounded-xl border text-base sm:text-sm placeholder:text-slate-400 focus:outline-none transition font-mono"
+                                   :class="formErrors.customer_phone 
+                                       ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/20 text-slate-900' 
+                                       : 'border-slate-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15'">
+                            <input type="hidden" name="customer_phone" :value="rawPhoneDigits ? ('0' + rawPhoneDigits) : ''">
+                        </div>
+                        <p x-show="formErrors.customer_phone" x-cloak class="text-xs font-semibold text-rose-600 flex items-center gap-1.5 pt-0.5">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span x-text="formErrors.customer_phone"></span>
+                        </p>
+                        <p x-show="!formErrors.customer_phone" class="text-[11px] text-slate-400">Invoice receipt and schedule confirmation are delivered here.</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                            Email Address <span class="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <input type="email" name="customer_email" x-model="customerEmail"
+                               @input="customerEmail = $event.target.value.toLowerCase()"
+                               inputmode="email" autocomplete="email"
+                               autocapitalize="none" autocorrect="off" spellcheck="false"
+                               placeholder="reza.dian@example.com"
+                               class="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm lowercase placeholder:normal-case placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                    </div>
+
+                </div>
+
+                <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
+                <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
+                    <button type="button" @click="goToStep(2)"
+                            class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Back</span>
+                    </button>
+                    <button type="button" @click="goToStep(4)"
+                            class="px-6 py-2.5 sm:py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
+                        <span>Continue to Payment</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- STEP 4: REVIEW, DOWN PAYMENT & RECEIPT UPLOAD                 -->
+            <!-- ============================================================== -->
+            <div x-show="step === 4"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="space-y-4 sm:space-y-5" x-cloak>
+
+                <div class="space-y-1">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 4 of 4 • Confirmation & Payment</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Review & lock your reservation</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                        Verify invoice details and upload your bank transfer receipt.
+                    </p>
+                </div>
+
+                <!-- Quotation Breakdown Table -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3">
+                    <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Reservation Breakdown</h3>
+                        <span class="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-md"
+                              x-text="formattedSelectedDate"></span>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between items-center text-slate-600">
+                            <span>Package: <strong class="text-slate-900 font-semibold" x-text="currentPackageName"></strong></span>
+                            <span class="font-mono font-semibold text-slate-900" x-text="formatRupiah(currentPackagePrice)"></span>
+                        </div>
+
+                        <template x-for="ad in activeAddons" :key="ad.id">
+                            <div class="flex justify-between items-center text-slate-500 pl-2 border-l border-slate-200">
+                                <span x-text="`${ad.name} (${ad.selectedQty}x)`"></span>
+                                <span class="font-mono text-slate-700" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
+                            </div>
+                        </template>
+
+                        <div class="pt-2.5 border-t border-slate-100 flex justify-between items-baseline font-bold text-sm text-slate-900">
+                            <span>Grand Total</span>
+                            <span class="text-base sm:text-lg font-mono font-extrabold text-brand-700" x-text="formatRupiah(grandTotal)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Payment Method</h3>
+
+                    <!-- Toggle DP vs Lunas -->
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="p-3 rounded-xl border text-center cursor-pointer transition select-none active:scale-[0.98]"
+                               :class="paymentType === 'dp' 
+                                   ? 'border-brand-600 bg-brand-50/50 text-brand-900 font-semibold ring-1 ring-brand-600/20' 
+                                   : 'border-slate-200 hover:border-slate-300 text-slate-700'">
+                            <input type="radio" name="payment_type" value="dp" class="sr-only" x-model="paymentType">
+                            <span class="text-xs block font-bold">Down Payment (DP)</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Lock date with minimum DP</span>
+                        </label>
+
+                        <label class="p-3 rounded-xl border text-center cursor-pointer transition select-none active:scale-[0.98]"
+                               :class="paymentType === 'lunas' 
+                                   ? 'border-brand-600 bg-brand-50/50 text-brand-900 font-semibold ring-1 ring-brand-600/20' 
+                                   : 'border-slate-200 hover:border-slate-300 text-slate-700'">
+                            <input type="radio" name="payment_type" value="lunas" class="sr-only" x-model="paymentType">
+                            <span class="text-xs block font-bold">Full Settlement (100%)</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Settle full contract balance</span>
+                        </label>
+                    </div>
+
+                    <!-- DP Amount Input -->
+                    <div x-show="paymentType === 'dp'" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5" x-cloak>
+                        <div class="flex items-center justify-between text-xs">
+                            <label class="font-semibold text-slate-700">DP Transfer Amount</label>
+                            <span class="text-slate-500 text-[11px]">Min: <span class="font-mono font-bold text-slate-800" x-text="formatRupiah(minDpAmount)"></span></span>
+                        </div>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 text-xs font-bold text-slate-400 select-none">Rp</span>
+                            <input id="nominalDpInput" type="text" inputmode="numeric"
+                                   :value="nominalDpDisplay"
+                                   @input="handleNominalDpInput($event)"
+                                   placeholder="1.000.000"
+                                   class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-base sm:text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                            <input type="hidden" name="nominal_dp" :value="nominalDp">
+                        </div>
+
+                        <!-- Quick DP Preset Pills -->
+                        <div class="flex items-center gap-2 pt-0.5">
+                            <button type="button" @click="setNominalDp(minDpAmount)"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
+                                    :class="nominalDp === minDpAmount ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
+                                Min DP (Rp 1 Juta)
+                            </button>
+                            <button type="button" @click="setNominalDp(Math.round(grandTotal * 0.5))"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
+                                    :class="nominalDp === Math.round(grandTotal * 0.5) ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
+                                50% DP
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs text-slate-500 pt-1.5 border-t border-slate-200/60">
+                            <span>Remaining balance due:</span>
+                            <strong class="font-mono font-bold text-slate-900" x-text="formatRupiah(remainingBalance)"></strong>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 Inline Error Alert -->
+                    <div x-show="formErrors.step4" x-cloak x-transition
+                         class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 shadow-subtle">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span class="font-medium" x-text="formErrors.step4"></span>
+                    </div>
+
+                    <!-- Destination Bank Section (Authentic ATM / Debit Card UI) -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Rekening Resmi Transfer
+                            </span>
+                            <!-- Bank Switcher Tabs -->
+                            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-subtle">
+                                <button type="button" @click="activeBank = 'bca'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        :class="activeBank === 'bca' 
+                                            ? 'bg-blue-700 text-white shadow-xs' 
+                                            : 'text-slate-600 hover:text-slate-900'">
+                                    <span class="w-2 h-2 rounded-full" :class="activeBank === 'bca' ? 'bg-white' : 'bg-blue-600'"></span>
+                                    <span>Bank BCA</span>
+                                </button>
+                                <button type="button" @click="activeBank = 'bri'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        :class="activeBank === 'bri' 
+                                            ? 'bg-[#00529C] text-white shadow-xs' 
+                                            : 'text-slate-600 hover:text-slate-900'">
+                                    <span class="w-2 h-2 rounded-full" :class="activeBank === 'bri' ? 'bg-white' : 'bg-sky-600'"></span>
+                                    <span>Bank BRI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Realistic ATM / Debit Bank Card -->
+                        <div class="w-full rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-white relative overflow-hidden shadow-xl transition-all duration-300 min-h-[210px] flex flex-col justify-between select-none"
+                             :class="activeBank === 'bca' 
+                                 ? 'bg-gradient-to-br from-[#003B73] via-[#00519E] to-[#001D38] border border-blue-400/30' 
+                                 : 'bg-gradient-to-br from-[#00529C] via-[#00396B] to-[#01182D] border border-sky-400/30'">
+                            
+                            <!-- Ambient Decorative Elements (Bank Holographic Waves) -->
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
+                            <div class="absolute -left-10 -top-10 w-40 h-40 rounded-full bg-cyan-400/10 blur-xl pointer-events-none"></div>
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none"></div>
+
+                            <!-- Card Top Bar: Chip, Contactless & Bank Brand Logo -->
+                            <div class="flex items-center justify-between relative z-10">
+                                <div class="flex items-center gap-3">
+                                    <!-- Metallic Gold EMV Chip -->
+                                    <div class="w-11 h-8 rounded-md bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 shadow border border-amber-400/80 p-0.5 relative overflow-hidden shrink-0">
+                                        <div class="w-full h-full border border-amber-700/30 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                                            <div class="border-r border-b border-amber-700/40 rounded-tl"></div>
+                                            <div class="border-b border-amber-700/40 rounded-tr"></div>
+                                            <div class="border-r border-amber-700/40 rounded-bl"></div>
+                                            <div class="rounded-br"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Contactless NFC Wave Icon -->
+                                    <svg class="w-5 h-5 text-white/70 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                                    </svg>
+                                </div>
+
+                                <!-- Bank Brand Logo Badge -->
+                                <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/20 shadow-xs">
+                                    <span class="font-extrabold tracking-tight text-base text-white"
+                                          x-text="activeBank === 'bca' ? 'BCA' : 'BRI'"></span>
+                                    <span class="text-[9px] font-mono tracking-widest text-white/80 uppercase px-1.5 py-0.5 rounded bg-white/15"
+                                          x-text="activeBank === 'bca' ? 'PASPOR' : 'BRITAMA'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Card Middle: Embossed Account Number & Copy Button -->
+                            <div class="my-4 relative z-10 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-white/60">Nomor Rekening Resmi</span>
+                                    <span class="text-[10px] font-medium text-white/70" x-text="activeBank === 'bca' ? 'BCA Virtual / Kantor Cabang' : 'BRI Kantor Unit / Cabang'"></span>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 pt-0.5">
+                                    <p class="font-mono text-xl sm:text-2xl md:text-[26px] font-extrabold tracking-widest text-white drop-shadow-md select-all"
+                                       x-text="banks[activeBank].formatted"></p>
+                                    <button type="button" @click="copyBankAccount()"
+                                            class="px-3.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-xs text-white transition font-bold flex items-center gap-1.5 border border-white/30 shadow-sm cursor-pointer backdrop-blur-md shrink-0">
+                                        <svg x-show="!copiedBank" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                        <span x-text="copiedBank ? 'Tersalin!' : 'Salin'"></span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Card Bottom: Cardholder Name & GPN / Debit Badge -->
+                            <div class="pt-3 border-t border-white/15 flex items-center justify-between text-xs relative z-10">
+                                <div>
+                                    <span class="text-[8px] uppercase font-bold tracking-wider text-white/50 block">Cardholder / Atas Nama</span>
+                                    <p class="font-mono font-bold tracking-wider text-white text-xs sm:text-sm uppercase" x-text="banks[activeBank].holder"></p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-white/15 font-mono text-[9px] font-bold tracking-wider text-white/90 uppercase border border-white/20">
+                                        DEBIT
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded bg-white text-slate-900 font-extrabold text-[9px] tracking-wider uppercase shadow-xs">
+                                        GPN
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 text-center leading-relaxed">
+                            Silakan lakukan transfer ke rekening <strong class="text-slate-800" x-text="banks[activeBank].name"></strong> di atas atas nama <strong class="text-slate-800">EZZU RAKHMAT FIRDAUS</strong>, lalu upload bukti transfer di bawah.
+                        </p>
+                    </div>
+
+                    <!-- Payment Proof Upload Dropzone -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                            Upload Transfer Receipt <span class="text-rose-500">*</span>
+                        </label>
+                        
+                        <div class="border-2 border-dashed rounded-2xl p-5 text-center transition cursor-pointer relative group"
+                             :class="formErrors.payment_proof 
+                                 ? 'border-rose-400 bg-rose-50/40' 
+                                 : 'border-slate-200 hover:border-brand-600 bg-slate-50/70 active:bg-slate-100'">
+                            <input type="file" name="payment_proof" required accept="image/*,application/pdf"
+                                   @change="handleFileUpload($event)"
+                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            
+                            <div class="space-y-1.5">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-50 text-slate-500 group-hover:text-brand-600 mx-auto flex items-center justify-center transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-800">
+                                    <span class="text-brand-600 underline">Tap to take photo or upload</span>
+                                </p>
+                                <p class="text-[11px] text-slate-400">JPG, PNG, or PDF up to 3MB</p>
+                            </div>
+
+                            <template x-if="previewUrl">
+                                <div class="mt-3 pt-3 border-t border-slate-200">
+                                    <img :src="previewUrl" alt="Receipt preview" class="max-h-28 mx-auto rounded-lg border border-slate-200 object-cover shadow-sm">
+                                </div>
+                            </template>
+                            <template x-if="!previewUrl && fileName">
+                                <p class="text-xs font-mono font-semibold text-slate-800 mt-2" x-text="fileName"></p>
+                            </template>
+                        </div>
+                        <p x-show="formErrors.payment_proof" x-cloak class="text-xs font-semibold text-rose-600 flex items-center gap-1.5 pt-0.5">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span x-text="formErrors.payment_proof"></span>
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
+                <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
+                    <button type="button" @click="goToStep(3)"
+                            class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Back</span>
+                    </button>
+                    <button type="button" @click="submitBookingForm()" :disabled="isDateBooked"
+                            class="px-7 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
+                        <span>Confirm Reservation</span>
+                </div>
+
             </div>
 
         </form>
 
-        <!-- Footer Branding -->
-        <footer class="mt-12 text-center text-xs text-stone-400 space-y-1">
-            <p>&copy; {{ date('Y') }} NK Barokah Wedding Organizer & Event Management.</p>
-            <p class="text-[11px]">Yogyakarta & Solo | Layanan Reservasi Digital Sah</p>
-        </footer>
+    </main>
 
+    <!-- ============================================================== -->
+    <!-- STICKY BOTTOM DOCK (MOBILE-ONLY THUMB NAVIGATION < 768px)      -->
+    <!-- ============================================================== -->
+    <div class="block md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-dock pb-safe">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            
+            <!-- Left Info / Running Total Indicator -->
+            <div class="min-w-0 flex-1">
+                <div x-show="step === 1">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Date Status</p>
+                    <p class="text-xs font-bold text-slate-900 truncate"
+                       x-text="selectedDate ? formattedSelectedDate : 'No date chosen'"></p>
+                </div>
+
+                <div x-show="step > 1" x-cloak>
+                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Grand Total</p>
+                    <p class="text-sm font-bold font-mono text-brand-700 tracking-tight"
+                       x-text="formatRupiah(grandTotal)"></p>
+                </div>
+            </div>
+
+            <!-- Right Buttons Group -->
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" x-show="step > 1" @click="step--"
+                        class="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 font-semibold text-xs transition cursor-pointer">
+                    Back
+                </button>
+
+                <button type="button" x-show="step < 4" @click="goToStep(step + 1)"
+                        :disabled="step === 1 && (!selectedDate || isDateBooked)"
+                        class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-subtle">
+                    <span x-text="step === 1 ? 'Select Package' : (step === 2 ? 'Couple Details' : 'Payment')"></span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+
+                <button type="button" x-show="step === 4" @click="submitBookingForm()"
+                        :disabled="isDateBooked"
+                        class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-pill" x-cloak>
+                    <span>Confirm Booking</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                </button>
+            </div>
+
+        </div>
     </div>
 
-<script>
-function bookingApp(config) {
-    return {
-        packages: config.packages,
-        addons: config.addons.map(a => ({ ...a, selectedQty: 0 })),
-        bookedDates: config.bookedDates,
-        minDpAmount: config.minDpAmount,
-        selectedPackageId: config.packages.length > 0 ? config.packages[0].id : null,
-        selectedDate: '{{ old("event_date", "") }}',
-        paymentType: '{{ old("payment_type", "dp") }}',
-        nominalDp: {{ old('nominal_dp') ? old('nominal_dp') : 'config.minDpAmount' }},
+    <!-- Minimal Clean Footer -->
+    <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
+        <div class="max-w-2xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
+            <p>&copy; {{ date('Y') }} NK Barokah Wedding Organizer. All rights reserved.</p>
+            <p class="text-slate-400">Direct booking & schedule locking system</p>
+        </div>
+    </footer>
 
-        get isDateBooked() {
-            return this.selectedDate && this.bookedDates.includes(this.selectedDate);
-        },
-        get currentPackage() {
-            return this.packages.find(p => p.id == this.selectedPackageId);
-        },
-        get currentPackageName() {
-            return this.currentPackage ? this.currentPackage.name : '-';
-        },
-        get currentPackagePrice() {
-            return this.currentPackage ? parseFloat(this.currentPackage.base_price) : 0;
-        },
-        get activeAddons() {
-            return this.addons.filter(a => parseInt(a.selectedQty) > 0);
-        },
-        get addonTotalPrice() {
-            return this.activeAddons.reduce((sum, a) => sum + (parseInt(a.selectedQty) * parseFloat(a.unit_price)), 0);
-        },
-        get grandTotal() {
-            return this.currentPackagePrice + this.addonTotalPrice;
-        },
-        get remainingBalance() {
-            if (this.paymentType === 'lunas') return 0;
-            const diff = this.grandTotal - (parseFloat(this.nominalDp) || 0);
-            return diff > 0 ? diff : 0;
-        },
-        formatRupiah(val) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val || 0);
+    <!-- Alpine.js Reservation App Logic -->
+    <script>
+    function bookingReservation(config) {
+        return {
+            step: 1,
+            packages: config.packages,
+            addons: config.addons.map(a => ({ ...a, selectedQty: 0 })),
+            bookedDates: config.bookedDates,
+            minDpAmount: config.minDpAmount,
+
+            // Form inputs
+            customerName: '{{ old("customer_name", "") }}'.toUpperCase(),
+            phoneDisplay: '',
+            rawPhoneDigits: '',
+            customerEmail: '{{ old("customer_email", "") }}'.toLowerCase(),
+            selectedDate: config.oldEventDate || '',
+            selectedPackageId: config.packages.length > 0 ? config.packages[0].id : null,
+            paymentType: '{{ old("payment_type", "dp") }}',
+            nominalDp: {{ old('nominal_dp') ? old('nominal_dp') : 'config.minDpAmount' }},
+            nominalDpDisplay: '',
+
+            // Inline Reactive Form Validation Errors
+            formErrors: {
+                step1: null,
+                step2: null,
+                step3: null,
+                step4: null,
+                customer_name: null,
+                customer_phone: null,
+                payment_proof: null
+            },
+
+            // Calendar state
+            calYear: 2026,
+            calMonth: 10, // November (0-indexed)
+            monthOpen: false,
+            yearOpen: false,
+            monthNames: [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ],
+
+            activeBank: 'bca',
+            banks: {
+                bca: {
+                    name: 'Bank BCA',
+                    number: '3620648107',
+                    formatted: '3620 648 107',
+                    holder: 'EZZU RAKHMAT FIRDAUS'
+                },
+                bri: {
+                    name: 'Bank BRI',
+                    number: '344301026581532',
+                    formatted: '3443 0102 6581 532',
+                    holder: 'EZZU RAKHMAT FIRDAUS'
+                }
+            },
+            copiedBank: false,
+            previewUrl: null,
+            fileName: '',
+
+            init() {
+                const now = new Date();
+                if (this.selectedDate) {
+                    this.syncCalendarToDate(this.selectedDate);
+                } else {
+                    this.calYear = now.getFullYear();
+                    this.calMonth = now.getMonth();
+                }
+
+                if (this.customerName) {
+                    this.customerName = this.customerName.toUpperCase();
+                }
+
+                const oldPhone = '{{ old("customer_phone", "") }}';
+                if (oldPhone) {
+                    this.setPhoneValue(oldPhone);
+                }
+
+                if (this.nominalDp) {
+                    this.nominalDpDisplay = new Intl.NumberFormat('id-ID').format(this.nominalDp);
+                }
+            },
+
+            formatPhoneNumber(raw) {
+                let digits = (raw || '').replace(/\D/g, '');
+                if (digits.startsWith('62')) {
+                    digits = digits.substring(2);
+                }
+                digits = digits.replace(/^0+/, '');
+                if (digits.length > 13) {
+                    digits = digits.substring(0, 13);
+                }
+
+                let formatted = '';
+                if (digits.length <= 3) {
+                    formatted = digits;
+                } else if (digits.length <= 7) {
+                    formatted = digits.slice(0, 3) + '-' + digits.slice(3);
+                } else if (digits.length <= 11) {
+                    formatted = digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+                } else {
+                    formatted = digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7, 11) + '-' + digits.slice(11);
+                }
+
+                return { digits, formatted };
+            },
+
+            setPhoneValue(val) {
+                const { digits, formatted } = this.formatPhoneNumber(val);
+                this.rawPhoneDigits = digits;
+                this.phoneDisplay = formatted;
+            },
+
+            handlePhoneInput(event) {
+                const { digits, formatted } = this.formatPhoneNumber(event.target.value);
+                this.rawPhoneDigits = digits;
+                this.phoneDisplay = formatted;
+                event.target.value = formatted;
+
+                this.formErrors.customer_phone = null;
+                this.formErrors.step3 = null;
+            },
+
+            setNominalDp(amount) {
+                this.nominalDp = amount;
+                this.nominalDpDisplay = new Intl.NumberFormat('id-ID').format(amount);
+                this.formErrors.step4 = null;
+            },
+
+            handleNominalDpInput(event) {
+                const raw = event.target.value.replace(/\D/g, '');
+                if (!raw) {
+                    this.nominalDp = 0;
+                    this.nominalDpDisplay = '';
+                    event.target.value = '';
+                    return;
+                }
+                const num = parseInt(raw, 10);
+                this.nominalDp = num;
+                const formatted = new Intl.NumberFormat('id-ID').format(num);
+                this.nominalDpDisplay = formatted;
+                event.target.value = formatted;
+                this.formErrors.step4 = null;
+            },
+
+            get stepTitle() {
+                if (this.step === 1) return 'Schedule';
+                if (this.step === 2) return 'Package';
+                if (this.step === 3) return 'Couple';
+                return 'Payment';
+            },
+
+            get calendarGrid() {
+                const year = this.calYear;
+                const month = this.calMonth;
+                const firstDayIndex = new Date(year, month, 1).getDay();
+                const totalDays = new Date(year, month + 1, 0).getDate();
+                
+                const cells = [];
+                const prevMonthTotal = new Date(year, month, 0).getDate();
+                for (let i = firstDayIndex - 1; i >= 0; i--) {
+                    cells.push({
+                        day: prevMonthTotal - i,
+                        dateString: null,
+                        isCurrentMonth: false,
+                        isPast: true,
+                        isBooked: false,
+                        isToday: false
+                    });
+                }
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+
+                for (let d = 1; d <= totalDays; d++) {
+                    const mStr = String(month + 1).padStart(2, '0');
+                    const dStr = String(d).padStart(2, '0');
+                    const dateStr = `${year}-${mStr}-${dStr}`;
+                    const dayDate = new Date(year, month, d);
+                    dayDate.setHours(0,0,0,0);
+
+                    const isPast = dayDate < today;
+                    const isBooked = this.bookedDates.includes(dateStr);
+                    const isToday = dayDate.getTime() === today.getTime();
+
+                    cells.push({
+                        day: d,
+                        dateString: dateStr,
+                        isCurrentMonth: true,
+                        isPast: isPast,
+                        isBooked: isBooked,
+                        isToday: isToday
+                    });
+                }
+                return cells;
+            },
+
+            prevCalMonth() {
+                if (this.calMonth === 0) {
+                    this.calMonth = 11;
+                    this.calYear--;
+                } else {
+                    this.calMonth--;
+                }
+            },
+
+            nextCalMonth() {
+                if (this.calMonth === 11) {
+                    this.calMonth = 0;
+                    this.calYear++;
+                } else {
+                    this.calMonth++;
+                }
+            },
+
+            goToTodayMonth() {
+                const now = new Date();
+                this.calYear = now.getFullYear();
+                this.calMonth = now.getMonth();
+            },
+
+            syncCalendarToDate(dateStr) {
+                if (!dateStr) return;
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    this.calYear = parseInt(parts[0], 10);
+                    this.calMonth = parseInt(parts[1], 10) - 1;
+                }
+            },
+
+            selectDate(dateStr) {
+                this.selectedDate = dateStr;
+                this.formErrors.step1 = null;
+            },
+
+            get isDateBooked() {
+                return this.selectedDate && this.bookedDates.includes(this.selectedDate);
+            },
+
+            get formattedSelectedDate() {
+                if (!this.selectedDate) return '';
+                const parts = this.selectedDate.split('-');
+                if (parts.length !== 3) return this.selectedDate;
+                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            },
+
+            get currentPackage() {
+                return this.packages.find(p => p.id == this.selectedPackageId);
+            },
+
+            get currentPackageName() {
+                return this.currentPackage ? this.currentPackage.name : '-';
+            },
+
+            get currentPackagePrice() {
+                return this.currentPackage ? parseFloat(this.currentPackage.base_price) : 0;
+            },
+
+            get activeAddons() {
+                return this.addons.filter(a => parseInt(a.selectedQty) > 0);
+            },
+
+            get addonTotalPrice() {
+                return this.activeAddons.reduce((sum, a) => sum + (parseInt(a.selectedQty) * parseFloat(a.unit_price)), 0);
+            },
+
+            get grandTotal() {
+                return this.currentPackagePrice + this.addonTotalPrice;
+            },
+
+            get remainingBalance() {
+                if (this.paymentType === 'lunas') return 0;
+                const diff = this.grandTotal - (parseFloat(this.nominalDp) || 0);
+                return diff > 0 ? diff : 0;
+            },
+
+            goToStep(nextStep) {
+                // Moving back: clear step errors and allow smooth transition
+                if (nextStep < this.step) {
+                    this.formErrors.step1 = null;
+                    this.formErrors.step2 = null;
+                    this.formErrors.step3 = null;
+                    this.formErrors.step4 = null;
+                    this.step = nextStep;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+
+                if (nextStep === 2) {
+                    if (!this.selectedDate) {
+                        this.formErrors.step1 = 'Please tap an open wedding date on the calendar.';
+                        return;
+                    }
+                    if (this.isDateBooked) {
+                        this.formErrors.step1 = 'The selected date is fully booked. Please choose another date.';
+                        return;
+                    }
+                    this.formErrors.step1 = null;
+                }
+
+                if (nextStep === 3) {
+                    if (!this.selectedPackageId) {
+                        this.formErrors.step2 = 'Please select a wedding package to continue.';
+                        return;
+                    }
+                    this.formErrors.step2 = null;
+                }
+
+                if (nextStep === 4) {
+                    let hasErr = false;
+                    const name = (this.customerName || '').trim();
+                    const phone = (this.rawPhoneDigits || '').trim();
+
+                    if (!name) {
+                        this.formErrors.customer_name = 'Please enter bride & groom couple names.';
+                        hasErr = true;
+                    } else {
+                        this.formErrors.customer_name = null;
+                    }
+
+                    if (!phone) {
+                        this.formErrors.customer_phone = 'Please enter WhatsApp phone number.';
+                        hasErr = true;
+                    } else if (phone.length < 8) {
+                        this.formErrors.customer_phone = 'Please enter a valid WhatsApp number (min. 8 digits).';
+                        hasErr = true;
+                    } else {
+                        this.formErrors.customer_phone = null;
+                    }
+
+                    if (hasErr) {
+                        this.formErrors.step3 = 'Please complete the required couple contact details below.';
+                        this.$nextTick(() => {
+                            if (!name) {
+                                document.querySelector('input[name="customer_name"]')?.focus();
+                            } else if (!phone || phone.length < 8) {
+                                document.getElementById('phoneInput')?.focus();
+                            }
+                        });
+                        return;
+                    }
+                    this.formErrors.step3 = null;
+                }
+
+                this.step = nextStep;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            submitBookingForm() {
+                const form = document.getElementById('reservationForm');
+
+                if (this.paymentType === 'dp') {
+                    if (!this.nominalDp || this.nominalDp < this.minDpAmount) {
+                        this.formErrors.step4 = 'Nominal DP minimal adalah ' + this.formatRupiah(this.minDpAmount) + '.';
+                        this.$nextTick(() => {
+                            document.getElementById('nominalDpInput')?.focus();
+                        });
+                        return;
+                    }
+                    if (this.nominalDp > this.grandTotal) {
+                        this.formErrors.step4 = 'Nominal DP tidak boleh melebihi Grand Total tagihan (' + this.formatRupiah(this.grandTotal) + ').';
+                        this.$nextTick(() => {
+                            document.getElementById('nominalDpInput')?.focus();
+                        });
+                        return;
+                    }
+                }
+
+                const fileInput = form.querySelector('input[name="payment_proof"]');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    this.formErrors.payment_proof = 'Please upload your bank transfer receipt before confirming.';
+                    this.formErrors.step4 = 'Bank transfer receipt is required to lock your reservation.';
+                    this.$nextTick(() => {
+                        fileInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                    return;
+                }
+                this.formErrors.payment_proof = null;
+                this.formErrors.step4 = null;
+                form.submit();
+            },
+
+            copyBankAccount() {
+                const current = this.banks[this.activeBank];
+                if (current) {
+                    navigator.clipboard.writeText(current.number);
+                    this.copiedBank = true;
+                    setTimeout(() => { this.copiedBank = false; }, 2000);
+                }
+            },
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                    this.previewUrl = null;
+                    this.fileName = '';
+                    return;
+                }
+                this.formErrors.payment_proof = null;
+                this.formErrors.step4 = null;
+                this.fileName = file.name;
+                if (file.type.startsWith('image/')) {
+                    this.previewUrl = URL.createObjectURL(file);
+                } else {
+                    this.previewUrl = null;
+                }
+            },
+
+            formatRupiah(val) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val || 0);
+            }
         }
     }
-}
-</script>
+    </script>
 </body>
 </html>

@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reservasi Berhasil - NK Barokah Wedding Organizer</title>
-    
-    <!-- Google Fonts -->
+    <title>Reservation Confirmed | NK Barokah</title>
+
+    <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -17,101 +18,109 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
                     },
                     colors: {
-                        gold: {
-                            100: '#F6F1E6',
-                            200: '#EBDDC3',
-                            300: '#DEC69B',
-                            500: '#C59A4D',
-                            600: '#A97E33',
-                            700: '#835F24',
-                        },
-                        obsidian: '#191614',
+                        brand: {
+                            50: '#F0FDF8',
+                            100: '#DCFCEE',
+                            200: '#BBF7DE',
+                            500: '#168579',
+                            600: '#045D56', // NK Barokah Primary Emerald
+                            700: '#034B45',
+                            800: '#023B36',
+                            900: '#022E2A',
+                        }
+                    },
+                    boxShadow: {
+                        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.02)',
+                        'pill': '0 4px 14px -2px rgba(4, 93, 86, 0.28)',
                     }
                 }
             }
         }
     </script>
+    <style>
+        .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+        .pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
+    </style>
 </head>
-<body class="bg-[#FAF8F5] text-stone-800 font-sans min-h-screen flex items-center justify-center p-4 selection:bg-gold-200">
+<body class="min-h-full bg-slate-50 text-slate-900 font-sans antialiased flex items-center justify-center p-4 sm:p-6 pb-safe pt-safe">
 
-    <div class="max-w-lg w-full bg-white rounded-3xl shadow-xl border border-stone-200/90 p-8 sm:p-10 text-center space-y-7 relative overflow-hidden">
-        
-        <!-- Top Golden Glow Accent -->
-        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-gold-300 via-gold-500 to-gold-300"></div>
+    <div class="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-card p-6 sm:p-8 text-center space-y-6">
 
-        <!-- Seal Badge Icon -->
-        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-gold-100 to-amber-100 border border-gold-300 flex items-center justify-center mx-auto text-3xl shadow-sm">
-            💍
+        <!-- Minimal Checkmark Icon -->
+        <div class="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-200/60 text-brand-600 flex items-center justify-center mx-auto">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
 
-        <!-- Header Titles -->
+        <!-- Header Content -->
         <div class="space-y-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-mono font-bold tracking-wider">
-                <span class="animate-pulse">⏳</span>
-                <span>{{ $booking->invoice_number }}</span>
-            </span>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-mono font-bold tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
+                <span>#{{ $booking->invoice_number }}</span>
+            </div>
 
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-obsidian tracking-tight">
-                Reservasi Berhasil Diajukan
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
+                Reservation Submitted
             </h1>
 
-            <p class="text-xs sm:text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">
-                Selamat dan terima kasih, <strong class="text-stone-800 font-semibold">{{ $booking->customer_name }}</strong>. 
-                Jadwal hari bahagia Anda untuk tanggal 
-                <strong class="text-gold-700">{{ \Carbon\Carbon::parse($booking->event_date)->isoFormat('D MMMM Y') }}</strong> 
-                sedang dalam proses verifikasi mutasi oleh tim kami.
+            <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
+                Thank you, <strong class="text-slate-900 font-semibold">{{ $booking->customer_name }}</strong>. 
+                Your wedding date request for 
+                <strong class="text-brand-700 font-semibold">{{ \Carbon\Carbon::parse($booking->event_date)->isoFormat('dddd, D MMMM Y') }}</strong> 
+                has been recorded.
             </p>
         </div>
 
-        <!-- Luxury Booking Summary Certificate Card -->
-        <div class="bg-[#FCFAF7] border border-gold-200/70 rounded-2xl p-5 text-left text-xs space-y-2.5">
-            <div class="flex justify-between items-center pb-2 border-b border-stone-200/60">
-                <span class="text-stone-400 uppercase tracking-wider text-[10px]">Paket Terpilih</span>
-                <span class="font-serif font-bold text-obsidian">{{ $booking->package_name }}</span>
+        <!-- Summary Breakdown Card -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left text-xs space-y-2.5">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                <span class="text-slate-400 uppercase tracking-wider text-[10px] font-semibold">Wedding Package</span>
+                <span class="font-bold text-slate-900">{{ $booking->package_name }}</span>
             </div>
 
-            <div class="flex justify-between items-center">
-                <span class="text-stone-500">Tipe Pembayaran:</span>
-                <span class="font-bold uppercase tracking-wider text-xs {{ $booking->payment_type === 'lunas' ? 'text-emerald-700' : 'text-amber-700' }}">
-                    {{ $booking->payment_type }}
+            <div class="flex justify-between items-center text-slate-600">
+                <span>Payment Type:</span>
+                <span class="font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md {{ $booking->payment_type === 'lunas' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                    {{ $booking->payment_type === 'lunas' ? 'Full Settlement (100%)' : 'Down Payment (DP)' }}
                 </span>
             </div>
 
-            <div class="flex justify-between items-center">
-                <span class="text-stone-500">Nominal Ditransfer:</span>
-                <span class="font-bold text-stone-900 text-sm">Rp {{ number_format($booking->amount_paid, 0, ',', '.') }}</span>
+            <div class="flex justify-between items-center text-slate-600">
+                <span>Amount Transferred:</span>
+                <span class="font-mono font-extrabold text-brand-700 text-sm">Rp {{ number_format($booking->amount_paid, 0, ',', '.') }}</span>
             </div>
 
             @if($booking->remaining_balance > 0)
-                <div class="flex justify-between items-center pt-2 border-t border-stone-200/60">
-                    <span class="text-stone-500">Sisa Tagihan Pelunasan:</span>
-                    <span class="font-bold text-rose-600">Rp {{ number_format($booking->remaining_balance, 0, ',', '.') }}</span>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200/60 text-slate-600">
+                    <span>Remaining Balance:</span>
+                    <span class="font-mono font-bold text-slate-900">Rp {{ number_format($booking->remaining_balance, 0, ',', '.') }}</span>
                 </div>
             @endif
         </div>
 
-        <!-- Action Buttons -->
-        <div class="space-y-3 pt-1">
-            <!-- WhatsApp CTA Button -->
+        <!-- Action CTAs -->
+        <div class="space-y-2.5 pt-1">
+            <!-- WhatsApp Confirmation CTA -->
             <a href="{{ $whatsappUrl }}" target="_blank"
-               class="flex items-center justify-center gap-2.5 w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs sm:text-sm tracking-wide transition duration-200 shadow-md hover:shadow-lg">
+               class="flex items-center justify-center gap-2 w-full py-3.5 bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-bold rounded-xl text-xs sm:text-sm tracking-wide transition shadow-pill cursor-pointer">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-                <span>Konfirmasi ke WhatsApp Admin</span>
+                <span>Confirm on WhatsApp</span>
             </a>
 
-            <!-- Download PDF Button -->
-            <a href="{{ route('booking.receipt', $booking->invoice_number) }}" 
-               class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-stone-300 hover:border-gold-400 hover:bg-cream-50 text-stone-700 font-semibold rounded-2xl text-xs transition duration-200">
-                <span>📄 Unduh Tanda Terima Reservasi (PDF)</span>
+            <!-- Download Official PDF Receipt -->
+            <a href="{{ route('booking.receipt', $booking->invoice_number) }}"
+               class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-slate-200 hover:bg-slate-50 active:scale-[0.99] text-slate-700 font-semibold rounded-xl text-xs transition cursor-pointer">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Download PDF Receipt</span>
             </a>
         </div>
 
-        <p class="text-[11px] text-stone-400 leading-relaxed">
-            Admin keuangan kami akan memverifikasi mutasi rekening dalam waktu maksimal 1x24 jam. Simpan kuitansi digital ini sebagai bukti pemesanan Anda.
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+            Our finance team verifies bank transfers within 24 hours. Your schedule will be locked on our master calendar upon verification.
         </p>
 
     </div>

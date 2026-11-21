@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>@yield('title', 'Dashboard') | NK Barokah Wedding Organizer</title>
+    <title>@yield('title', 'Dasbor') | NK Barokah Wedding Organizer</title>
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +35,6 @@
                             800: '#023B36',
                             900: '#022E2A',
                         },
-                        // Harmonize legacy coral utility classes on subpages into brand teal
                         coral: {
                             50:  '#EBF7F5',
                             100: '#D3ECE8',
@@ -79,6 +78,23 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         * { -webkit-tap-highlight-color: transparent; }
+
+        /* Smooth Apple-style micro-animations */
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(14px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-14px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeUpSoft {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .anim-slide-right { animation: slideInRight 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .anim-slide-left  { animation: slideInLeft  0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .anim-fade-up     { animation: fadeUpSoft   0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
     </style>
 </head>
 <body class="min-h-full bg-[#F6F8F7] text-slate-800 antialiased font-sans selection:bg-brand-100 selection:text-brand-900"
@@ -88,23 +104,24 @@
         $isDashboardPage = request()->routeIs('admin.bookings.index');
         $ownerName = Auth::user()->name ?? 'Owner NK Barokah';
         $ownerEmail = Auth::user()->email ?? 'owner@nkbarokah.com';
+        $pendingNotifCount = \App\Models\Booking::where('status', 'pending_verification')->count();
+        $recentNotifs = \App\Models\Booking::latest()->take(3)->get();
     @endphp
 
     <!-- ============================================================== -->
-    <!-- MAIN WRAPPER (FLOATING TOP PILL NAV + AIRY CANVAS)             -->
+    <!-- CONTAINER UTAMA (FLOATING TOP PILL NAV + AIRY CANVAS)          -->
     <!-- ============================================================== -->
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-24 lg:pb-10">
 
         <!-- TOP FLOATING PILL NAVBAR -->
         <header class="sticky top-3 z-40 bg-white/95 backdrop-blur-md rounded-full px-3.5 sm:px-5 py-2.5 shadow-nav border border-[#EAF0EE] flex items-center justify-between gap-3">
 
-            <!-- Left: Brand Logo -->
+            <!-- Kiri: Logo Brand -->
             <div class="flex items-center gap-2.5 shrink-0">
                 <a href="{{ route('admin.bookings.index') }}"
                    @if($isDashboardPage) @click.prevent="$store.nav.setTab('dashboard')" @endif
                    class="flex items-center gap-2.5 group">
                     <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-sm group-hover:bg-brand-700 transition">
-                        <!-- Geometric Monogram Mark -->
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 18V7a2 2 0 0 1 3.4-1.4l7.2 7.2A2 2 0 0 0 19 11.4V6"/>
                             <path d="M5 13v5a2 2 0 0 0 3.4 1.4l1.6-1.6"/>
@@ -114,7 +131,7 @@
                 </a>
             </div>
 
-            <!-- Center: Floating Pill Nav Tabs (Desktop) -->
+            <!-- Tengah: Navigasi Pill (Desktop) -->
             <nav class="hidden xl:flex items-center gap-1 bg-[#F4F7F6] p-1 rounded-full border border-[#EDF2F0]">
                 @php
                     $navItems = [
@@ -146,10 +163,10 @@
                 @endforeach
             </nav>
 
-            <!-- Right: Search Pill + Utility Icons + Avatar -->
+            <!-- Kanan: Pencarian Pill + Pengaturan + Notifikasi + Avatar -->
             <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
 
-                <!-- Global Search Pill -->
+                <!-- Pencarian Global Pill -->
                 <div class="hidden md:flex items-center bg-[#F6F8F7] border border-[#E6ECEA] focus-within:border-brand-400 focus-within:bg-white rounded-full pl-4 pr-1.5 py-1 w-52 lg:w-64 transition">
                     <input type="text"
                            x-model="$store.nav.search"
@@ -163,7 +180,7 @@
                     </button>
                 </div>
 
-                <!-- Settings / Google Sync Button -->
+                <!-- Tombol Pengaturan & Google Sync -->
                 <button type="button"
                         @click="syncModalOpen = true"
                         title="Pengaturan & Sinkronisasi Google"
@@ -174,7 +191,7 @@
                     </svg>
                 </button>
 
-                <!-- Notifications Bell -->
+                <!-- Tombol Notifikasi -->
                 <div class="relative">
                     <button type="button"
                             @click="notifOpen = !notifOpen"
@@ -183,10 +200,12 @@
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
-                        <span class="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white absolute top-2 right-2.5"></span>
+                        @if($pendingNotifCount > 0)
+                            <span class="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white absolute top-2 right-2.5"></span>
+                        @endif
                     </button>
 
-                    <!-- Notification Dropdown -->
+                    <!-- Dropdown Notifikasi Real -->
                     <div x-show="notifOpen"
                          @click.away="notifOpen = false"
                          x-transition:enter="transition ease-out duration-150"
@@ -195,29 +214,28 @@
                          class="absolute right-0 mt-2.5 w-80 bg-white rounded-3xl shadow-xl border border-[#EAF0EE] p-4 z-50"
                          x-cloak>
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-900">Notifikasi Terbaru</span>
-                            <span class="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">2 Baru</span>
+                            <span class="text-xs font-bold text-slate-900">Recent Activity</span>
+                            <span class="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2.5 py-0.5 rounded-full">
+                                {{ $pendingNotifCount > 0 ? $pendingNotifCount . ' Pending' : 'All Clear' }}
+                            </span>
                         </div>
                         <div class="divide-y divide-slate-100 mt-1">
-                            <div class="py-3 flex items-start gap-3">
-                                <span class="w-2 h-2 rounded-full bg-brand-600 mt-1.5 shrink-0"></span>
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-800">Reservasi baru #NKB/11/01</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Muhammad Reza Bakhtiar — Gold Royal Package</p>
-                                </div>
-                            </div>
-                            <div class="py-3 flex items-start gap-3">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-800">Sinkronisasi Google Calendar aktif</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Semua jadwal acara telah tersinkron otomatis.</p>
-                                </div>
-                            </div>
+                            @forelse($recentNotifs as $rn)
+                                <a href="{{ route('admin.bookings.show', $rn->id) }}" class="py-3 flex items-start gap-3 hover:bg-[#F8FAFA] rounded-xl px-1.5 transition">
+                                    <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ $rn->status === 'pending_verification' ? 'bg-amber-500' : 'bg-brand-600' }}"></span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold text-slate-800 truncate">#{{ $rn->invoice_number }} · {{ $rn->customer_name }}</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ $rn->package_name }} · {{ $rn->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </a>
+                            @empty
+                                <p class="py-4 text-center text-xs text-slate-400">Belum ada aktivitas reservasi.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
 
-                <!-- Owner Profile Avatar -->
+                <!-- Avatar Owner -->
                 <button type="button"
                         @click="profileModalOpen = true"
                         title="Profil Owner"
@@ -227,7 +245,7 @@
                          class="w-full h-full object-cover">
                 </button>
 
-                <!-- Mobile / Tablet Menu Button -->
+                <!-- Tombol Menu Tablet/HP -->
                 <button type="button"
                         @click="mobileMenuOpen = !mobileMenuOpen"
                         class="xl:hidden w-9 h-9 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
@@ -238,7 +256,7 @@
             </div>
         </header>
 
-        <!-- Tablet / Mobile Collapsible Nav Pills -->
+        <!-- Menu Pill Collapsible Tablet/HP -->
         <div x-show="mobileMenuOpen"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 -translate-y-2"
@@ -285,7 +303,7 @@
             </div>
         @endif
 
-        <!-- MAIN PAGE CONTENT -->
+        <!-- KONTEN UTAMA -->
         <main class="mt-6">
             @yield('content')
         </main>
@@ -298,10 +316,10 @@
     <nav class="fixed bottom-3 inset-x-3 z-40 lg:hidden bg-white/95 backdrop-blur-md rounded-full px-3 py-2 shadow-xl border border-[#E6ECEA] flex items-center justify-around">
         @php
             $mobileTabs = [
-                ['key' => 'dashboard', 'label' => 'Home',     'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                ['key' => 'bookings',  'label' => 'Bookings', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
-                ['key' => 'calendar',  'label' => 'Calendar', 'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
-                ['key' => 'invoice',   'label' => 'Invoice',  'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['key' => 'bookings',  'label' => 'Bookings',  'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+                ['key' => 'calendar',  'label' => 'Calendar',  'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
+                ['key' => 'invoice',   'label' => 'Invoice',   'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
             ];
         @endphp
         @foreach($mobileTabs as $mTab)
@@ -327,7 +345,7 @@
     </nav>
 
     <!-- ============================================================== -->
-    <!-- MODAL SETTINGS & GOOGLE SYNC                                   -->
+    <!-- MODAL PENGATURAN & GOOGLE SYNC                                 -->
     <!-- ============================================================== -->
     <div x-show="syncModalOpen"
          x-transition:enter="transition ease-out duration-200"
@@ -344,7 +362,7 @@
                     </span>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Pengaturan & Google Sync</h3>
-                        <p class="text-[11px] text-slate-400">Status integrasi layanan NK Barokah</p>
+                        <p class="text-[11px] text-slate-400">Status integrasi otomatis layanan Google Owner</p>
                     </div>
                 </div>
                 <button type="button" @click="syncModalOpen = false" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-100">✕</button>
@@ -405,14 +423,14 @@
                 <h3 class="text-sm font-bold text-slate-900">{{ $ownerName }}</h3>
                 <p class="text-xs text-slate-400">{{ $ownerEmail }}</p>
                 <span class="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700">
-                    Owner NK Barokah
+                    Pemilik NK Barokah
                 </span>
             </div>
             <div class="pt-3 border-t border-slate-100 space-y-2">
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="w-full py-2.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition">
-                        Keluar (Logout)
+                        Keluar dari Akun
                     </button>
                 </form>
                 <button type="button" @click="profileModalOpen = false" class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-700">

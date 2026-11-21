@@ -12,5 +12,19 @@ return [
 
     // Persentase minimal DP (opsional, misal 20% dari Grand Total)
     'min_dp_percentage'  => (float) env('WO_MIN_DP_PERCENTAGE', 20),
+
+    // Rekening Resmi Pembayaran Transfer WO (Owner)
+    'banks' => [
+        'bca' => [
+            'bank_name'      => 'Bank BCA',
+            'account_number' => '3620648107',
+            'account_name'   => 'EZZU RAKHMAT FIRDAUS',
+        ],
+        'bri' => [
+            'bank_name'      => 'Bank BRI',
+            'account_number' => '344301026581532',
+            'account_name'   => 'EZZU RAKHMAT FIRDAUS',
+        ],
+    ],
 ];
 

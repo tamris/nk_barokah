@@ -84,5 +84,7 @@ class DatabaseSeeder extends Seeder
         foreach ($addons as $addon) {
             Addon::updateOrCreate(['name' => $addon['name']], $addon);
         }
+
+        $this->call(BookingSeeder::class);
     }
 }

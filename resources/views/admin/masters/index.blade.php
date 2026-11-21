@@ -33,7 +33,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
             @foreach($packages as $pkg)
-                <div class="bg-white rounded-3xl border {{ $pkg->is_active ? 'border-[#ECE8E1] shadow-card' : 'border-[#ECE8E1] bg-[#FAF8F5]/80 opacity-70' }} p-5 sm:p-6 space-y-4 flex flex-col justify-between transition hover:border-coral-300">
+                <div class="bg-white rounded-3xl border {{ $pkg->is_active ? 'border-[#EDF2F0] shadow-card' : 'border-[#EDF2F0] bg-[#F8FAFA]/80 opacity-70' }} p-5 sm:p-6 space-y-4 flex flex-col justify-between transition hover:border-coral-300">
                     <div>
                         <div class="flex items-start justify-between gap-2">
                             <h3 class="font-extrabold text-sm sm:text-base text-zinc-900 leading-snug">{{ $pkg->name }}</h3>
@@ -53,7 +53,7 @@
                         </p>
                     </div>
 
-                    <div class="pt-4 border-t border-[#F2EFEA] flex items-center justify-between gap-2 text-xs">
+                    <div class="pt-4 border-t border-[#EFF4F2] flex items-center justify-between gap-2 text-xs">
                         <button @click="editPackageData = {{ json_encode($pkg) }}; showPackageModal = true"
                                 class="font-bold text-zinc-700 hover:text-coral-600 transition px-2 py-1 rounded-lg hover:bg-zinc-50">
                             Ubah Data
@@ -76,7 +76,7 @@
     <!-- 2. MASTER FASILITAS TAMBAHAN (ADD-ONS)                          -->
     <!-- RESPONSIVE: CARD LIST DI HP, TABEL DI DESKTOP                  -->
     <!-- ============================================================== -->
-    <div class="space-y-3.5 sm:space-y-4 pt-4 sm:pt-6 border-t border-[#ECE8E1]">
+    <div class="space-y-3.5 sm:space-y-4 pt-4 sm:pt-6 border-t border-[#EDF2F0]">
         <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-3">
             <div>
                 <h2 class="text-xs font-extrabold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
@@ -96,7 +96,7 @@
         <!-- 2A. LIST VIEW DI HP (RAMAH SMARTPHONE) -->
         <div class="block lg:hidden space-y-3">
             @forelse($addons as $addon)
-                <div class="bg-white rounded-2xl border border-[#ECE8E1] p-4 space-y-3 shadow-card">
+                <div class="bg-white rounded-2xl border border-[#EDF2F0] p-4 space-y-3 shadow-card">
                     <div class="flex items-start justify-between gap-2">
                         <div>
                             <h3 class="font-bold text-zinc-900 text-xs sm:text-sm leading-snug">{{ $addon->name }}</h3>
@@ -107,7 +107,7 @@
                         </span>
                     </div>
 
-                    <div class="flex items-baseline justify-between pt-1 border-t border-[#F2EFEA]">
+                    <div class="flex items-baseline justify-between pt-1 border-t border-[#EFF4F2]">
                         <div>
                             <span class="text-[10px] text-zinc-400 block">Harga Satuan</span>
                             <span class="font-mono font-extrabold text-zinc-900 text-sm">
@@ -132,17 +132,17 @@
                     </div>
                 </div>
             @empty
-                <div class="bg-white rounded-2xl border border-[#ECE8E1] p-8 text-center text-zinc-400 text-xs">
+                <div class="bg-white rounded-2xl border border-[#EDF2F0] p-8 text-center text-zinc-400 text-xs">
                     Belum ada fasilitas tambahan yang dibuat.
                 </div>
             @endforelse
         </div>
 
         <!-- 2B. TABEL VIEW DI DESKTOP -->
-        <div class="hidden lg:block bg-white rounded-3xl border border-[#ECE8E1] shadow-card overflow-hidden">
+        <div class="hidden lg:block bg-white rounded-3xl border border-[#EDF2F0] shadow-card overflow-hidden">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-[#ECE8E1] text-[11px] font-bold uppercase text-zinc-400 tracking-wider bg-[#FAF8F5]">
+                    <tr class="border-b border-[#EDF2F0] text-[11px] font-bold uppercase text-zinc-400 tracking-wider bg-[#F8FAFA]">
                         <th class="py-4 px-6">Nama Fasilitas</th>
                         <th class="py-4 px-6">Satuan Unit</th>
                         <th class="py-4 px-6">Harga Satuan</th>
@@ -152,7 +152,7 @@
                 </thead>
                 <tbody class="divide-y divide-[#F2EFEA]">
                     @foreach($addons as $addon)
-                        <tr class="hover:bg-[#FAF8F5]/80 transition">
+                        <tr class="hover:bg-[#F8FAFA]/80 transition">
                             <td class="py-4 px-6 font-bold text-zinc-900">{{ $addon->name }}</td>
                             <td class="py-4 px-6 text-zinc-500 font-mono text-[11px]">{{ $addon->unit }}</td>
                             <td class="py-4 px-6 font-bold text-zinc-900 font-mono">Rp {{ number_format($addon->unit_price, 0, ',', '.') }}</td>
@@ -194,7 +194,7 @@
          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/70 backdrop-blur-xs" 
          x-cloak>
         
-        <div class="relative bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#ECE8E1] space-y-5" 
+        <div class="relative bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#EDF2F0] space-y-5" 
              @click.away="showPackageModal = false">
             
             <!-- Handle Drag di HP -->
@@ -221,25 +221,25 @@
                 <div>
                     <label class="block font-bold text-zinc-700 mb-1.5">Nama Paket</label>
                     <input type="text" name="name" required :value="editPackageData ? editPackageData.name : ''"
-                           class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                           class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                            placeholder="Contoh: Paket Platinum Luxury">
                 </div>
 
                 <div>
                     <label class="block font-bold text-zinc-700 mb-1.5">Harga Dasar (Rp)</label>
                     <input type="number" name="base_price" required :value="editPackageData ? editPackageData.base_price : ''"
-                           class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                           class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                            placeholder="25000000">
                 </div>
 
                 <div>
                     <label class="block font-bold text-zinc-700 mb-1.5">Deskripsi Fasilitas</label>
                     <textarea name="description" rows="3" :value="editPackageData ? editPackageData.description : ''"
-                              class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                              class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                               placeholder="Rincian fasilitas dan layanan yang didapatkan pengantin..."></textarea>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#F2EFEA]">
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#EFF4F2]">
                     <button type="button" @click="showPackageModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-500 hover:bg-zinc-100">Batal</button>
                     <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-coral-500 hover:bg-coral-600 text-white transition shadow-sm shadow-coral-500/25">Simpan Paket</button>
                 </div>
@@ -260,7 +260,7 @@
          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/70 backdrop-blur-xs" 
          x-cloak>
         
-        <div class="relative bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#ECE8E1] space-y-5" 
+        <div class="relative bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#EDF2F0] space-y-5" 
              @click.away="showAddonModal = false">
             
             <!-- Handle Drag di HP -->
@@ -287,7 +287,7 @@
                 <div>
                     <label class="block font-bold text-zinc-700 mb-1.5">Nama Fasilitas Tambahan</label>
                     <input type="text" name="name" required :value="editAddonData ? editAddonData.name : ''"
-                           class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                           class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                            placeholder="Contoh: Panggung Hiburan Musik Akustik">
                 </div>
 
@@ -295,18 +295,18 @@
                     <div>
                         <label class="block font-bold text-zinc-700 mb-1.5">Satuan Unit</label>
                         <input type="text" name="unit" required :value="editAddonData ? editAddonData.unit : 'pcs'"
-                               class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                               class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                                placeholder="pcs, set, sesi">
                     </div>
                     <div>
                         <label class="block font-bold text-zinc-700 mb-1.5">Harga Satuan (Rp)</label>
                         <input type="number" name="unit_price" required :value="editAddonData ? editAddonData.unit_price : ''"
-                               class="w-full px-3.5 py-3 rounded-2xl border border-[#ECE8E1] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
+                               class="w-full px-3.5 py-3 rounded-2xl border border-[#EDF2F0] text-xs focus:ring-2 focus:ring-coral-500/20 focus:border-coral-500 focus:outline-none"
                                placeholder="1500000">
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#F2EFEA]">
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#EFF4F2]">
                     <button type="button" @click="showAddonModal = false" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-500 hover:bg-zinc-100">Batal</button>
                     <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-coral-500 hover:bg-coral-600 text-white transition shadow-sm shadow-coral-500/25">Simpan Fasilitas</button>
                 </div>
