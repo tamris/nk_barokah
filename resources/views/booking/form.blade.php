@@ -75,7 +75,9 @@
           addons: {{ json_encode($addons) }},
           bookedDates: {{ json_encode($bookedDates) }},
           minDpAmount: {{ config('wo.min_dp_amount', 1000000) }},
-          oldEventDate: '{{ old('event_date', '') }}'
+          oldEventDate: '{{ old('event_date', '') }}',
+          oldEventEndDate: '{{ old('event_end_date', '') }}',
+          oldDurationDays: {{ (int) old('duration_days', 1) }}
       })"
       x-cloak>
 
@@ -151,15 +153,21 @@
 
                 <!-- Calendar Card -->
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-card space-y-4">
-                    
-                    <!-- Month Switcher Header with Custom Styled Dropdowns -->
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                        <!-- Custom Month & Year Dropdown Pills -->
-                        <div class="flex items-center gap-2">
+
+                    <!-- Month Switcher Header (Left: Prev | Center: Month, Year, Today | Right: Next) -->
+                    <div class="flex items-center justify-between gap-1.5 sm:gap-2 pb-3 border-b border-slate-100">
+                        <!-- Left: Prev Month Button -->
+                        <button type="button" @click="prevCalMonth()"
+                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Previous Month">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+
+                        <!-- Center: Custom Month Dropdown + Year Dropdown + Today Pill -->
+                        <div class="flex-1 flex items-center justify-center gap-1 sm:gap-2 min-w-0">
                             <!-- Custom Month Dropdown -->
                             <div class="relative" @click.away="monthOpen = false">
                                 <button type="button" @click="monthOpen = !monthOpen; yearOpen = false"
-                                        class="inline-flex items-center justify-between gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
+                                        class="inline-flex items-center justify-between gap-1 sm:gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-2.5 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
                                     <span x-text="monthNames[calMonth]"></span>
                                     <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"
                                          :class="{ 'rotate-180 text-brand-600': monthOpen }"
@@ -175,7 +183,7 @@
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                                     class="absolute left-0 mt-2 w-44 max-h-60 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
+                                     class="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-44 max-h-60 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
                                      x-cloak>
                                     <template x-for="(name, idx) in monthNames" :key="idx">
                                         <button type="button"
@@ -192,7 +200,7 @@
                             <!-- Custom Year Dropdown -->
                             <div class="relative" @click.away="yearOpen = false">
                                 <button type="button" @click="yearOpen = !yearOpen; monthOpen = false"
-                                        class="inline-flex items-center justify-between gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
+                                        class="inline-flex items-center justify-between gap-1 sm:gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 transition shadow-subtle cursor-pointer active:scale-95">
                                     <span x-text="calYear"></span>
                                     <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"
                                          :class="{ 'rotate-180 text-brand-600': yearOpen }"
@@ -208,7 +216,7 @@
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                                     class="absolute left-0 mt-2 w-32 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
+                                     class="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-32 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-30 space-y-0.5"
                                      x-cloak>
                                     <template x-for="y in [2026, 2027, 2028, 2029]" :key="y">
                                         <button type="button"
@@ -221,23 +229,19 @@
                                     </template>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Navigation Chevrons & Today Button -->
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" @click="prevCalMonth()"
-                                    class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer" title="Previous Month">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                            </button>
+
+                            <!-- Today Button Pill -->
                             <button type="button" @click="goToTodayMonth()"
-                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 transition cursor-pointer">
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 transition cursor-pointer shrink-0">
                                 Today
                             </button>
-                            <button type="button" @click="nextCalMonth()"
-                                    class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer" title="Next Month">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                            </button>
                         </div>
+
+                        <!-- Right: Next Month Button -->
+                        <button type="button" @click="nextCalMonth()"
+                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Next Month">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
                     </div>
 
                     <!-- Days of Week Headers (7 Columns with Unique Index Key) -->
@@ -247,22 +251,45 @@
                         </template>
                     </div>
 
-                    <!-- Calendar Grid -->
-                    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center">
+                    <!-- Calendar Grid (Hotel-Style Range Selection) -->
+                    <div class="grid grid-cols-7 gap-y-1 sm:gap-y-1.5 gap-x-0 text-center" @mouseleave="hoverDate = null">
                         <template x-for="(cell, idx) in calendarGrid" :key="idx">
-                            <div class="relative">
+                            <div class="relative py-0.5 px-0.5 sm:px-1 flex items-center justify-center">
+                                <!-- Background Strip for Days Inside Range -->
+                                <template x-if="cell.isCurrentMonth && isBetweenDates(cell.dateString)">
+                                    <div class="absolute inset-y-1 inset-x-0"
+                                         :class="pickingRange ? 'bg-brand-50/90 border-y border-dashed border-brand-300' : 'bg-brand-50 border-y border-brand-200/80'"></div>
+                                </template>
+
                                 <!-- Active Month Days -->
                                 <template x-if="cell.isCurrentMonth">
                                     <button type="button"
                                             @click="!cell.isPast && !cell.isBooked && selectDate(cell.dateString)"
+                                            @mouseenter="onDateHover(cell.dateString)"
                                             :disabled="cell.isPast || cell.isBooked"
-                                            class="w-full aspect-square rounded-xl flex flex-col items-center justify-center relative text-xs sm:text-sm font-semibold transition active:scale-95 cursor-pointer border"
+                                            class="w-full aspect-square flex flex-col items-center justify-center relative text-xs sm:text-sm font-semibold transition active:scale-95 cursor-pointer border"
                                             :class="{
-                                                'bg-brand-600 border-brand-600 text-white font-extrabold shadow-pill': selectedDate === cell.dateString,
-                                                'bg-slate-50/70 border-slate-100 text-slate-300 cursor-not-allowed': cell.isPast,
-                                                'bg-rose-50/80 border-rose-100 text-rose-300 cursor-not-allowed': cell.isBooked && !cell.isPast,
-                                                'bg-white border-slate-200/80 text-slate-700 hover:border-brand-500 hover:bg-brand-50/50 hover:text-brand-800 shadow-subtle': !cell.isPast && !cell.isBooked && selectedDate !== cell.dateString,
-                                                'ring-2 ring-brand-600/30 border-brand-600': cell.isToday && selectedDate !== cell.dateString
+                                                // Start Date alone (single day)
+                                                'bg-brand-600 border-brand-600 text-white font-extrabold rounded-xl shadow-pill z-10': isStartDate(cell.dateString) && isSingleDateSelection,
+                                                
+                                                // Start Date of range
+                                                'bg-brand-600 border-brand-600 text-white font-extrabold rounded-l-xl rounded-r-none shadow-subtle z-10': isStartDate(cell.dateString) && !isSingleDateSelection,
+
+                                                // End Date of range
+                                                'bg-brand-600 border-brand-600 text-white font-extrabold rounded-r-xl rounded-l-none shadow-subtle z-10': isEndDate(cell.dateString),
+
+                                                // Middle in-range days
+                                                'bg-brand-50/90 border-transparent text-brand-900 font-bold rounded-none z-10': isBetweenDates(cell.dateString),
+
+                                                // Past days
+                                                'bg-slate-50/70 border-slate-100 text-slate-300 cursor-not-allowed rounded-xl': cell.isPast,
+                                                
+                                                // Booked / Full days
+                                                'bg-rose-50/80 border-rose-100 text-rose-300 cursor-not-allowed rounded-xl': cell.isBooked && !cell.isPast,
+
+                                                // Normal Available Day
+                                                'bg-white border-slate-200/80 text-slate-700 hover:border-brand-500 hover:bg-brand-50/50 hover:text-brand-800 shadow-subtle rounded-xl': !cell.isPast && !cell.isBooked && !isInRange(cell.dateString),
+                                                'ring-2 ring-brand-600/30 border-brand-600': cell.isToday && !isInRange(cell.dateString)
                                             }">
                                         <span x-text="cell.day"></span>
 
@@ -272,7 +299,7 @@
                                         </template>
 
                                         <!-- Today micro dot -->
-                                        <template x-if="cell.isToday && selectedDate !== cell.dateString">
+                                        <template x-if="cell.isToday && !isInRange(cell.dateString)">
                                             <span class="w-1.5 h-1.5 rounded-full bg-brand-600 absolute bottom-1"></span>
                                         </template>
                                     </button>
@@ -288,26 +315,48 @@
                         </template>
                     </div>
 
-                    <!-- Hidden input to submit via standard POST -->
+                    <!-- Hidden inputs to submit via standard POST -->
                     <input type="hidden" name="event_date" :value="selectedDate" required>
+                    <input type="hidden" name="event_end_date" :value="selectedEndDate || selectedDate">
+                    <input type="hidden" name="duration_days" :value="durationDays">
 
-                    <!-- Selected Date Live Status Box -->
-                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-                        <div class="flex items-center gap-2">
+                    <!-- Selected Date Live Status Bar (Clean, Minimal, Informative) -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
                             <span class="w-2.5 h-2.5 rounded-full shrink-0"
                                   :class="selectedDate ? (isDateBooked ? 'bg-rose-500' : 'bg-emerald-500') : 'bg-slate-300'"></span>
-                            <span class="text-slate-600 leading-tight">
+                            <div class="text-slate-600 truncate">
                                 <template x-if="!selectedDate">
-                                    <span>Please tap an open date above to check reservation availability.</span>
+                                    <span>Pilih tanggal acara di kalender</span>
                                 </template>
-                                <template x-if="selectedDate && !isDateBooked">
-                                    <span>Selected: <strong class="text-slate-900 font-bold" x-text="formattedSelectedDate"></strong> (Available)</span>
+                                <template x-if="selectedDate && pickingRange && !selectedEndDate">
+                                    <span>Mulai: <strong class="text-slate-900 font-bold" x-text="formatSingleDate(selectedDate)"></strong> • <span class="text-brand-600 font-medium">Pilih tanggal selesai</span></span>
+                                </template>
+                                <template x-if="selectedDate && !isDateBooked && (!pickingRange || selectedEndDate)">
+                                    <span class="text-slate-900 font-semibold" x-text="formattedSelectedDate"></span>
                                 </template>
                                 <template x-if="selectedDate && isDateBooked">
-                                    <span class="text-rose-600 font-semibold">Date is already booked. Please choose another date.</span>
+                                    <span class="text-rose-600 font-semibold">Tanggal yang dipilih sudah penuh (FULL)</span>
                                 </template>
-                            </span>
+                            </div>
                         </div>
+
+                        <template x-if="selectedDate && (!pickingRange || selectedEndDate)">
+                            <div class="shrink-0 ml-2">
+                                <template x-if="!isDateBooked">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span>Tersedia</span>
+                                    </span>
+                                </template>
+                                <template x-if="isDateBooked">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span>Penuh</span>
+                                    </span>
+                                </template>
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Step 1 Inline Error Alert -->
@@ -373,9 +422,9 @@
                                             <span class="w-2 h-2 rounded-full bg-white" x-show="selectedPackageId == pkg.id"></span>
                                         </div>
                                         <h3 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight truncate" x-text="pkg.name"></h3>
-                                        <template x-if="pkg.id == 2">
+                                        <template x-if="pkg.slug === 'paket-1' || pkg.slug === 'tenda-decor-6m'">
                                             <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold tracking-wide uppercase border border-brand-200/60 shrink-0">
-                                                Popular
+                                                Favorite
                                             </span>
                                         </template>
                                     </div>
@@ -395,17 +444,57 @@
                 <div x-show="addons.length > 0" class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
                     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                         <div>
-                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Optional Add-ons</h4>
-                            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Select additional venue amenities</p>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Optional Add-ons (20 Pilihan)</h4>
+                            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Pilih perlengkapan tambahan sesuai kebutuhan venue Anda</p>
                         </div>
                         <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg transition"
                               :class="activeAddons.length > 0 ? 'bg-brand-50 text-brand-700 border border-brand-200/80 shadow-xs' : 'bg-slate-100 text-slate-500'"
                               x-text="`${activeAddons.length} added`"></span>
                     </div>
 
+                    <!-- Category Filter Tabs for 20 Add-ons -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                        <button type="button" @click="activeAddonCategory = 'all'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'all' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Semua
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'kursi_meja'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'kursi_meja' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Kursi & Meja
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'kipas'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'kipas' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Kipas & Blower
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'panggung'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'panggung' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Panggung & Lantai
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'sound'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'sound' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Sound & Genset
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'prasmanan'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'prasmanan' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Prasmanan
+                        </button>
+                        <button type="button" @click="activeAddonCategory = 'tenda'"
+                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                :class="activeAddonCategory === 'tenda' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                            Tenda & Lampu
+                        </button>
+                    </div>
+
                     <div class="space-y-2">
                         <template x-for="(addon, idx) in addons" :key="addon.id">
-                            <div class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3 text-xs"
+                            <div x-show="activeAddonCategory === 'all' || getAddonCategory(addon.name) === activeAddonCategory"
+                                 class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3 text-xs"
                                  :class="addon.selectedQty > 0 
                                      ? 'bg-brand-50/40 border-brand-200/80 shadow-xs' 
                                      : 'bg-slate-50/40 hover:bg-slate-50/80 border-slate-200/60'">
@@ -617,6 +706,17 @@
                             <div class="flex justify-between items-center text-slate-500 pl-2 border-l border-slate-200">
                                 <span x-text="`${ad.name} (${ad.selectedQty}x)`"></span>
                                 <span class="font-mono text-slate-700" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
+                            </div>
+                        </template>
+
+                        <!-- Extra Day Charge if > 2 days -->
+                        <template x-if="extraDays > 0">
+                            <div class="flex justify-between items-center text-amber-800 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80">
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Tambahan Durasi (<span class="font-bold" x-text="`${extraDays} hari ekstra @ 15%`"></span>)</span>
+                                </div>
+                                <span class="font-mono font-bold text-amber-900" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
                             </div>
                         </template>
 
@@ -840,6 +940,33 @@
 
                 </div>
 
+                <!-- Booking Rules Accordion (Sesuai Pricelist Resmi 2026 NK Barokah) -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card" x-data="{ rulesOpen: false }">
+                    <button type="button" @click="rulesOpen = !rulesOpen" class="w-full flex items-center justify-between text-left cursor-pointer select-none">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-200/60">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Aturan & Ketentuan Reservasi Resmi</h4>
+                                <p class="text-[11px] text-slate-400">Ringkasan S&K resmi NK Barokah 2026</p>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': rulesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="rulesOpen" x-cloak x-transition class="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-1.5 leading-relaxed text-[11px] sm:text-xs text-slate-600">
+                            <li><strong>Keep Tanggal:</strong> Wajib DP minimal Rp 1.000.000 via transfer atau langsung ke galeri (sertakan bukti transfer).</li>
+                            <li><strong>Durasi Acara:</strong> Pemakaian paket tenda berlaku maksimal <strong>2 hari acara</strong> (Loading tenda H-2, loading dekor H-1 sore/malam, bongkar H+1). Acara lebih dari 2 hari dikenakan <strong>charge 15% per hari</strong>.</li>
+                            <li><strong>Survey Lokasi:</strong> Survey lokasi dilakukan setelah pembayaran DP. Biaya transport diinfokan jika ada (belum termasuk transport vendor).</li>
+                            <li><strong>Penataan:</strong> Penataan meja & kursi dilakukan oleh pihak klien agar memahami tata letak yang diinginkan. Penataan alat prasmanan & karpet dilakukan oleh crew kami.</li>
+                            <li><strong>Kebijakan Pembatalan:</strong> Pembatalan sepihak DP hangus. Reschedule dapat dilakukan apabila tanggal pengganti masih tersedia (available).</li>
+                            <li><strong>Kelistrikan:</strong> Disediakan & ditangani crew untuk seputar tenda; diluar area tenda dikenakan Rp 100.000/titik. Saluran listrik dari klien.</li>
+                            <li><strong>Alat Prasmanan:</strong> Pengembalian alat prasmanan dalam kondisi bersih & dicuci.</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
                 <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
                     <button type="button" @click="goToStep(3)"
@@ -850,6 +977,7 @@
                     <button type="button" @click="submitBookingForm()" :disabled="isDateBooked"
                             class="px-7 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
                         <span>Confirm Reservation</span>
+                    </button>
                 </div>
 
             </div>
@@ -897,7 +1025,7 @@
                         :disabled="isDateBooked"
                         class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-pill" x-cloak>
                     <span>Confirm Booking</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    
                 </button>
             </div>
 
@@ -928,10 +1056,25 @@
             rawPhoneDigits: '',
             customerEmail: '{{ old("customer_email", "") }}'.toLowerCase(),
             selectedDate: config.oldEventDate || '',
+            selectedEndDate: config.oldEventEndDate || config.oldEventDate || '',
+            pickingRange: false,
+            hoverDate: null,
             selectedPackageId: config.packages.length > 0 ? config.packages[0].id : null,
             paymentType: '{{ old("payment_type", "dp") }}',
             nominalDp: {{ old('nominal_dp') ? old('nominal_dp') : 'config.minDpAmount' }},
             nominalDpDisplay: '',
+            activeAddonCategory: 'all',
+
+            getAddonCategory(name) {
+                const n = (name || '').toLowerCase();
+                if (n.includes('kursi') || n.includes('meja')) return 'kursi_meja';
+                if (n.includes('kipas') || n.includes('blower')) return 'kipas';
+                if (n.includes('panggung') || n.includes('flooring') || n.includes('karpet')) return 'panggung';
+                if (n.includes('sound')) return 'sound';
+                if (n.includes('prasmanan') || n.includes('pondokan')) return 'prasmanan';
+                if (n.includes('tenda') || n.includes('lampu') || n.includes('cover')) return 'tenda';
+                return 'lainnya';
+            },
 
             // Inline Reactive Form Validation Errors
             formErrors: {
@@ -1144,20 +1287,150 @@
             },
 
             selectDate(dateStr) {
-                this.selectedDate = dateStr;
+                this.formErrors.step1 = null;
+                if (this.bookedDates.includes(dateStr)) return;
+
+                if (!this.selectedDate || (!this.pickingRange && this.selectedEndDate)) {
+                    // First click: sets start date
+                    this.selectedDate = dateStr;
+                    this.selectedEndDate = null;
+                    this.hoverDate = null;
+                    this.pickingRange = true;
+                } else if (this.pickingRange) {
+                    // Second click
+                    if (dateStr < this.selectedDate) {
+                        // Clicked earlier date: reset start to this earlier date
+                        this.selectedDate = dateStr;
+                        this.selectedEndDate = null;
+                        this.hoverDate = null;
+                        this.pickingRange = true;
+                    } else if (dateStr === this.selectedDate) {
+                        // Clicked same date: 1 day duration
+                        this.selectedEndDate = dateStr;
+                        this.hoverDate = null;
+                        this.pickingRange = false;
+                    } else {
+                        // Clicked later date: check if any date in between is booked
+                        if (this.hasBookedDateBetween(this.selectedDate, dateStr)) {
+                            this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati tanggal yang sudah penuh (FULL). Silakan pilih rentang tanggal yang seluruhnya kosong.';
+                            return;
+                        }
+                        this.selectedEndDate = dateStr;
+                        this.hoverDate = null;
+                        this.pickingRange = false;
+                    }
+                }
+            },
+
+            onDateHover(dateStr) {
+                if (this.pickingRange && this.selectedDate && dateStr >= this.selectedDate) {
+                    this.hoverDate = dateStr;
+                }
+            },
+
+            hasBookedDateBetween(startStr, endStr) {
+                const parts1 = startStr.split('-');
+                const parts2 = endStr.split('-');
+                const start = new Date(parseInt(parts1[0], 10), parseInt(parts1[1], 10) - 1, parseInt(parts1[2], 10));
+                const end = new Date(parseInt(parts2[0], 10), parseInt(parts2[1], 10) - 1, parseInt(parts2[2], 10));
+                const curr = new Date(start);
+
+                while (curr <= end) {
+                    const y = curr.getFullYear();
+                    const m = String(curr.getMonth() + 1).padStart(2, '0');
+                    const d = String(curr.getDate()).padStart(2, '0');
+                    const dStr = `${y}-${m}-${d}`;
+                    if (this.bookedDates.includes(dStr)) {
+                        return true;
+                    }
+                    curr.setDate(curr.getDate() + 1);
+                }
+                return false;
+            },
+
+            resetDateRange() {
+                this.selectedDate = '';
+                this.selectedEndDate = '';
+                this.hoverDate = null;
+                this.pickingRange = false;
                 this.formErrors.step1 = null;
             },
 
+            get effectiveEndDate() {
+                if (this.selectedEndDate) return this.selectedEndDate;
+                if (this.pickingRange && this.hoverDate && this.hoverDate > this.selectedDate) {
+                    return this.hoverDate;
+                }
+                return this.selectedDate;
+            },
+
+            get durationDays() {
+                if (!this.selectedDate) return 0;
+                const endStr = this.selectedEndDate || this.selectedDate;
+                const parts1 = this.selectedDate.split('-');
+                const parts2 = endStr.split('-');
+                const d1 = new Date(parseInt(parts1[0], 10), parseInt(parts1[1], 10) - 1, parseInt(parts1[2], 10));
+                const d2 = new Date(parseInt(parts2[0], 10), parseInt(parts2[1], 10) - 1, parseInt(parts2[2], 10));
+                const diffTime = d2.getTime() - d1.getTime();
+                return Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1);
+            },
+
+            get isSingleDateSelection() {
+                const end = this.effectiveEndDate;
+                return !end || end === this.selectedDate;
+            },
+
+            isStartDate(dateStr) {
+                return this.selectedDate === dateStr;
+            },
+
+            isEndDate(dateStr) {
+                const end = this.effectiveEndDate;
+                return end === dateStr && end !== this.selectedDate;
+            },
+
+            isInRange(dateStr) {
+                if (!this.selectedDate || !dateStr) return false;
+                const end = this.effectiveEndDate;
+                if (!end || end === this.selectedDate) {
+                    return this.selectedDate === dateStr;
+                }
+                return dateStr >= this.selectedDate && dateStr <= end;
+            },
+
+            isBetweenDates(dateStr) {
+                if (!this.selectedDate || !dateStr) return false;
+                const end = this.effectiveEndDate;
+                if (!end || end === this.selectedDate) return false;
+                return dateStr > this.selectedDate && dateStr < end;
+            },
+
             get isDateBooked() {
-                return this.selectedDate && this.bookedDates.includes(this.selectedDate);
+                if (!this.selectedDate) return false;
+                if (this.bookedDates.includes(this.selectedDate)) return true;
+                const endStr = this.selectedEndDate || this.selectedDate;
+                if (endStr !== this.selectedDate) {
+                    return this.hasBookedDateBetween(this.selectedDate, endStr);
+                }
+                return false;
+            },
+
+            formatSingleDate(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return dateStr;
+                const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
             },
 
             get formattedSelectedDate() {
                 if (!this.selectedDate) return '';
-                const parts = this.selectedDate.split('-');
-                if (parts.length !== 3) return this.selectedDate;
-                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                const endStr = this.selectedEndDate || this.selectedDate;
+                const days = this.durationDays;
+                if (endStr === this.selectedDate || days === 1) {
+                    return this.formatSingleDate(this.selectedDate) + ' (1 Hari)';
+                }
+                return this.formatSingleDate(this.selectedDate) + ' – ' + this.formatSingleDate(endStr) + ` (${days} Hari)`;
             },
 
             get currentPackage() {
@@ -1180,8 +1453,17 @@
                 return this.activeAddons.reduce((sum, a) => sum + (parseInt(a.selectedQty) * parseFloat(a.unit_price)), 0);
             },
 
+            get extraDays() {
+                return Math.max(0, this.durationDays - 2);
+            },
+
+            get additionalDayCharge() {
+                if (this.extraDays <= 0 || !this.currentPackagePrice) return 0;
+                return this.extraDays * 0.15 * this.currentPackagePrice;
+            },
+
             get grandTotal() {
-                return this.currentPackagePrice + this.addonTotalPrice;
+                return this.currentPackagePrice + this.addonTotalPrice + this.additionalDayCharge;
             },
 
             get remainingBalance() {
@@ -1203,12 +1485,16 @@
                 }
 
                 if (nextStep === 2) {
+                    if (this.pickingRange && this.selectedDate && !this.selectedEndDate) {
+                        this.selectedEndDate = this.selectedDate;
+                        this.pickingRange = false;
+                    }
                     if (!this.selectedDate) {
-                        this.formErrors.step1 = 'Please tap an open wedding date on the calendar.';
+                        this.formErrors.step1 = 'Silakan pilih tanggal acara terlebih dahulu pada kalender.';
                         return;
                     }
                     if (this.isDateBooked) {
-                        this.formErrors.step1 = 'The selected date is fully booked. Please choose another date.';
+                        this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati hari yang sudah penuh (FULL). Silakan pilih rentang lain.';
                         return;
                     }
                     this.formErrors.step1 = null;

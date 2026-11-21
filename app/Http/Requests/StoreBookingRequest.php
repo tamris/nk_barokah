@@ -28,15 +28,37 @@ class StoreBookingRequest extends FormRequest
                 'date', 
                 'after_or_equal:today',
                 function ($attribute, $value, $fail) use ($maxPerDay) {
-                    $activeBookings = Booking::whereDate('event_date', $value)
-                        ->whereIn('status', ['pending_verification', 'confirmed'])
-                        ->count();
+                    $start = \Carbon\Carbon::parse($value);
+                    $endInput = $this->input('event_end_date');
+                    $end = !empty($endInput) ? \Carbon\Carbon::parse($endInput) : $start;
 
-                    if ($activeBookings >= $maxPerDay) {
-                        $fail('Jadwal untuk tanggal tersebut sudah penuh. Silakan pilih tanggal lain.');
+                    if ($end->lessThan($start)) {
+                        $fail('Tanggal selesai acara tidak boleh mendahului tanggal mulai acara.');
+                        return;
+                    }
+
+                    $curr = $start->copy();
+                    while ($curr->lessThanOrEqualTo($end)) {
+                        $targetDate = $curr->toDateString();
+                        $activeBookings = Booking::where(function ($q) use ($targetDate) {
+                            $q->whereDate('event_date', $targetDate)
+                              ->orWhere(function ($q2) use ($targetDate) {
+                                  $q2->whereNotNull('event_end_date')
+                                     ->whereDate('event_date', '<=', $targetDate)
+                                     ->whereDate('event_end_date', '>=', $targetDate);
+                              });
+                        })->whereIn('status', ['pending_verification', 'confirmed'])->count();
+
+                        if ($activeBookings >= $maxPerDay) {
+                            $fail("Jadwal pada tanggal {$targetDate} sudah penuh (FULL). Silakan pilih rentang tanggal lain.");
+                            return;
+                        }
+                        $curr->addDay();
                     }
                 }
             ],
+            'event_end_date' => ['nullable', 'date', 'after_or_equal:event_date'],
+            'duration_days'  => ['nullable', 'integer', 'min:1', 'max:30'],
             'package_id'     => ['required', 'exists:packages,id'],
             'addons'         => ['nullable', 'array'],
             'addons.*.id'    => ['required_with:addons', 'exists:addons,id'],
@@ -73,7 +95,14 @@ class StoreBookingRequest extends FormRequest
                     }
                 }
 
-                $grandTotal = $package->base_price + $addonTotal;
+                $startDate = \Carbon\Carbon::parse($this->event_date);
+                $endDate = $this->filled('event_end_date') ? \Carbon\Carbon::parse($this->event_end_date) : $startDate;
+                $durationDays = max(1, (int) ($startDate->diffInDays($endDate) + 1));
+                $extraDays = max(0, $durationDays - 2);
+                $extraDayChargeRate = (float) config('wo.extra_day_charge_rate', 0.15);
+                $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
+
+                $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge;
 
                 if ($nominalDp < $minDpConfig) {
                     $validator->errors()->add('nominal_dp', 'Nominal DP minimal adalah Rp ' . number_format($minDpConfig, 0, ',', '.') . '.');

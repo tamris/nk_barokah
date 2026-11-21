@@ -12,8 +12,11 @@ class Booking extends Model
 
     protected $casts = [
         'event_date'        => 'date',
-        'package_price'     => 'decimal:2',
-        'addon_total_price' => 'decimal:2',
+        'event_end_date'    => 'date',
+        'duration_days'     => 'integer',
+        'package_price'         => 'decimal:2',
+        'additional_day_charge' => 'decimal:2',
+        'addon_total_price'     => 'decimal:2',
         'grand_total'       => 'decimal:2',
         'amount_paid'       => 'decimal:2',
         'remaining_balance' => 'decimal:2',
@@ -22,6 +25,7 @@ class Booking extends Model
 
     protected $appends = [
         'formatted_phone',
+        'formatted_event_date',
         'whatsapp_message',
         'whatsapp_url',
     ];
@@ -46,11 +50,29 @@ class Booking extends Model
     }
 
     /**
+     * Format tanggal acara (1 hari atau rentang multi-hari acara).
+     */
+    public function getFormattedEventDateAttribute(): string
+    {
+        $start = \Carbon\Carbon::parse($this->event_date);
+        $duration = $this->duration_days ?: 1;
+
+        if ($this->event_end_date && !$start->isSameDay($this->event_end_date)) {
+            $end = \Carbon\Carbon::parse($this->event_end_date);
+            $dateRange = $start->isSameMonth($end)
+                ? $start->isoFormat('D') . ' - ' . $end->isoFormat('D MMMM Y')
+                : $start->isoFormat('D MMMM') . ' - ' . $end->isoFormat('D MMMM Y');
+            return "{$dateRange} ({$duration} Hari Acara)";
+        }
+        return $start->isoFormat('dddd, D MMMM Y') . ' (1 Hari Acara)';
+    }
+
+    /**
      * Template pesan WhatsApp profesional & lengkap sesuai status pembayaran dan reservasi.
      */
     public function getWhatsAppMessageAttribute(): string
     {
-        $dateFormatted = \Carbon\Carbon::parse($this->event_date)->isoFormat('dddd, D MMMM Y');
+        $dateFormatted = $this->formatted_event_date;
         $grandTotalFormatted = 'Rp ' . number_format($this->grand_total, 0, ',', '.');
         $paidFormatted = 'Rp ' . number_format($this->amount_paid, 0, ',', '.');
         $remainingFormatted = 'Rp ' . number_format($this->remaining_balance, 0, ',', '.');

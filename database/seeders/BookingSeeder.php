@@ -15,10 +15,15 @@ class BookingSeeder extends Seeder
     public function run(): void
     {
         // 1. Reset data booking & booking_addons saja
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        BookingAddon::truncate();
-        Booking::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            BookingAddon::truncate();
+            Booking::truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } else {
+            BookingAddon::query()->delete();
+            Booking::query()->delete();
+        }
 
         $packages = Package::all();
         $addons = Addon::all();
@@ -116,9 +121,11 @@ class BookingSeeder extends Seeder
             for ($a = 0; $a < $addonCount; $a++) {
                 $targetAddon = $addons[($idx + $a) % $addons->count()];
                 $qty = match ($targetAddon->unit) {
-                    'pcs'   => 50 + (($idx * 10) % 150), // 50 - 200 kursi
-                    'porsi' => 100 + (($idx * 25) % 300), // 100 - 400 porsi
-                    'sesi'  => 1,
+                    'pcs'   => 10 + (($idx * 5) % 40),
+                    'meter' => 10 + (($idx * 6) % 30),
+                    'unit'  => 1 + ($idx % 3),
+                    'hari'  => 1 + ($idx % 2),
+                    'set'   => 1,
                     default => 1,
                 };
                 $subtotal = $targetAddon->unit_price * $qty;
@@ -140,8 +147,10 @@ class BookingSeeder extends Seeder
                 $remaining = 0;
                 $payType = 'lunas';
             } else {
-                // DP 30% - 50% atau minimal 10 Juta
-                $amountPaid = max(10000000, round($grandTotal * 0.35, -5));
+                // DP minimal 1jt (default rules) atau sekitar 35% grand total
+                $minDp = (float) config('wo.min_dp_amount', 1000000);
+                $calculatedDp = round($grandTotal * 0.35, -5);
+                $amountPaid = max($minDp, min($calculatedDp, $grandTotal));
                 $remaining = max(0, $grandTotal - $amountPaid);
                 $payType = 'dp';
             }

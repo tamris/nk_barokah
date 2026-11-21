@@ -95,7 +95,7 @@ class SyncBookingToGoogleServicesJob implements ShouldQueue
                     $this->booking->invoice_number,
                     $this->booking->customer_name,
                     $this->booking->customer_phone,
-                    Carbon::parse($this->booking->event_date)->format('Y-m-d'),
+                    $this->booking->formatted_event_date,
                     $this->booking->package_name,
                     $addonsSummary,
                     (float) $this->booking->grand_total,
@@ -220,9 +220,10 @@ class SyncBookingToGoogleServicesJob implements ShouldQueue
                 . "Bukti Transfer: " . asset('storage/' . $this->booking->payment_proof_path);
 
             // FIX GOOGLE CALENDAR ALL-DAY EVENT:
-            // Parameter 'start' adalah tanggal acara, parameter 'end' harus H+1 (exclusive).
+            // Parameter 'start' adalah tanggal acara, parameter 'end' harus H+1 dari hari terakhir (exclusive).
             $startDate = Carbon::parse($this->booking->event_date)->toDateString();
-            $endDate   = Carbon::parse($this->booking->event_date)->addDay()->toDateString();
+            $actualEnd = $this->booking->event_end_date ? Carbon::parse($this->booking->event_end_date) : Carbon::parse($this->booking->event_date);
+            $endDate   = $actualEnd->addDay()->toDateString();
 
             $event = new Event([
                 'summary'     => $summary,

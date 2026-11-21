@@ -29,6 +29,16 @@ class BookingManagementController extends Controller
         // Format semua reservasi untuk UI interaktif (Dashboard, Bookings, Calendar, Clients, Invoice, Detail)
         $bookingsPayload = $allBookings->map(function (Booking $b) {
             $eventDate = Carbon::parse($b->event_date);
+            $eventEndDate = $b->event_end_date ? Carbon::parse($b->event_end_date) : $eventDate;
+            $durationDays = max(1, (int) ($b->duration_days ?: ($eventDate->diffInDays($eventEndDate) + 1)));
+
+            if ($durationDays > 1 && !$eventDate->isSameDay($eventEndDate)) {
+                $dateFormatted = $eventDate->format('D, M d, Y') . ' – ' . $eventEndDate->format('D, M d, Y') . " ({$durationDays} Hari)";
+                $dateShortFormatted = $eventDate->format('M d') . ' – ' . $eventEndDate->format('M d, Y');
+            } else {
+                $dateFormatted = $eventDate->format('l, M d, Y');
+                $dateShortFormatted = $eventDate->format('M d, Y');
+            }
 
             $bookingStatusMap = [
                 'pending_verification' => 'Inquiry',
@@ -80,11 +90,16 @@ class BookingManagementController extends Controller
                 'bookingStatus'           => $bookingStatus,
                 'invoiceStatus'           => $invoiceStatus,
                 'event_date_iso'          => $eventDate->format('Y-m-d'),
+                'event_end_date_iso'      => $eventEndDate->format('Y-m-d'),
+                'duration_days'           => $durationDays,
+                'additional_day_charge'   => (float) $b->additional_day_charge,
+                'additional_day_charge_formatted' => 'Rp ' . number_format((float) $b->additional_day_charge, 0, ',', '.'),
                 'event_year'              => (int) $eventDate->year,
                 'event_month'             => (int) $eventDate->month,
                 'event_day'               => (int) $eventDate->day,
-                'date'                    => $eventDate->format('l, M d, Y'),
-                'date_short'              => $eventDate->format('M d, Y'),
+                'date'                    => $dateFormatted,
+                'date_short'              => $dateShortFormatted,
+                'formatted_event_date'    => $b->formatted_event_date,
                 'time'                    => $b->created_at->format('h:i A'),
                 'relative_date'           => $eventDate->diffForHumans(),
                 'created_at_label'        => $b->created_at->format('M d, Y · h:i A'),
@@ -156,8 +171,18 @@ class BookingManagementController extends Controller
 
         // Metrik Statistik Real untuk Owner
         $today = Carbon::today();
-        $todayCount = $allBookings->filter(fn ($b) => Carbon::parse($b->event_date)->isSameDay($today) && $b->status !== 'rejected')->count();
-        $upcomingCount = $allBookings->filter(fn ($b) => in_array($b->status, ['pending_verification', 'confirmed']) && Carbon::parse($b->event_date)->greaterThanOrEqualTo($today))->count();
+        $todayCount = $allBookings->filter(function ($b) use ($today) {
+            if ($b->status === 'rejected') return false;
+            $start = Carbon::parse($b->event_date)->startOfDay();
+            $end = ($b->event_end_date ? Carbon::parse($b->event_end_date) : $start)->endOfDay();
+            return $today->between($start, $end);
+        })->count();
+
+        $upcomingCount = $allBookings->filter(function ($b) use ($today) {
+            if (!in_array($b->status, ['pending_verification', 'confirmed'])) return false;
+            $end = $b->event_end_date ? Carbon::parse($b->event_end_date) : Carbon::parse($b->event_date);
+            return $end->greaterThanOrEqualTo($today);
+        })->count();
         $pendingCount = $allBookings->where('status', 'pending_verification')->count();
         $outstandingBookings = $allBookings->filter(fn ($b) => in_array($b->status, ['pending_verification', 'confirmed']) && (float) $b->remaining_balance > 0);
         $totalCollected = (float) $allBookings->whereIn('status', ['confirmed', 'completed'])->sum('amount_paid');

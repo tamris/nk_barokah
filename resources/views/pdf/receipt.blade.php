@@ -176,7 +176,7 @@
                     <td width="35%">{{ $booking->customer_name }}</td>
                     <td width="20%"><strong>Tanggal Acara:</strong></td>
                     <td width="25%" style="color:#8C6D37; font-weight:bold;">
-                        {{ \Carbon\Carbon::parse($booking->event_date)->isoFormat('dddd, D MMMM Y') }}
+                        {{ $booking->formatted_event_date }}
                     </td>
                 </tr>
                 <tr>
@@ -208,6 +208,17 @@
                     <td class="text-right">Rp {{ number_format($booking->package_price, 0, ',', '.') }}</td>
                     <td class="text-right"><strong>Rp {{ number_format($booking->package_price, 0, ',', '.') }}</strong></td>
                 </tr>
+                @if($booking->additional_day_charge > 0)
+                <tr>
+                    <td>
+                        <strong>Charge Tambahan Durasi Acara</strong><br>
+                        <span style="color:#8C6D37; font-size:8px;">{{ max(1, $booking->duration_days - 2) }} hari ekstra @ 15% dari harga paket</span>
+                    </td>
+                    <td class="text-center">{{ max(1, $booking->duration_days - 2) }} Hari</td>
+                    <td class="text-right">Rp {{ number_format($booking->package_price * 0.15, 0, ',', '.') }}</td>
+                    <td class="text-right"><strong>Rp {{ number_format($booking->additional_day_charge, 0, ',', '.') }}</strong></td>
+                </tr>
+                @endif
                 @foreach($booking->addons as $addon)
                 <tr>
                     <td>

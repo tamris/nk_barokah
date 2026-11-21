@@ -191,7 +191,7 @@
                     <div class="p-3 bg-[#FAF8F5] rounded-2xl border border-[#ECE8E1]">
                         <span class="text-zinc-400 block mb-0.5">Tanggal Acara Pernikahan</span>
                         <span class="font-extrabold text-zinc-900 text-sm block">
-                            {{ \Carbon\Carbon::parse($booking->event_date)->isoFormat('dddd, D MMMM Y') }}
+                            {{ $booking->formatted_event_date }}
                         </span>
                         <span class="text-[11px] text-coral-600 font-semibold block mt-0.5">
                             {{ \Carbon\Carbon::parse($booking->event_date)->diffForHumans() }}
@@ -243,6 +243,17 @@
                                     <td class="py-3 text-right font-extrabold text-zinc-900 font-mono">Rp {{ number_format($addon->subtotal, 0, ',', '.') }}</td>
                                 </tr>
                             @endforeach
+                            @if($booking->additional_day_charge > 0)
+                                <tr>
+                                    <td class="py-3 font-semibold text-amber-800">
+                                        Tambahan Durasi Acara ({{ max(1, $booking->duration_days - 2) }} hari ekstra @ 15%)
+                                        <span class="block text-[10px] text-amber-600 font-normal">Charge Durasi Tambahan (> 2 hari)</span>
+                                    </td>
+                                    <td class="py-3 text-center text-amber-800 font-bold">{{ max(1, $booking->duration_days - 2) }} hari</td>
+                                    <td class="py-3 text-right text-amber-800 font-mono">Rp {{ number_format($booking->package_price * 0.15, 0, ',', '.') }}</td>
+                                    <td class="py-3 text-right font-extrabold text-amber-900 font-mono">Rp {{ number_format($booking->additional_day_charge, 0, ',', '.') }}</td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>

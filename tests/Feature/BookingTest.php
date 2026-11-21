@@ -27,8 +27,8 @@ class BookingTest extends TestCase
         $response = $this->get(route('booking.create'));
 
         $response->assertStatus(200);
-        $response->assertSee('Silver Package');
-        $response->assertSee('Kursi Futura');
+        $response->assertSee('Tenda Set');
+        $response->assertSee('Kursi');
     }
 
     public function test_customer_can_create_booking_with_lunas_payment(): void
@@ -56,7 +56,7 @@ class BookingTest extends TestCase
             'payment_proof'  => $file,
         ]);
 
-        $booking = Booking::first();
+        $booking = Booking::latest('id')->first();
         $this->assertNotNull($booking);
 
         $response->assertRedirect(route('booking.success', $booking->invoice_number));
@@ -81,7 +81,7 @@ class BookingTest extends TestCase
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
         $eventDate = now()->addMonth()->format('Y-m-d');
-        $dpNominal = 5000000;
+        $dpNominal = 1000000;
 
         $response = $this->post(route('booking.store'), [
             'customer_name'  => 'Joko & Rina',
@@ -93,7 +93,7 @@ class BookingTest extends TestCase
             'payment_proof'  => $file,
         ]);
 
-        $booking = Booking::first();
+        $booking = Booking::latest('id')->first();
         $this->assertNotNull($booking);
         $response->assertRedirect(route('booking.success', $booking->invoice_number));
 
@@ -141,7 +141,7 @@ class BookingTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['event_date']);
-        $this->assertEquals(1, Booking::count());
+        $this->assertEquals(51, Booking::count());
     }
 
     public function test_dp_validation_fails_if_dp_exceeds_grand_total_or_below_minimum(): void
@@ -202,6 +202,75 @@ class BookingTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_customer_can_create_booking_with_two_days_range(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $startDate = now()->addMonths(5)->format('Y-m-d');
+        $endDate = now()->addMonths(5)->addDay()->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'  => 'Radit & Laura',
+            'customer_phone' => '081299887766',
+            'event_date'     => $startDate,
+            'event_end_date' => $endDate,
+            'duration_days'  => 2,
+            'package_id'     => $package->id,
+            'payment_type'   => 'dp',
+            'nominal_dp'     => 1000000,
+            'payment_proof'  => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals($startDate, $booking->event_date->format('Y-m-d'));
+        $this->assertEquals($endDate, $booking->event_end_date->format('Y-m-d'));
+        $this->assertEquals(2, $booking->duration_days);
+        $this->assertStringContainsString('(2 Hari Acara)', $booking->formatted_event_date);
+    }
+
+    public function test_customer_can_create_booking_with_multi_days_range_hotel_style(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $startDate = now()->addMonths(6)->format('Y-m-d');
+        $endDate = now()->addMonths(6)->addDays(2)->format('Y-m-d'); // 3 days total
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'  => 'Bayu & Citra',
+            'customer_phone' => '081299887755',
+            'event_date'     => $startDate,
+            'event_end_date' => $endDate,
+            'duration_days'  => 3,
+            'package_id'     => $package->id,
+            'payment_type'   => 'dp',
+            'nominal_dp'     => 1000000,
+            'payment_proof'  => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals($startDate, $booking->event_date->format('Y-m-d'));
+        $this->assertEquals($endDate, $booking->event_end_date->format('Y-m-d'));
+        $this->assertEquals(3, $booking->duration_days);
+        $this->assertStringContainsString('(3 Hari Acara)', $booking->formatted_event_date);
+
+        // Standard package covers 2 days. 3rd day incurs 15% charge.
+        $expectedCharge = $package->base_price * 0.15;
+        $this->assertEquals($expectedCharge, $booking->additional_day_charge);
+        $this->assertEquals($package->base_price + $expectedCharge, $booking->grand_total);
     }
 }
 

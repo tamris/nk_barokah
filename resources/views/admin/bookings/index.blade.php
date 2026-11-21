@@ -123,7 +123,12 @@
             for (let i = -3; i <= 3; i++) {
                 const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
                 const iso = this.toLocalIso(d);
-                const hasEvent = this.allBookings.some(b => b.raw_status !== 'rejected' && b.event_date_iso === iso);
+                const hasEvent = this.allBookings.some(b => {
+                    if (b.raw_status === 'rejected') return false;
+                    const start = b.event_date_iso;
+                    const end = b.event_end_date_iso || start;
+                    return iso >= start && iso <= end;
+                });
                 list.push({ day: dayNames[d.getDay()], num: d.getDate(), iso, hasEvent, offset: i });
             }
             return list;
@@ -142,7 +147,11 @@
             if (q) {
                 return activeList.filter(b => b.name.toLowerCase().includes(q) || b.service.toLowerCase().includes(q) || b.code.toLowerCase().includes(q));
             }
-            return activeList.filter(b => b.event_date_iso === this.selectedDateIso);
+            return activeList.filter(b => {
+                const start = b.event_date_iso;
+                const end = b.event_end_date_iso || start;
+                return this.selectedDateIso >= start && this.selectedDateIso <= end;
+            });
         },
 
         get upcomingList() {
@@ -204,8 +213,12 @@
                 cells.push({ blank: true, key: 'b-' + b });
             }
             for (let d = 1; d <= daysInMonth; d++) {
-                const events = this.allBookings.filter(ev => ev.event_year === this.calYear && ev.event_month === this.calMonth && ev.event_day === d);
                 const iso = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const events = this.allBookings.filter(ev => {
+                    const start = ev.event_date_iso;
+                    const end = ev.event_end_date_iso || start;
+                    return iso >= start && iso <= end;
+                });
                 cells.push({
                     blank: false,
                     key: 'd-' + d,
@@ -969,7 +982,7 @@
                                                         'bg-[#FEECEB] hover:bg-[#FCDCD9] text-rose-700': ev.bookingStatus === 'Cancelled'
                                                     }"
                                                     class="w-full text-left px-2.5 py-1.5 rounded-lg transition cursor-pointer">
-                                                <p class="text-[10.5px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName"></p>
+                                                <p class="text-[10.5px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'H)' : '')"></p>
                                                 <p class="text-[10px] opacity-80 leading-tight truncate mt-0.5" x-text="ev.service"></p>
                                             </button>
                                         </template>
@@ -1570,6 +1583,16 @@
                             </div>
                         </template>
 
+                        <template x-if="(activeDetail?.additional_day_charge || 0) > 0">
+                            <div class="flex items-center justify-between gap-3 pt-2 border-t border-[#EBF1EF] text-amber-800">
+                                <div>
+                                    <p class="font-semibold" x-text="'Tambahan Durasi (' + (activeDetail.duration_days - 2) + ' hari ekstra @ 15%)'"></p>
+                                    <p class="text-[11px] text-amber-600">Charge Durasi Ekstra</p>
+                                </div>
+                                <span class="font-bold shrink-0" x-text="'+ ' + activeDetail.additional_day_charge_formatted"></span>
+                            </div>
+                        </template>
+
                         <div class="pt-3 border-t border-[#DFE8E5] space-y-1.5">
                             <div class="flex justify-between">
                                 <span class="text-slate-500">Grand Total</span>
@@ -1593,7 +1616,7 @@
                         <h2 class="text-lg font-bold text-slate-900 tracking-tight">Payment Proof</h2>
                         <template x-if="activeDetail?.payment_proof_url">
                             <a :href="activeDetail.payment_proof_url" target="_blank" class="text-xs font-semibold text-brand-600 hover:underline">
-                                Open Full Resolution ↗
+                                Open Full Resolution
                             </a>
                         </template>
                     </div>

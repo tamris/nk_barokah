@@ -20,13 +20,35 @@ class BookingController extends Controller
 
         // Ambil daftar tanggal yang sudah penuh (booked out) untuk di-disable pada kalender UI
         $maxPerDay = config('wo.max_events_per_day', 1);
-        $bookedDates = Booking::whereIn('status', ['pending_verification', 'confirmed'])
-            ->whereDate('event_date', '>=', now()->toDateString())
-            ->groupBy('event_date')
-            ->havingRaw('count(*) >= ?', [$maxPerDay])
-            ->pluck('event_date')
-            ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
-            ->toArray();
+        $activeBookings = Booking::whereIn('status', ['pending_verification', 'confirmed'])
+            ->where(function ($q) {
+                $q->whereDate('event_date', '>=', now()->toDateString())
+                  ->orWhere(function ($q2) {
+                      $q2->whereNotNull('event_end_date')
+                         ->whereDate('event_end_date', '>=', now()->toDateString());
+                  });
+            })
+            ->get(['event_date', 'event_end_date']);
+
+        $dateCounts = [];
+        foreach ($activeBookings as $b) {
+            $startDate = \Carbon\Carbon::parse($b->event_date);
+            $endDate = $b->event_end_date ? \Carbon\Carbon::parse($b->event_end_date) : $startDate;
+
+            $curr = $startDate->copy();
+            while ($curr->lessThanOrEqualTo($endDate)) {
+                $dStr = $curr->toDateString();
+                $dateCounts[$dStr] = ($dateCounts[$dStr] ?? 0) + 1;
+                $curr->addDay();
+            }
+        }
+
+        $bookedDates = [];
+        foreach ($dateCounts as $dStr => $count) {
+            if ($count >= $maxPerDay) {
+                $bookedDates[] = $dStr;
+            }
+        }
 
         return view('booking.form', compact('packages', 'addons', 'bookedDates'));
     }
@@ -61,7 +83,17 @@ class BookingController extends Controller
                 }
             }
 
-            $grandTotal = $package->base_price + $addonTotalPrice;
+            // Hitung Durasi & Biaya Tambahan Hari (> 2 hari kena charge 15% per hari)
+            $eventDate = $validated['event_date'];
+            $eventEndDate = $validated['event_end_date'] ?? $eventDate;
+            $start = \Carbon\Carbon::parse($eventDate);
+            $end = \Carbon\Carbon::parse($eventEndDate);
+            $durationDays = max(1, (int) ($start->diffInDays($end) + 1));
+            $extraDays = max(0, $durationDays - 2);
+            $extraDayChargeRate = (float) config('wo.extra_day_charge_rate', 0.15);
+            $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
+
+            $grandTotal = (float) $package->base_price + $addonTotalPrice + $additionalDayCharge;
 
             if ($validated['payment_type'] === 'lunas') {
                 $amountPaid = $grandTotal;
@@ -87,21 +119,24 @@ class BookingController extends Controller
 
             // Buat Record Utama Booking
             $booking = Booking::create([
-                'invoice_number'     => $invoiceNumber,
-                'customer_name'      => $validated['customer_name'],
-                'customer_phone'     => $validated['customer_phone'],
-                'customer_email'     => $validated['customer_email'] ?? null,
-                'event_date'         => $validated['event_date'],
-                'package_id'         => $package->id,
-                'package_name'       => $package->name,
-                'package_price'      => $package->base_price,
-                'addon_total_price'  => $addonTotalPrice,
-                'grand_total'        => $grandTotal,
-                'amount_paid'        => $amountPaid,
-                'remaining_balance'  => $remaining,
-                'payment_type'       => $validated['payment_type'],
-                'payment_proof_path' => $proofPath,
-                'status'             => 'pending_verification',
+                'invoice_number'        => $invoiceNumber,
+                'customer_name'         => $validated['customer_name'],
+                'customer_phone'        => $validated['customer_phone'],
+                'customer_email'        => $validated['customer_email'] ?? null,
+                'event_date'            => $eventDate,
+                'event_end_date'        => $eventEndDate,
+                'duration_days'         => $durationDays,
+                'package_id'            => $package->id,
+                'package_name'          => $package->name,
+                'package_price'         => $package->base_price,
+                'additional_day_charge' => $additionalDayCharge,
+                'addon_total_price'     => $addonTotalPrice,
+                'grand_total'           => $grandTotal,
+                'amount_paid'           => $amountPaid,
+                'remaining_balance'     => $remaining,
+                'payment_type'          => $validated['payment_type'],
+                'payment_proof_path'    => $proofPath,
+                'status'                => 'pending_verification',
             ]);
 
             // Simpan Detail Relasi Add-ons
@@ -121,14 +156,14 @@ class BookingController extends Controller
     public function success(string $invoiceNumber)
     {
         $booking = Booking::with('addons')->where('invoice_number', $invoiceNumber)->firstOrFail();
-        $adminWhatsapp = config('wo.admin_whatsapp', '6281234567890');
+        $adminWhatsapp = config('wo.admin_whatsapp', '6282255969313');
 
         // Pre-filled WhatsApp message
         $waMessage = urlencode(
             "Halo Admin NK Barokah Wedding Organizer, saya sudah melakukan reservasi dengan rincian:\n" .
             "- No. Invoice: {$booking->invoice_number}\n" .
             "- Nama: {$booking->customer_name}\n" .
-            "- Tanggal Acara: " . \Carbon\Carbon::parse($booking->event_date)->isoFormat('D MMMM Y') . "\n" .
+            "- Tanggal Acara: " . $booking->formatted_event_date . "\n" .
             "- Pembayaran: " . strtoupper($booking->payment_type) . " (Rp " . number_format($booking->amount_paid, 0, ',', '.') . ")\n\n" .
             "Mohon diverifikasi pembayaran saya. Terima kasih!"
         );

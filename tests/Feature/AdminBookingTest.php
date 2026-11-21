@@ -211,5 +211,43 @@ class AdminBookingTest extends TestCase
         $this->actingAs($admin)->patch(route('admin.addons.toggle', $addon->id));
         $this->assertFalse($addon->fresh()->is_active);
     }
+
+    public function test_admin_bookings_payload_includes_multi_day_range_and_details(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+        $startDate = '2027-01-01';
+        $endDate = '2027-01-02';
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202701-MULTIDAY',
+            'customer_name'      => 'Muchamad Rizqi Pratama',
+            'customer_phone'     => '085183125526',
+            'event_date'         => $startDate,
+            'event_end_date'     => $endDate,
+            'duration_days'      => 2,
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => $package->base_price,
+            'addon_total_price'  => 0,
+            'additional_day_charge' => 0,
+            'grand_total'        => $package->base_price,
+            'amount_paid'        => $package->base_price,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
+        $response->assertStatus(200);
+        $response->assertSee('2027-01-01');
+        $response->assertSee('2027-01-02');
+        $response->assertSee('Muchamad Rizqi Pratama');
+
+        $showResponse = $this->actingAs($admin)->get(route('admin.bookings.show', $booking->id));
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('(2 Hari Acara)');
+    }
 }
 

@@ -70,7 +70,7 @@
             <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
                 Thank you, <strong class="text-slate-900 font-semibold">{{ $booking->customer_name }}</strong>. 
                 Your wedding date request for 
-                <strong class="text-brand-700 font-semibold">{{ \Carbon\Carbon::parse($booking->event_date)->isoFormat('dddd, D MMMM Y') }}</strong> 
+                <strong class="text-brand-700 font-semibold">{{ $booking->formatted_event_date }}</strong> 
                 has been recorded.
             </p>
         </div>
