@@ -26,6 +26,8 @@
         bookingServiceFilter: 'all',
         statusMenuOpen: false,
         serviceMenuOpen: false,
+        bookingPage: 1,
+        bookingPerPage: 10,
 
         currentRealYear: {{ now()->year }},
         currentRealMonth: {{ now()->month }},
@@ -41,13 +43,34 @@
         clientFilter: 'all',
         clientMenuOpen: false,
         activeClient: null,
+        clientPage: 1,
+        clientPerPage: 10,
+
         serviceSubTab: 'packages',
         serviceSearch: '',
+
         invoiceSearch: '',
         invoiceFilter: 'all',
         invoiceMenuOpen: false,
+        invoicePage: 1,
+        invoicePerPage: 10,
 
         previousTab: 'dashboard',
+
+        init() {
+            this.$watch('bookingSearch', () => { this.bookingPage = 1; });
+            this.$watch('bookingFilter', () => { this.bookingPage = 1; });
+            this.$watch('bookingServiceFilter', () => { this.bookingPage = 1; });
+            this.$watch('bookingPerPage', () => { this.bookingPage = 1; });
+
+            this.$watch('clientSearch', () => { this.clientPage = 1; });
+            this.$watch('clientFilter', () => { this.clientPage = 1; });
+            this.$watch('clientPerPage', () => { this.clientPage = 1; });
+
+            this.$watch('invoiceSearch', () => { this.invoicePage = 1; });
+            this.$watch('invoiceFilter', () => { this.invoicePage = 1; });
+            this.$watch('invoicePerPage', () => { this.invoicePage = 1; });
+        },
         activeDetail: null,
         confirmModal: {
             open: false,
@@ -178,6 +201,38 @@
             });
         },
 
+        get totalBookingPages() {
+            return Math.max(1, Math.ceil(this.filteredBookings.length / this.bookingPerPage));
+        },
+        get paginatedBookings() {
+            const total = this.totalBookingPages;
+            if (this.bookingPage > total) this.bookingPage = total;
+            if (this.bookingPage < 1) this.bookingPage = 1;
+            const start = (this.bookingPage - 1) * this.bookingPerPage;
+            return this.filteredBookings.slice(start, start + this.bookingPerPage);
+        },
+        get bookingFrom() {
+            if (this.filteredBookings.length === 0) return 0;
+            return (this.bookingPage - 1) * this.bookingPerPage + 1;
+        },
+        get bookingTo() {
+            return Math.min(this.bookingPage * this.bookingPerPage, this.filteredBookings.length);
+        },
+        get bookingPaginationRange() {
+            const current = this.bookingPage;
+            const total = this.totalBookingPages;
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            if (current <= 3) {
+                return [1, 2, 3, 4, '...', total];
+            }
+            if (current >= total - 2) {
+                return [1, '...', total - 3, total - 2, total - 1, total];
+            }
+            return [1, '...', current - 1, current, current + 1, '...', total];
+        },
+
         get filteredClients() {
             const q = (this.clientSearch || this.$store.nav.search || '').toLowerCase();
             return this.clientsList.filter(c => {
@@ -187,6 +242,38 @@
             });
         },
 
+        get totalClientPages() {
+            return Math.max(1, Math.ceil(this.filteredClients.length / this.clientPerPage));
+        },
+        get paginatedClients() {
+            const total = this.totalClientPages;
+            if (this.clientPage > total) this.clientPage = total;
+            if (this.clientPage < 1) this.clientPage = 1;
+            const start = (this.clientPage - 1) * this.clientPerPage;
+            return this.filteredClients.slice(start, start + this.clientPerPage);
+        },
+        get clientFrom() {
+            if (this.filteredClients.length === 0) return 0;
+            return (this.clientPage - 1) * this.clientPerPage + 1;
+        },
+        get clientTo() {
+            return Math.min(this.clientPage * this.clientPerPage, this.filteredClients.length);
+        },
+        get clientPaginationRange() {
+            const current = this.clientPage;
+            const total = this.totalClientPages;
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            if (current <= 3) {
+                return [1, 2, 3, 4, '...', total];
+            }
+            if (current >= total - 2) {
+                return [1, '...', total - 3, total - 2, total - 1, total];
+            }
+            return [1, '...', current - 1, current, current + 1, '...', total];
+        },
+
         get filteredInvoices() {
             const q = (this.invoiceSearch || this.$store.nav.search || '').toLowerCase();
             return this.allBookings.filter(inv => {
@@ -194,6 +281,38 @@
                 const matchStatus = this.invoiceFilter === 'all' || inv.invoiceStatus === this.invoiceFilter;
                 return matchSearch && matchStatus;
             });
+        },
+
+        get totalInvoicePages() {
+            return Math.max(1, Math.ceil(this.filteredInvoices.length / this.invoicePerPage));
+        },
+        get paginatedInvoices() {
+            const total = this.totalInvoicePages;
+            if (this.invoicePage > total) this.invoicePage = total;
+            if (this.invoicePage < 1) this.invoicePage = 1;
+            const start = (this.invoicePage - 1) * this.invoicePerPage;
+            return this.filteredInvoices.slice(start, start + this.invoicePerPage);
+        },
+        get invoiceFrom() {
+            if (this.filteredInvoices.length === 0) return 0;
+            return (this.invoicePage - 1) * this.invoicePerPage + 1;
+        },
+        get invoiceTo() {
+            return Math.min(this.invoicePage * this.invoicePerPage, this.filteredInvoices.length);
+        },
+        get invoicePaginationRange() {
+            const current = this.invoicePage;
+            const total = this.totalInvoicePages;
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            if (current <= 3) {
+                return [1, 2, 3, 4, '...', total];
+            }
+            if (current >= total - 2) {
+                return [1, '...', total - 3, total - 2, total - 1, total];
+            }
+            return [1, '...', current - 1, current, current + 1, '...', total];
         },
 
         get calHeaderLabel() {
@@ -751,7 +870,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#F1F5F4]">
-                        <template x-for="b in filteredBookings" :key="b.id">
+                        <template x-for="b in paginatedBookings" :key="b.id">
                             <tr @click="openDetail(b)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <span class="text-[13px] font-semibold text-[#0284C7] group-hover:underline font-mono" x-text="'#' + b.code"></span>
@@ -817,15 +936,74 @@
                 </table>
             </div>
 
-            <!-- Table Footer Record Counter -->
-            <div class="px-6 py-3.5 bg-[#FAFDFC] border-t border-[#EFF4F2] flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Showing <strong class="text-slate-900" x-text="filteredBookings.length"></strong> of <strong class="text-slate-900" x-text="allBookings.length"></strong> bookings</span>
-                <span class="text-[11px] text-slate-400">Live Database Sync</span>
+            <!-- Table Footer with Interactive Pagination -->
+            <div class="px-6 py-4 bg-[#FAFDFC] border-t border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-3">
+                    <span x-show="filteredBookings.length > 0">
+                        Showing <strong class="text-slate-900 font-semibold" x-text="bookingFrom"></strong>–<strong class="text-slate-900 font-semibold" x-text="bookingTo"></strong> of <strong class="text-slate-900 font-semibold" x-text="filteredBookings.length"></strong> bookings
+                        <span x-show="filteredBookings.length !== allBookings.length" class="text-slate-400 text-[11px]" x-text="'(' + allBookings.length + ' total)'"></span>
+                    </span>
+                    <span x-show="filteredBookings.length === 0">
+                        0 bookings
+                    </span>
+
+                    <div class="hidden sm:flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                        <span class="text-slate-400 text-[11px]">Per page:</span>
+                        <select x-model.number="bookingPerPage"
+                                class="bg-white border border-[#E2EAE7] rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 cursor-pointer">
+                            <option :value="10">10</option>
+                            <option :value="20">20</option>
+                            <option :value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pagination Buttons (Prev, Numbers, Next) -->
+                <div x-show="totalBookingPages > 1" class="flex items-center gap-1">
+                    <!-- Prev -->
+                    <button type="button"
+                            @click="if (bookingPage > 1) { bookingPage--; }"
+                            :disabled="bookingPage <= 1"
+                            :class="bookingPage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer"
+                            title="Previous page">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    <!-- Numbers -->
+                    <template x-for="(p, idx) in bookingPaginationRange" :key="'bp-' + idx + '-' + p">
+                        <div>
+                            <template x-if="p === '...'">
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 select-none">…</span>
+                            </template>
+                            <template x-if="p !== '...'">
+                                <button type="button"
+                                        @click="bookingPage = p"
+                                        :class="bookingPage === p 
+                                            ? 'bg-brand-600 text-white font-bold border-brand-600 shadow-2xs' 
+                                            : 'bg-white text-slate-600 hover:bg-slate-50 border-[#E2EAE7] hover:border-slate-300'"
+                                        class="inline-flex items-center justify-center min-w-[32px] h-8 px-2 rounded-lg border text-xs font-semibold transition cursor-pointer"
+                                        x-text="p">
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Next -->
+                    <button type="button"
+                            @click="if (bookingPage < totalBookingPages) { bookingPage++; }"
+                            :disabled="bookingPage >= totalBookingPages"
+                            :class="bookingPage >= totalBookingPages ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer"
+                            title="Next page">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="md:hidden space-y-3">
-            <template x-for="b in filteredBookings" :key="b.id">
+            <template x-for="b in paginatedBookings" :key="b.id">
                 <div @click="openDetail(b)" class="bg-white rounded-[24px] p-4 shadow-card border border-[#EDF2F0] space-y-3 cursor-pointer active:scale-[0.99] transition">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + b.code"></span>
@@ -852,6 +1030,27 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Mobile Pagination for Bookings -->
+            <div x-show="totalBookingPages > 1" class="flex items-center justify-between p-3.5 bg-white rounded-2xl shadow-card border border-[#EDF2F0]">
+                <button type="button"
+                        @click="if (bookingPage > 1) { bookingPage--; }"
+                        :disabled="bookingPage <= 1"
+                        :class="bookingPage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    ← Prev
+                </button>
+                <span class="text-xs text-slate-500 font-medium">
+                    Page <strong class="text-slate-900" x-text="bookingPage"></strong> of <strong class="text-slate-900" x-text="totalBookingPages"></strong>
+                </span>
+                <button type="button"
+                        @click="if (bookingPage < totalBookingPages) { bookingPage++; }"
+                        :disabled="bookingPage >= totalBookingPages"
+                        :class="bookingPage >= totalBookingPages ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    Next →
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1055,7 +1254,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#F1F5F4]">
-                        <template x-for="c in filteredClients" :key="c.id">
+                        <template x-for="c in paginatedClients" :key="c.id">
                             <tr @click="openClientProfile(c)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
@@ -1093,19 +1292,79 @@
                                 </td>
                             </tr>
                         </template>
+
+                        <tr x-show="filteredClients.length === 0">
+                            <td colspan="6" class="py-12 text-center text-xs text-slate-400">
+                                No clients match your search or filter.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Table Footer Record Counter -->
-            <div class="px-6 py-3.5 bg-[#FAFDFC] border-t border-[#EFF4F2] flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Showing <strong class="text-slate-900" x-text="filteredClients.length"></strong> of <strong class="text-slate-900" x-text="clientsList.length"></strong> registered clients</span>
-                <span class="text-[11px] text-slate-400">Client Directory</span>
+            <!-- Table Footer with Interactive Pagination for Clients -->
+            <div class="px-6 py-4 bg-[#FAFDFC] border-t border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-3">
+                    <span x-show="filteredClients.length > 0">
+                        Showing <strong class="text-slate-900 font-semibold" x-text="clientFrom"></strong>–<strong class="text-slate-900 font-semibold" x-text="clientTo"></strong> of <strong class="text-slate-900 font-semibold" x-text="filteredClients.length"></strong> registered clients
+                        <span x-show="filteredClients.length !== clientsList.length" class="text-slate-400 text-[11px]" x-text="'(' + clientsList.length + ' total)'"></span>
+                    </span>
+                    <span x-show="filteredClients.length === 0">
+                        0 clients
+                    </span>
+
+                    <div class="hidden sm:flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                        <span class="text-slate-400 text-[11px]">Per page:</span>
+                        <select x-model.number="clientPerPage"
+                                class="bg-white border border-[#E2EAE7] rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 cursor-pointer">
+                            <option :value="10">10</option>
+                            <option :value="20">20</option>
+                            <option :value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pagination Buttons -->
+                <div x-show="totalClientPages > 1" class="flex items-center gap-1">
+                    <button type="button"
+                            @click="if (clientPage > 1) { clientPage--; }"
+                            :disabled="clientPage <= 1"
+                            :class="clientPage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    <template x-for="(p, idx) in clientPaginationRange" :key="'cp-' + idx + '-' + p">
+                        <div>
+                            <template x-if="p === '...'">
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 select-none">…</span>
+                            </template>
+                            <template x-if="p !== '...'">
+                                <button type="button"
+                                        @click="clientPage = p"
+                                        :class="clientPage === p 
+                                            ? 'bg-brand-600 text-white font-bold border-brand-600 shadow-2xs' 
+                                            : 'bg-white text-slate-600 hover:bg-slate-50 border-[#E2EAE7] hover:border-slate-300'"
+                                        class="inline-flex items-center justify-center min-w-[32px] h-8 px-2 rounded-lg border text-xs font-semibold transition cursor-pointer"
+                                        x-text="p">
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+
+                    <button type="button"
+                            @click="if (clientPage < totalClientPages) { clientPage++; }"
+                            :disabled="clientPage >= totalClientPages"
+                            :class="clientPage >= totalClientPages ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="md:hidden space-y-3">
-            <template x-for="c in filteredClients" :key="c.id">
+            <template x-for="c in paginatedClients" :key="c.id">
                 <div @click="openClientProfile(c)" class="bg-white rounded-[24px] p-4 shadow-card border border-[#EDF2F0] space-y-3 cursor-pointer">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
@@ -1123,6 +1382,27 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Mobile Pagination for Clients -->
+            <div x-show="totalClientPages > 1" class="flex items-center justify-between p-3.5 bg-white rounded-2xl shadow-card border border-[#EDF2F0]">
+                <button type="button"
+                        @click="if (clientPage > 1) { clientPage--; }"
+                        :disabled="clientPage <= 1"
+                        :class="clientPage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    ← Prev
+                </button>
+                <span class="text-xs text-slate-500 font-medium">
+                    Page <strong class="text-slate-900" x-text="clientPage"></strong> of <strong class="text-slate-900" x-text="totalClientPages"></strong>
+                </span>
+                <button type="button"
+                        @click="if (clientPage < totalClientPages) { clientPage++; }"
+                        :disabled="clientPage >= totalClientPages"
+                        :class="clientPage >= totalClientPages ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    Next →
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1314,7 +1594,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#F1F5F4]">
-                        <template x-for="inv in filteredInvoices" :key="inv.id">
+                        <template x-for="inv in paginatedInvoices" :key="inv.id">
                             <tr @click="openDetail(inv)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <span class="text-[13px] font-semibold font-mono text-[#0284C7] group-hover:underline" x-text="'#' + inv.code"></span>
@@ -1331,7 +1611,7 @@
                                 <td class="py-4 px-5 whitespace-nowrap">
                                     <p class="text-[13px] font-bold text-slate-900" x-text="inv.grand_total_formatted"></p>
                                     <p class="text-[11px] mt-0.5" :class="inv.remaining_balance <= 0 ? 'text-emerald-600 font-semibold' : 'text-amber-600 font-medium'"
-                                       x-text="inv.remaining_balance <= 0 ? 'Paid 100%' : 'Due: ' + inv.remaining_formatted"></p>
+                                       x-text="inv.remaining_balance <= 0 ? 'Settled (Paid in Full)' : 'Remaining: ' + inv.remaining_formatted"></p>
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap text-[13px] font-medium text-slate-700" x-text="inv.date_short"></td>
                                 <td class="py-4 px-5 whitespace-nowrap">
@@ -1366,19 +1646,79 @@
                                 </td>
                             </tr>
                         </template>
+
+                        <tr x-show="filteredInvoices.length === 0">
+                            <td colspan="6" class="py-12 text-center text-xs text-slate-400">
+                                No invoices match your search or filter.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Table Footer Record Counter -->
-            <div class="px-6 py-3.5 bg-[#FAFDFC] border-t border-[#EFF4F2] flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Showing <strong class="text-slate-900" x-text="filteredClients.length"></strong> of <strong class="text-slate-900" x-text="clientsList.length"></strong> registered clients</span>
-                <span class="text-[11px] text-slate-400">Client Directory</span>
+            <!-- Table Footer with Interactive Pagination for Invoices -->
+            <div class="px-6 py-4 bg-[#FAFDFC] border-t border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-3">
+                    <span x-show="filteredInvoices.length > 0">
+                        Showing <strong class="text-slate-900 font-semibold" x-text="invoiceFrom"></strong>–<strong class="text-slate-900 font-semibold" x-text="invoiceTo"></strong> of <strong class="text-slate-900 font-semibold" x-text="filteredInvoices.length"></strong> invoices
+                        <span x-show="filteredInvoices.length !== allBookings.length" class="text-slate-400 text-[11px]" x-text="'(' + allBookings.length + ' total)'"></span>
+                    </span>
+                    <span x-show="filteredInvoices.length === 0">
+                        0 invoices
+                    </span>
+
+                    <div class="hidden sm:flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                        <span class="text-slate-400 text-[11px]">Per page:</span>
+                        <select x-model.number="invoicePerPage"
+                                class="bg-white border border-[#E2EAE7] rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 cursor-pointer">
+                            <option :value="10">10</option>
+                            <option :value="20">20</option>
+                            <option :value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pagination Buttons for Invoices -->
+                <div x-show="totalInvoicePages > 1" class="flex items-center gap-1">
+                    <button type="button"
+                            @click="if (invoicePage > 1) { invoicePage--; }"
+                            :disabled="invoicePage <= 1"
+                            :class="invoicePage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    <template x-for="(p, idx) in invoicePaginationRange" :key="'ip-' + idx + '-' + p">
+                        <div>
+                            <template x-if="p === '...'">
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 select-none">…</span>
+                            </template>
+                            <template x-if="p !== '...'">
+                                <button type="button"
+                                        @click="invoicePage = p"
+                                        :class="invoicePage === p 
+                                            ? 'bg-brand-600 text-white font-bold border-brand-600 shadow-2xs' 
+                                            : 'bg-white text-slate-600 hover:bg-slate-50 border-[#E2EAE7] hover:border-slate-300'"
+                                        class="inline-flex items-center justify-center min-w-[32px] h-8 px-2 rounded-lg border text-xs font-semibold transition cursor-pointer"
+                                        x-text="p">
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+
+                    <button type="button"
+                            @click="if (invoicePage < totalInvoicePages) { invoicePage++; }"
+                            :disabled="invoicePage >= totalInvoicePages"
+                            :class="invoicePage >= totalInvoicePages ? 'opacity-35 cursor-not-allowed text-slate-300' : 'text-slate-600 hover:bg-white hover:text-brand-700 hover:border-slate-300'"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E2EAE7] bg-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="md:hidden space-y-3">
-            <template x-for="inv in filteredInvoices" :key="inv.id">
+            <template x-for="inv in paginatedInvoices" :key="inv.id">
                 <div @click="openDetail(inv)" class="bg-white rounded-[24px] p-4 shadow-card border border-[#EDF2F0] space-y-3 cursor-pointer">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + inv.code"></span>
@@ -1401,7 +1741,344 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Mobile Pagination for Invoices -->
+            <div x-show="totalInvoicePages > 1" class="flex items-center justify-between p-3.5 bg-white rounded-2xl shadow-card border border-[#EDF2F0]">
+                <button type="button"
+                        @click="if (invoicePage > 1) { invoicePage--; }"
+                        :disabled="invoicePage <= 1"
+                        :class="invoicePage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    ← Prev
+                </button>
+                <span class="text-xs text-slate-500 font-medium">
+                    Page <strong class="text-slate-900" x-text="invoicePage"></strong> of <strong class="text-slate-900" x-text="totalInvoicePages"></strong>
+                </span>
+                <button type="button"
+                        @click="if (invoicePage < totalInvoicePages) { invoicePage++; }"
+                        :disabled="invoicePage >= totalInvoicePages"
+                        :class="invoicePage >= totalInvoicePages ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
+                    Next →
+                </button>
+            </div>
         </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TAB 7: SETTINGS & SYSTEM CONFIGURATION                             -->
+    <!-- ================================================================== -->
+    <div x-show="$store.nav.tab === 'settings'"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-1"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="space-y-6"
+         x-cloak>
+
+        <!-- Header Panel -->
+        <div class="bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0 shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Pengaturan & Kebijakan Acara</h1>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Fleksibel & Real-Time
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Kelola aturan operasional persewaan tenda, rekening resmi transfer, serta sinkronisasi Google Cloud.</p>
+                </div>
+            </div>
+
+            <a href="{{ route('booking.create') }}" target="_blank"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 text-xs font-semibold transition border border-[#E3ECE9] shrink-0">
+                <span>Buka Formulir Klien</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- FORM 1: ATURAN & KEBIJAKAN OPERASIONAL ACARA (Col Span 7) -->
+            <div class="lg:col-span-7 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm border border-amber-100">
+                            ⚖
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Aturan & Kebijakan Acara</h2>
+                            <p class="text-xs text-slate-400">Parameter ini langsung mempengaruhi perhitungan harga & kalender klien</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ route('admin.settings.update_rules') }}" method="POST" class="space-y-4">
+                    @csrf
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Durasi Standar Paket -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Durasi Standar Paket (Hari)
+                            </label>
+                            <div class="relative">
+                                <input type="number" name="standard_package_max_days" min="1" max="14" required
+                                       value="{{ $settings['standard_package_max_days'] ?? 2 }}"
+                                       class="w-full pl-4 pr-14 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">Hari</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Durasi yang sudah termasuk di harga dasar paket.</p>
+                        </div>
+
+                        <!-- Charge Hari Tambahan -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Charge Hari Tambahan (%)
+                            </label>
+                            <div class="relative">
+                                <input type="number" step="0.5" name="extra_day_charge_rate" min="0" max="100" required
+                                       value="{{ $settings['extra_day_charge_rate'] ?? 15 }}"
+                                       class="w-full pl-4 pr-16 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">% / hari</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Dihitung dari harga dasar paket per hari ekstra.</p>
+                        </div>
+
+                        <!-- Minimal DP -->
+                        <div x-data="{
+                            rawAmount: {{ (int) ($settings['min_dp_amount'] ?? 1000000) }},
+                            displayAmount: '{{ number_format((int) ($settings['min_dp_amount'] ?? 1000000), 0, ',', '.') }}',
+                            formatInput(e) {
+                                const clean = e.target.value.replace(/\D/g, '');
+                                if (!clean) {
+                                    this.rawAmount = 0;
+                                    this.displayAmount = '';
+                                    e.target.value = '';
+                                    return;
+                                }
+                                const num = parseInt(clean, 10);
+                                this.rawAmount = num;
+                                this.displayAmount = new Intl.NumberFormat('id-ID').format(num);
+                                e.target.value = this.displayAmount;
+                            }
+                        }" class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Minimal Uang Muka / DP
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none select-none">Rp</span>
+                                <input type="text"
+                                       inputmode="numeric"
+                                       :value="displayAmount"
+                                       value="{{ number_format((int) ($settings['min_dp_amount'] ?? 1000000), 0, ',', '.') }}"
+                                       @input="formatInput($event)"
+                                       @blur="if (rawAmount) { displayAmount = new Intl.NumberFormat('id-ID').format(rawAmount); $el.value = displayAmount; }"
+                                       placeholder="1.000.000"
+                                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold font-mono text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                                <input type="hidden" name="min_dp_amount" :value="rawAmount" value="{{ (int) ($settings['min_dp_amount'] ?? 1000000) }}">
+                            </div>
+                            <p class="text-[11px] text-slate-400">Nominal batas bawah transfer DP untuk mengunci jadwal.</p>
+                        </div>
+
+                        <!-- Kapasitas Acara per Hari (Anti-Overbooking) -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Kapasitas Acara per Hari
+                            </label>
+                            <div class="relative">
+                                <input type="number" name="max_events_per_day" min="1" max="10" required
+                                       value="{{ $settings['max_events_per_day'] ?? 1 }}"
+                                       class="w-full pl-4 pr-16 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">Acara</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Batas maksimal kuota acara pada tanggal yang sama.</p>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp CS -->
+                    <div class="space-y-1.5 pt-1">
+                        <label class="block text-xs font-bold text-slate-700">
+                            Nomor WhatsApp Customer Service (Admin)
+                        </label>
+                        <input type="text" name="admin_whatsapp" required
+                               value="{{ $settings['admin_whatsapp'] ?? '6282255969313' }}"
+                               placeholder="6282255969313"
+                               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                        <p class="text-[11px] text-slate-400">Format internasional tanpa spasi/tanda hubung (Contoh: 6282255969313).</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-[#F0F4F2] flex items-center justify-end">
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Perubahan Aturan</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FORM 2: REKENING RESMI TRANSFER BANK (Col Span 5) -->
+            <div class="lg:col-span-5 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-100">
+                            💳
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Rekening Resmi Pembayaran</h2>
+                            <p class="text-xs text-slate-400">Tampil otomatis di formulir klien, invoice, & nota</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ route('admin.settings.update_banks') }}" method="POST" class="space-y-4">
+                    @csrf
+
+                    <!-- Bank BCA Section -->
+                    <div class="p-4 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-[#003B73] uppercase tracking-wider">Bank BCA (Utama)</span>
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Rekening</label>
+                                <input type="text" name="bca_account_number" required
+                                       value="{{ $settings['bca_account_number'] ?? '3620648107' }}"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Atas Nama (Pemilik)</label>
+                                <input type="text" name="bca_account_name" required
+                                       value="{{ $settings['bca_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 uppercase focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank BRI Section -->
+                    <div class="p-4 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-[#004D99] uppercase tracking-wider">Bank BRI (Alternatif)</span>
+                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Rekening</label>
+                                <input type="text" name="bri_account_number" required
+                                       value="{{ $settings['bri_account_number'] ?? '344301026581532' }}"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Atas Nama (Pemilik)</label>
+                                <input type="text" name="bri_account_name" required
+                                       value="{{ $settings['bri_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 uppercase focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-[#F0F4F2] flex items-center justify-end">
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Rekening Bank</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FORM 3: INTEGRASI GOOGLE CLOUD (SHEETS & CALENDAR) (Col Span 12) -->
+            <div class="lg:col-span-12 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm border border-sky-100">
+                            G
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Integrasi Google Cloud (Sheets & Calendar)</h2>
+                            <p class="text-xs text-slate-400">Atur ID Google Sheets dan Google Calendar untuk sinkronisasi otomatis</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">Terhubung</span>
+                </div>
+
+                <form action="{{ route('admin.settings.update_google') }}" method="POST" class="space-y-5">
+                    @csrf
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Google Spreadsheet ID -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    Google Spreadsheet ID (Database Rekap)
+                                </label>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-emerald-700 bg-emerald-50">Auto Sync</span>
+                            </div>
+                            <input type="text" name="google_sheet_id"
+                                   value="{{ $settings['google_sheet_id'] ?? '' }}"
+                                   placeholder="Contoh: 1RzvZTREK-1dNA99yYV8K59..."
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                            <p class="text-[11px] text-slate-400">ID spreadsheet dari URL Google Sheets tempat data pesanan direkap.</p>
+                        </div>
+
+                        <!-- Google Calendar ID -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    Google Calendar ID (Jadwal Acara)
+                                </label>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-sky-700 bg-sky-50">Auto Event</span>
+                            </div>
+                            <input type="text" name="google_calendar_id"
+                                   value="{{ $settings['google_calendar_id'] ?? '' }}"
+                                   placeholder="Contoh: primary atau email@gmail.com"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                            <p class="text-[11px] text-slate-400">ID kalender Google (biasanya alamat email akun Google atau primary).</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-[#F0F4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <p class="text-xs text-slate-500">
+                            Perubahan ID Google akan langsung diterapkan untuk pesanan baru maupun sinkronisasi ulang.
+                        </p>
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan ID Google</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Box Sinkronisasi Ulang Semua Data -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-50/50 to-brand-100/30 border border-brand-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="space-y-0.5">
+                        <h3 class="text-sm font-bold text-slate-900">Sinkronisasi Ulang Database ke Google</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Kirim atau segarkan seluruh data reservasi di database lokal ke Google Sheets dan Google Calendar saat ini.
+                        </p>
+                    </div>
+
+                    <form action="{{ route('admin.settings.sync_all') }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-brand-200 text-brand-700 hover:text-brand-800 text-xs font-bold transition shadow-2xs cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>Mulai Sinkronisasi Sekarang</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <!-- ================================================================== -->

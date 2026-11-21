@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Addon;
 use App\Models\Booking;
 use App\Models\Package;
+use App\Models\Setting;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -215,6 +216,7 @@ class BookingManagementController extends Controller
         // Bulan awal kalender selalu default ke bulan & tahun sekarang (real-time)
         $initialCalYear = (int) $today->year;
         $initialCalMonth = (int) $today->month;
+        $settings = Setting::getAll();
 
         return view('admin.bookings.index', compact(
             'bookingsPayload',
@@ -223,7 +225,8 @@ class BookingManagementController extends Controller
             'addonsPayload',
             'metrics',
             'initialCalYear',
-            'initialCalMonth'
+            'initialCalMonth',
+            'settings'
         ));
     }
 
@@ -282,5 +285,69 @@ class BookingManagementController extends Controller
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
         return back()->with('success', "Pelunasan reservasi #{$booking->invoice_number} ({$booking->customer_name}) berhasil dicatat. Status pembayaran kini LUNAS 100%.");
+    }
+
+    public function syncAllGoogle()
+    {
+        $bookings = Booking::with('addons')
+            ->whereIn('status', ['confirmed', 'completed', 'pending_verification'])
+            ->get();
+
+        foreach ($bookings as $b) {
+            SyncBookingToGoogleServicesJob::dispatch($b);
+        }
+
+        return back()->with('success', "Proses sinkronisasi seluruh reservasi ({$bookings->count()} data) ke Google Sheets & Google Calendar telah berhasil dijadwalkan!");
+    }
+
+    public function updateBusinessRules(Request $request)
+    {
+        if ($request->has('min_dp_amount')) {
+            $cleanMinDp = preg_replace('/[^\d]/', '', (string) $request->input('min_dp_amount'));
+            $request->merge(['min_dp_amount' => $cleanMinDp !== '' ? (float) $cleanMinDp : 0]);
+        }
+
+        $validated = $request->validate([
+            'standard_package_max_days' => ['required', 'integer', 'min:1', 'max:14'],
+            'extra_day_charge_rate'     => ['required', 'numeric', 'min:0', 'max:100'],
+            'min_dp_amount'             => ['required', 'numeric', 'min:0'],
+            'max_events_per_day'        => ['required', 'integer', 'min:1', 'max:10'],
+            'admin_whatsapp'            => ['required', 'string', 'max:25'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::set($key, $value);
+        }
+
+        return back()->with('success', 'Aturan operasional & kebijakan acara berhasil diperbarui!');
+    }
+
+    public function updateBankAccounts(Request $request)
+    {
+        $validated = $request->validate([
+            'bca_account_number' => ['required', 'string', 'max:30'],
+            'bca_account_name'   => ['required', 'string', 'max:100'],
+            'bri_account_number' => ['required', 'string', 'max:30'],
+            'bri_account_name'   => ['required', 'string', 'max:100'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::set($key, $value);
+        }
+
+        return back()->with('success', 'Data rekening resmi transfer bank berhasil diperbarui!');
+    }
+
+    public function updateGoogleSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'google_sheet_id'    => ['nullable', 'string', 'max:255'],
+            'google_calendar_id' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        Setting::set('google_sheet_id', trim($validated['google_sheet_id'] ?? ''));
+        Setting::set('google_calendar_id', trim($validated['google_calendar_id'] ?? ''));
+
+        return back()->with('success', 'ID Google Sheets & Google Calendar berhasil diperbarui!');
     }
 }

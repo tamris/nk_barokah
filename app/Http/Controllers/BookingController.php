@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Addon;
+use App\Models\Setting;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,7 +20,8 @@ class BookingController extends Controller
         $addons = Addon::where('is_active', true)->get();
 
         // Ambil daftar tanggal yang sudah penuh (booked out) untuk di-disable pada kalender UI
-        $maxPerDay = config('wo.max_events_per_day', 1);
+        $maxPerDay = (int) Setting::get('max_events_per_day', 1);
+        $settings = Setting::getAll();
         $activeBookings = Booking::whereIn('status', ['pending_verification', 'confirmed'])
             ->where(function ($q) {
                 $q->whereDate('event_date', '>=', now()->toDateString())
@@ -50,7 +52,7 @@ class BookingController extends Controller
             }
         }
 
-        return view('booking.form', compact('packages', 'addons', 'bookedDates'));
+        return view('booking.form', compact('packages', 'addons', 'bookedDates', 'settings'));
     }
 
     public function store(StoreBookingRequest $request)
@@ -83,14 +85,15 @@ class BookingController extends Controller
                 }
             }
 
-            // Hitung Durasi & Biaya Tambahan Hari (> 2 hari kena charge 15% per hari)
+            // Hitung Durasi & Biaya Tambahan Hari
             $eventDate = $validated['event_date'];
             $eventEndDate = $validated['event_end_date'] ?? $eventDate;
             $start = \Carbon\Carbon::parse($eventDate);
             $end = \Carbon\Carbon::parse($eventEndDate);
             $durationDays = max(1, (int) ($start->diffInDays($end) + 1));
-            $extraDays = max(0, $durationDays - 2);
-            $extraDayChargeRate = (float) config('wo.extra_day_charge_rate', 0.15);
+            $standardDays = (int) Setting::get('standard_package_max_days', 2);
+            $extraDays = max(0, $durationDays - $standardDays);
+            $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
             $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
 
             $grandTotal = (float) $package->base_price + $addonTotalPrice + $additionalDayCharge;
@@ -156,7 +159,7 @@ class BookingController extends Controller
     public function success(string $invoiceNumber)
     {
         $booking = Booking::with('addons')->where('invoice_number', $invoiceNumber)->firstOrFail();
-        $adminWhatsapp = config('wo.admin_whatsapp', '6282255969313');
+        $adminWhatsapp = Setting::get('admin_whatsapp', '6282255969313');
 
         // Pre-filled WhatsApp message
         $waMessage = urlencode(

@@ -59,11 +59,19 @@
         }
 
         document.addEventListener('alpine:init', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialTab = urlParams.get('tab') || window.location.hash.replace('#', '') || sessionStorage.getItem('admin_active_tab') || '{{ request()->routeIs('admin.masters.*') ? 'services' : 'dashboard' }}';
             Alpine.store('nav', {
-                tab: '{{ request()->routeIs('admin.masters.*') ? 'services' : 'dashboard' }}',
+                tab: initialTab,
                 search: '',
                 setTab(t) {
                     this.tab = t;
+                    try {
+                        sessionStorage.setItem('admin_active_tab', t);
+                        const url = new URL(window.location);
+                        url.searchParams.set('tab', t);
+                        window.history.replaceState({}, '', url);
+                    } catch (e) {}
                 }
             });
         });
@@ -141,6 +149,7 @@
                         ['key' => 'clients',   'label' => 'Clients'],
                         ['key' => 'services',  'label' => 'Services'],
                         ['key' => 'invoice',   'label' => 'Invoice'],
+                       
                     ];
                 @endphp
 
@@ -181,15 +190,29 @@
                 </div>
 
                 <!-- Tombol Pengaturan & Google Sync -->
-                <button type="button"
-                        @click="syncModalOpen = true"
-                        title="Pengaturan & Sinkronisasi Google"
-                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </button>
+                @if($isDashboardPage)
+                    <button type="button"
+                            @click="$store.nav.setTab('settings')"
+                            title="Pengaturan & Konfigurasi"
+                            :class="$store.nav.tab === 'settings'
+                                ? 'bg-brand-600 text-white shadow-pill font-semibold'
+                                : 'bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700'"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition cursor-pointer">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </button>
+                @else
+                    <a href="{{ route('admin.bookings.index') }}"
+                       title="Pengaturan & Konfigurasi"
+                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </a>
+                @endif
 
                 <!-- Tombol Notifikasi -->
                 <div class="relative">
@@ -411,6 +434,7 @@
                 ['key' => 'bookings',  'label' => 'Bookings',  'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
                 ['key' => 'calendar',  'label' => 'Calendar',  'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
                 ['key' => 'invoice',   'label' => 'Invoice',   'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['key' => 'settings',  'label' => 'Settings',  'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
             ];
         @endphp
         @foreach($mobileTabs as $mTab)
@@ -434,67 +458,6 @@
             @endif
         @endforeach
     </nav>
-
-    <!-- ============================================================== -->
-    <!-- MODAL PENGATURAN & GOOGLE SYNC                                 -->
-    <!-- ============================================================== -->
-    <div x-show="syncModalOpen"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/50 backdrop-blur-xs"
-         x-cloak>
-        <div class="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl border border-[#EAF0EE] p-6 space-y-5 shadow-2xl"
-             @click.away="syncModalOpen = false">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <span class="w-9 h-9 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                    </span>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Pengaturan & Google Sync</h3>
-                        <p class="text-[11px] text-slate-400">Status integrasi otomatis layanan Google Owner</p>
-                    </div>
-                </div>
-                <button type="button" @click="syncModalOpen = false" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-100">✕</button>
-            </div>
-
-            <div class="space-y-3">
-                <div class="p-3.5 rounded-2xl bg-[#F6F8F7] border border-[#E8EFED] flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs">GS</div>
-                        <div>
-                            <span class="text-xs font-bold text-slate-900 block">Google Sheets</span>
-                            <span class="text-[11px] text-slate-400 block">Rekap Reservasi Otomatis</span>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70">● Aktif</span>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-[#F6F8F7] border border-[#E8EFED] flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-xs">GC</div>
-                        <div>
-                            <span class="text-xs font-bold text-slate-900 block">Google Calendar</span>
-                            <span class="text-[11px] text-slate-400 block">Jadwal Acara Pernikahan</span>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70">● Aktif</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 pt-1">
-                <a href="{{ route('booking.create') }}" target="_blank"
-                   class="flex-1 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 text-xs font-semibold text-center hover:bg-slate-50 transition">
-                    Buka Formulir Klien ↗
-                </a>
-                <button type="button" @click="syncModalOpen = false"
-                        class="flex-1 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition">
-                    Selesai
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- ============================================================== -->
     <!-- MODAL PROFIL OWNER & LOGOUT                                    -->

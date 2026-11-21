@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Booking;
+use App\Models\Setting;
 use Google\Client;
 use Google\Service\Sheets;
 use Google\Service\Calendar;
@@ -48,24 +49,26 @@ class SyncBookingToGoogleServicesJob implements ShouldQueue
             Calendar::CALENDAR
         ]);
 
-        if (config('services.google.sheet_id')) {
-            $this->syncToGoogleSheets($client);
+        $sheetId = Setting::get('google_sheet_id', config('services.google.sheet_id'));
+        if (!empty($sheetId)) {
+            $this->syncToGoogleSheets($client, $sheetId);
         } else {
-            Log::info('Google Sheet ID not configured in .env. Skipping Google Sheets sync.');
+            Log::info('Google Sheet ID not configured. Skipping Google Sheets sync.');
         }
 
-        if (config('services.google.calendar_id')) {
-            $this->syncToGoogleCalendar($client);
+        $calendarId = Setting::get('google_calendar_id', config('services.google.calendar_id'));
+        if (!empty($calendarId)) {
+            $this->syncToGoogleCalendar($client, $calendarId);
         } else {
-            Log::info('Google Calendar ID not configured in .env. Skipping Google Calendar sync.');
+            Log::info('Google Calendar ID not configured. Skipping Google Calendar sync.');
         }
     }
 
-    protected function syncToGoogleSheets(Client $client): void
+    protected function syncToGoogleSheets(Client $client, ?string $spreadsheetId = null): void
     {
         try {
             $service = new Sheets($client);
-            $spreadsheetId = config('services.google.sheet_id');
+            $spreadsheetId = $spreadsheetId ?: Setting::get('google_sheet_id', config('services.google.sheet_id'));
             $sheetName = config('services.google.sheet_name', 'Sheet1');
             $range = "{$sheetName}!A:L";
 
@@ -186,11 +189,11 @@ class SyncBookingToGoogleServicesJob implements ShouldQueue
         }
     }
 
-    protected function syncToGoogleCalendar(Client $client): void
+    protected function syncToGoogleCalendar(Client $client, ?string $calendarId = null): void
     {
         try {
             $service = new Calendar($client);
-            $calendarId = config('services.google.calendar_id');
+            $calendarId = $calendarId ?: Setting::get('google_calendar_id', config('services.google.calendar_id'));
 
             $prefix = match ($this->booking->status) {
                 'confirmed' => '[CONFIRMED]',

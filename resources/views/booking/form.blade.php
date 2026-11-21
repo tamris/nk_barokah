@@ -74,7 +74,9 @@
           packages: {{ json_encode($packages) }},
           addons: {{ json_encode($addons) }},
           bookedDates: {{ json_encode($bookedDates) }},
-          minDpAmount: {{ config('wo.min_dp_amount', 1000000) }},
+          minDpAmount: {{ $settings['min_dp_amount'] ?? config('wo.min_dp_amount', 1000000) }},
+          standardDays: {{ $settings['standard_package_max_days'] ?? config('wo.standard_package_max_days', 2) }},
+          extraDayRate: {{ (($settings['extra_day_charge_rate'] ?? 15) > 1 ? ($settings['extra_day_charge_rate'] ?? 15) / 100 : ($settings['extra_day_charge_rate'] ?? 0.15)) }},
           oldEventDate: '{{ old('event_date', '') }}',
           oldEventEndDate: '{{ old('event_end_date', '') }}',
           oldDurationDays: {{ (int) old('duration_days', 1) }}
@@ -773,7 +775,7 @@
                             <button type="button" @click="setNominalDp(minDpAmount)"
                                     class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
                                     :class="nominalDp === minDpAmount ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
-                                Min DP (Rp 1 Juta)
+                                <span x-text="`Min DP (${formatRupiah(minDpAmount)})`">Min DP (Rp 1.000.000)</span>
                             </button>
                             <button type="button" @click="setNominalDp(Math.round(grandTotal * 0.5))"
                                     class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
@@ -895,7 +897,7 @@
                         </div>
 
                         <p class="text-[11px] text-slate-500 text-center leading-relaxed">
-                            Silakan lakukan transfer ke rekening <strong class="text-slate-800" x-text="banks[activeBank].name"></strong> di atas atas nama <strong class="text-slate-800">EZZU RAKHMAT FIRDAUS</strong>, lalu upload bukti transfer di bawah.
+                            Silakan lakukan transfer ke rekening <strong class="text-slate-800" x-text="banks[activeBank].name"></strong> di atas atas nama <strong class="text-slate-800" x-text="banks[activeBank].holder"></strong>, lalu upload bukti transfer di bawah.
                         </p>
                     </div>
 
@@ -1049,6 +1051,8 @@
             addons: config.addons.map(a => ({ ...a, selectedQty: 0 })),
             bookedDates: config.bookedDates,
             minDpAmount: config.minDpAmount,
+            standardDays: config.standardDays || 2,
+            extraDayRate: config.extraDayRate || 0.15,
 
             // Form inputs
             customerName: '{{ old("customer_name", "") }}'.toUpperCase(),
@@ -1101,15 +1105,15 @@
             banks: {
                 bca: {
                     name: 'Bank BCA',
-                    number: '3620648107',
-                    formatted: '3620 648 107',
-                    holder: 'EZZU RAKHMAT FIRDAUS'
+                    number: '{{ $settings['bca_account_number'] ?? '3620648107' }}',
+                    formatted: '{{ wordwrap($settings['bca_account_number'] ?? '3620648107', 4, ' ', true) }}',
+                    holder: '{{ $settings['bca_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}'
                 },
                 bri: {
                     name: 'Bank BRI',
-                    number: '344301026581532',
-                    formatted: '3443 0102 6581 532',
-                    holder: 'EZZU RAKHMAT FIRDAUS'
+                    number: '{{ $settings['bri_account_number'] ?? '344301026581532' }}',
+                    formatted: '{{ wordwrap($settings['bri_account_number'] ?? '344301026581532', 4, ' ', true) }}',
+                    holder: '{{ $settings['bri_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}'
                 }
             },
             copiedBank: false,
@@ -1454,12 +1458,12 @@
             },
 
             get extraDays() {
-                return Math.max(0, this.durationDays - 2);
+                return Math.max(0, this.durationDays - this.standardDays);
             },
 
             get additionalDayCharge() {
                 if (this.extraDays <= 0 || !this.currentPackagePrice) return 0;
-                return this.extraDays * 0.15 * this.currentPackagePrice;
+                return this.extraDays * this.extraDayRate * this.currentPackagePrice;
             },
 
             get grandTotal() {

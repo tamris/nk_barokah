@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Addon;
+use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -17,7 +18,7 @@ class StoreBookingRequest extends FormRequest
 
     public function rules(): array
     {
-        $maxPerDay = config('wo.max_events_per_day', 1);
+        $maxPerDay = (int) Setting::get('max_events_per_day', 1);
 
         return [
             'customer_name'  => ['required', 'string', 'max:150'],
@@ -73,7 +74,7 @@ class StoreBookingRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if ($this->payment_type === 'dp') {
-                $minDpConfig = config('wo.min_dp_amount', 1000000);
+                $minDpConfig = (float) Setting::get('min_dp_amount', 1000000);
                 $nominalDp = (float) $this->nominal_dp;
 
                 // Hitung estimasi grand total server-side untuk memvalidasi batas atas & bawah DP
@@ -98,8 +99,9 @@ class StoreBookingRequest extends FormRequest
                 $startDate = \Carbon\Carbon::parse($this->event_date);
                 $endDate = $this->filled('event_end_date') ? \Carbon\Carbon::parse($this->event_end_date) : $startDate;
                 $durationDays = max(1, (int) ($startDate->diffInDays($endDate) + 1));
-                $extraDays = max(0, $durationDays - 2);
-                $extraDayChargeRate = (float) config('wo.extra_day_charge_rate', 0.15);
+                $standardDays = (int) Setting::get('standard_package_max_days', 2);
+                $extraDays = max(0, $durationDays - $standardDays);
+                $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
                 $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
 
                 $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge;

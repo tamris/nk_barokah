@@ -249,5 +249,127 @@ class AdminBookingTest extends TestCase
         $showResponse->assertStatus(200);
         $showResponse->assertSee('(2 Hari Acara)');
     }
+
+    public function test_admin_can_access_settings_tab_and_trigger_sync_all(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        // Create a confirmed booking
+        Booking::create([
+            'invoice_number'     => 'INV-202701-SYNCALL',
+            'customer_name'      => 'Budi & Ani',
+            'customer_phone'     => '081234567899',
+            'event_date'         => '2027-02-14',
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => $package->base_price,
+            'addon_total_price'  => 0,
+            'grand_total'        => $package->base_price,
+            'amount_paid'        => $package->base_price,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        // 1. Assert settings elements are present in the admin bookings page
+        $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Aturan & Kebijakan Acara', false);
+        $response->assertSee('Durasi Standar Paket');
+        $response->assertSee('Charge Hari Tambahan');
+        $response->assertSee('Rekening Resmi Pembayaran');
+        $response->assertSee('Integrasi Google Cloud');
+        $response->assertSee('Google Spreadsheet ID');
+        $response->assertSee('Google Calendar ID');
+        $response->assertSee('Mulai Sinkronisasi Sekarang');
+        $response->assertDontSee('Service Account Credentials');
+        $response->assertDontSee('storage/app/google/service-account.json');
+
+        // 2. Test updating business rules (including formatted rupiah string input)
+        $rulesResponse = $this->actingAs($admin)->post(route('admin.settings.update_rules'), [
+            'standard_package_max_days' => 3,
+            'extra_day_charge_rate'     => 20,
+            'min_dp_amount'             => 'Rp 1.500.000',
+            'max_events_per_day'        => 2,
+            'admin_whatsapp'            => '628111222333',
+        ]);
+        $rulesResponse->assertRedirect();
+        $rulesResponse->assertSessionHas('success');
+        $this->assertEquals(3, (int) \App\Models\Setting::get('standard_package_max_days'));
+        $this->assertEquals(20, (float) \App\Models\Setting::get('extra_day_charge_rate'));
+        $this->assertEquals(1500000, (float) \App\Models\Setting::get('min_dp_amount'));
+        $this->assertEquals(2, (int) \App\Models\Setting::get('max_events_per_day'));
+        $this->assertEquals('628111222333', \App\Models\Setting::get('admin_whatsapp'));
+
+        // 3. Test updating bank accounts
+        $banksResponse = $this->actingAs($admin)->post(route('admin.settings.update_banks'), [
+            'bca_account_number' => '999888777',
+            'bca_account_name'   => 'OWNER TEST BCA',
+            'bri_account_number' => '111222333',
+            'bri_account_name'   => 'OWNER TEST BRI',
+        ]);
+        $banksResponse->assertRedirect();
+        $banksResponse->assertSessionHas('success');
+        $this->assertEquals('999888777', \App\Models\Setting::get('bca_account_number'));
+        $this->assertEquals('OWNER TEST BCA', \App\Models\Setting::get('bca_account_name'));
+
+        // 4. Test updating Google Cloud settings (Google Sheets & Calendar IDs)
+        $googleResponse = $this->actingAs($admin)->post(route('admin.settings.update_google'), [
+            'google_sheet_id'    => 'TEST_SHEET_ID_123',
+            'google_calendar_id' => 'test_cal@gmail.com',
+        ]);
+        $googleResponse->assertRedirect();
+        $googleResponse->assertSessionHas('success');
+        $this->assertEquals('TEST_SHEET_ID_123', \App\Models\Setting::get('google_sheet_id'));
+        $this->assertEquals('test_cal@gmail.com', \App\Models\Setting::get('google_calendar_id'));
+
+        // 5. Trigger sync all
+        $syncResponse = $this->actingAs($admin)->post(route('admin.settings.sync_all'));
+        $syncResponse->assertRedirect();
+        $syncResponse->assertSessionHas('success');
+
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_business_rules_settings_dynamically_affect_booking_calculations(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        // 1. Update rules: standard package is 1 day, extra charge is 20%
+        $this->actingAs($admin)->post(route('admin.settings.update_rules'), [
+            'standard_package_max_days' => 1,
+            'extra_day_charge_rate'     => 20,
+            'min_dp_amount'             => 500000,
+            'max_events_per_day'        => 1,
+            'admin_whatsapp'            => '62899999999',
+        ]);
+
+        // 2. Client submits a 3-day booking (e.g. 2027-03-01 to 2027-03-03 -> 2 extra days)
+        $response = $this->post(route('booking.store'), [
+            'customer_name'  => 'Test Dynamic Rules',
+            'customer_phone' => '081234567890',
+            'event_date'     => '2027-03-01',
+            'event_end_date' => '2027-03-03',
+            'package_id'     => $package->id,
+            'payment_type'   => 'lunas',
+            'payment_proof'  => \Illuminate\Http\UploadedFile::fake()->create('proof.jpg', 500),
+        ]);
+
+        $response->assertRedirect();
+
+        $booking = Booking::where('customer_name', 'Test Dynamic Rules')->first();
+        $this->assertNotNull($booking);
+        $this->assertEquals(3, $booking->duration_days);
+
+        // Expected additional charge = 2 extra days * 20% * base_price
+        $expectedExtraCharge = 2 * 0.20 * (float) $package->base_price;
+        $this->assertEquals($expectedExtraCharge, (float) $booking->additional_day_charge);
+        $this->assertEquals((float) $package->base_price + $expectedExtraCharge, (float) $booking->grand_total);
+    }
 }
 

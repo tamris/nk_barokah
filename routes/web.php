@@ -49,5 +49,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/addons', [MasterDataController::class, 'storeAddon'])->name('addons.store');
         Route::put('/addons/{id}', [MasterDataController::class, 'updateAddon'])->name('addons.update');
         Route::patch('/addons/{id}/toggle', [MasterDataController::class, 'toggleAddon'])->name('addons.toggle');
+
+        // Settings & System Sync
+        Route::post('/settings/update-rules', [BookingManagementController::class, 'updateBusinessRules'])->name('settings.update_rules');
+        Route::post('/settings/update-banks', [BookingManagementController::class, 'updateBankAccounts'])->name('settings.update_banks');
+        Route::post('/settings/update-google', [BookingManagementController::class, 'updateGoogleSettings'])->name('settings.update_google');
+        Route::post('/settings/sync-all', [BookingManagementController::class, 'syncAllGoogle'])->name('settings.sync_all');
     });
 });
