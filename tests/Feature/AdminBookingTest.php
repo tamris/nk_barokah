@@ -77,6 +77,9 @@ class AdminBookingTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Ahmad & Siti');
         $response->assertSee('INV-202610-0001');
+        $response->assertSee('x-for="c in paginatedClients"', false);
+        $response->assertSee('x-for="b in paginatedBookings"', false);
+        $response->assertSee('x-for="inv in paginatedInvoices"', false);
     }
 
     public function test_admin_can_confirm_pending_booking(): void

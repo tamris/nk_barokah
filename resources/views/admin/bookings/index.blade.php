@@ -37,6 +37,15 @@
         calMonth: {{ $initialCalMonth }},
         calendarView: 'Monthly View',
         calendarViewOpen: false,
+        selectedDayModal: null,
+        maxEventsPerDay: {{ (int) ($settings['max_events_per_day'] ?? 1) }},
+        openDayModal(cell) {
+            if (!cell || cell.blank) return;
+            this.selectedDayModal = cell;
+        },
+        closeDayModal() {
+            this.selectedDayModal = null;
+        },
         monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         monthShort: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
 
@@ -57,25 +66,72 @@
         invoicePerPage: 10,
 
         previousTab: 'dashboard',
+        detailLoading: false,
+        pageLoading: true,
+
+        triggerPageLoading(duration = 650) {
+            this.pageLoading = true;
+            setTimeout(() => {
+                this.pageLoading = false;
+            }, duration);
+        },
+
+        bookingTableLoading: false,
+        _bTimer: null,
+        triggerBookingPagination() {
+            this.bookingTableLoading = true;
+            clearTimeout(this._bTimer);
+            this._bTimer = setTimeout(() => {
+                this.bookingTableLoading = false;
+            }, 260);
+        },
+
+        clientTableLoading: false,
+        _cTimer: null,
+        triggerClientPagination() {
+            this.clientTableLoading = true;
+            clearTimeout(this._cTimer);
+            this._cTimer = setTimeout(() => {
+                this.clientTableLoading = false;
+            }, 260);
+        },
+
+        invoiceTableLoading: false,
+        _iTimer: null,
+        triggerInvoicePagination() {
+            this.invoiceTableLoading = true;
+            clearTimeout(this._iTimer);
+            this._iTimer = setTimeout(() => {
+                this.invoiceTableLoading = false;
+            }, 260);
+        },
 
         init() {
+            setTimeout(() => {
+                this.pageLoading = false;
+            }, 600);
+
             this.$watch('bookingSearch', () => { this.bookingPage = 1; });
             this.$watch('bookingFilter', () => { this.bookingPage = 1; });
             this.$watch('bookingServiceFilter', () => { this.bookingPage = 1; });
-            this.$watch('bookingPerPage', () => { this.bookingPage = 1; });
+            this.$watch('bookingPerPage', () => { this.bookingPage = 1; this.triggerBookingPagination(); });
+            this.$watch('bookingPage', () => { this.triggerBookingPagination(); });
 
             this.$watch('clientSearch', () => { this.clientPage = 1; });
             this.$watch('clientFilter', () => { this.clientPage = 1; });
-            this.$watch('clientPerPage', () => { this.clientPage = 1; });
+            this.$watch('clientPerPage', () => { this.clientPage = 1; this.triggerClientPagination(); });
+            this.$watch('clientPage', () => { this.triggerClientPagination(); });
 
             this.$watch('invoiceSearch', () => { this.invoicePage = 1; });
             this.$watch('invoiceFilter', () => { this.invoicePage = 1; });
-            this.$watch('invoicePerPage', () => { this.invoicePage = 1; });
+            this.$watch('invoicePerPage', () => { this.invoicePage = 1; this.triggerInvoicePagination(); });
+            this.$watch('invoicePage', () => { this.triggerInvoicePagination(); });
 
             // Auto open booking detail if query parameter is present (e.g. ?booking_id=12)
             const urlParams = new URLSearchParams(window.location.search);
             const targetId = urlParams.get('booking_id') || urlParams.get('id');
             if (targetId) {
+                this.pageLoading = false;
                 const found = this.allBookings.find(b => String(b.id) === String(targetId) || b.code === targetId);
                 if (found) {
                     this.$nextTick(() => {
@@ -346,6 +402,7 @@
             const firstWeekday = new Date(this.calYear, this.calMonth - 1, 1).getDay();
             const daysInMonth = new Date(this.calYear, this.calMonth, 0).getDate();
             const todayIso = '{{ now()->format('Y-m-d') }}';
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const cells = [];
 
             for (let b = 0; b < firstWeekday; b++) {
@@ -353,21 +410,40 @@
             }
             for (let d = 1; d <= daysInMonth; d++) {
                 const iso = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dateObj = new Date(this.calYear, this.calMonth - 1, d);
+                const dayName = dayNames[dateObj.getDay()];
+                const dateFull = `${dayName}, ${this.monthShort[this.calMonth - 1]} ${d}, ${this.calYear}`;
+
                 const events = this.allBookings.filter(ev => {
                     const start = ev.event_date_iso;
                     const end = ev.event_end_date_iso || start;
                     return iso >= start && iso <= end;
                 });
+                const nonRejectedCount = events.filter(e => e.raw_status !== 'rejected').length;
+
                 cells.push({
                     blank: false,
                     key: 'd-' + d,
                     day: d,
+                    iso: iso,
+                    dateFull: dateFull,
                     isToday: iso === todayIso,
                     events,
-                    hasConflict: events.filter(e => e.raw_status !== 'rejected').length > 1
+                    nonRejectedCount,
+                    hasConflict: nonRejectedCount > this.maxEventsPerDay
                 });
             }
             return cells;
+        },
+        get monthBookings() {
+            const monthStart = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-01`;
+            const lastDay = new Date(this.calYear, this.calMonth, 0).getDate();
+            const monthEnd = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            return this.allBookings.filter(ev => {
+                const start = ev.event_date_iso;
+                const end = ev.event_end_date_iso || start;
+                return (start <= monthEnd && end >= monthStart);
+            }).sort((a, b) => a.event_date_iso.localeCompare(b.event_date_iso));
         },
         prevCalMonth() {
             if (this.calMonth === 1) { this.calMonth = 12; this.calYear--; }
@@ -386,9 +462,13 @@
             if (this.$store.nav.tab !== 'booking_detail') {
                 this.previousTab = this.$store.nav.tab;
             }
+            this.detailLoading = true;
             this.activeDetail = item;
             this.$store.nav.setTab('booking_detail');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                this.detailLoading = false;
+            }, 450);
         },
         closeDetail() {
             this.activeDetail = null;
@@ -428,9 +508,100 @@
      class="space-y-6">
 
     <!-- ================================================================== -->
+    <!-- DASHBOARD SKELETON SHIMMER (FLUTTER STYLE)                         -->
+    <!-- ================================================================== -->
+    <div x-show="$store.nav.tab === 'dashboard' && pageLoading" class="space-y-6" x-cloak>
+        <!-- Shimmer KPI Strip -->
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 px-1">
+            <div class="space-y-2">
+                <div class="h-4 w-28 rounded-md shimmer-mask"></div>
+                <div class="h-8 w-56 rounded-xl shimmer-mask"></div>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-0 xl:flex xl:items-center xl:divide-x xl:divide-[#E3EAE7]">
+                <div class="flex items-center gap-3.5 xl:pr-7">
+                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2">
+                        <div class="h-6 w-12 rounded shimmer-mask"></div>
+                        <div class="h-3 w-24 rounded shimmer-mask"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3.5 xl:px-7">
+                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2">
+                        <div class="h-6 w-16 rounded shimmer-mask"></div>
+                        <div class="h-3 w-28 rounded shimmer-mask"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3.5 xl:px-7">
+                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2">
+                        <div class="h-6 w-12 rounded shimmer-mask"></div>
+                        <div class="h-3 w-28 rounded shimmer-mask"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3.5 xl:pl-7">
+                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2">
+                        <div class="h-6 w-24 rounded shimmer-mask"></div>
+                        <div class="h-3 w-24 rounded shimmer-mask"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shimmer 3-Column Bento -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+            <!-- Col 1: Schedule -->
+            <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="h-5 w-32 rounded-md shimmer-mask"></div>
+                    <div class="h-4 w-20 rounded-md shimmer-mask"></div>
+                </div>
+                <div class="h-10 w-full rounded-2xl shimmer-mask"></div>
+                <div class="space-y-3">
+                    <div class="h-16 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-16 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-16 w-full rounded-2xl shimmer-mask"></div>
+                </div>
+            </div>
+
+            <!-- Col 2: Upcoming Bookings -->
+            <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="h-5 w-36 rounded-md shimmer-mask"></div>
+                    <div class="h-4 w-16 rounded-md shimmer-mask"></div>
+                </div>
+                <div class="space-y-3">
+                    <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                    <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                </div>
+            </div>
+
+            <!-- Col 3: Outstanding Invoices + Business Insight -->
+            <div class="flex flex-col gap-5">
+                <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="h-5 w-36 rounded-md shimmer-mask"></div>
+                        <div class="h-4 w-16 rounded-md shimmer-mask"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                        <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                        <div class="h-14 w-full rounded-2xl shimmer-mask"></div>
+                    </div>
+                </div>
+                <div class="h-32 w-full rounded-[28px] shimmer-mask"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
     <!-- GREETING + 4 REAL-TIME KPI STRIP (DASHBOARD ONLY)                  -->
     <!-- ================================================================== -->
-    <section x-show="$store.nav.tab === 'dashboard'"
+    <section x-show="$store.nav.tab === 'dashboard' && !pageLoading"
              class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 px-1">
 
         <div class="shrink-0">
@@ -507,7 +678,7 @@
     <!-- ================================================================== -->
     <!-- TAB 1: DASHBOARD (3-COLUMN BENTO — REAL DATABASE DATA)             -->
     <!-- ================================================================== -->
-    <div x-show="$store.nav.tab === 'dashboard'"
+    <div x-show="$store.nav.tab === 'dashboard' && !pageLoading"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-1"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -793,9 +964,58 @@
     </div>
 
     <!-- ================================================================== -->
+    <!-- TAB 2: BOOKINGS SKELETON SHIMMER (FLUTTER STYLE)                   -->
+    <!-- ================================================================== -->
+    <div x-show="$store.nav.tab === 'bookings' && pageLoading"
+         class="space-y-5"
+         x-cloak>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <div class="h-10 w-64 sm:w-72 rounded-full shimmer-mask"></div>
+                <div class="h-10 w-36 rounded-full shimmer-mask"></div>
+                <div class="h-10 w-36 rounded-full shimmer-mask"></div>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <div class="h-10 w-28 rounded-full shimmer-mask"></div>
+                <div class="h-10 w-36 rounded-full shimmer-mask"></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[28px] shadow-card border border-[#EDF2F0] overflow-hidden p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-36 rounded shimmer-mask"></div>
+                <div class="h-4 w-32 rounded shimmer-mask"></div>
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-24 rounded shimmer-mask"></div>
+                <div class="h-4 w-24 rounded shimmer-mask"></div>
+            </div>
+            <div class="space-y-4">
+                <template x-for="i in 6" :key="'shimmer-b-row-' + i">
+                    <div class="flex items-center justify-between py-2 border-b border-[#F8FAFA]">
+                        <div class="h-4 w-24 rounded shimmer-mask"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg shimmer-mask shrink-0"></div>
+                            <div class="h-4 w-32 rounded shimmer-mask"></div>
+                        </div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-6 w-20 rounded-full shimmer-mask"></div>
+                        <div class="h-6 w-16 rounded-full shimmer-mask"></div>
+                    </div>
+                </template>
+            </div>
+            <div class="pt-4 flex items-center justify-between border-t border-[#EFF4F2]">
+                <div class="h-4 w-40 rounded shimmer-mask"></div>
+                <div class="h-8 w-48 rounded-lg shimmer-mask"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
     <!-- TAB 2: BOOKINGS (6-COLUMN TABLE — REAL DATABASE DATA)              -->
     <!-- ================================================================== -->
-    <div x-show="$store.nav.tab === 'bookings'"
+    <div x-show="$store.nav.tab === 'bookings' && !pageLoading"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-1"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -897,63 +1117,93 @@
                             <th class="py-4 px-6">Invoice Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#F1F5F4]">
-                        <template x-for="b in paginatedBookings" :key="b.id">
-                            <tr @click="openDetail(b)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
+                    <!-- Shimmer Rows during Pagination -->
+                    <tbody x-show="bookingTableLoading" class="divide-y divide-[#F1F5F4]" x-cloak>
+                        <template x-for="i in Math.min(5, bookingPerPage)" :key="'b-shim-' + i">
+                            <tr>
                                 <td class="py-4 px-6 whitespace-nowrap">
-                                    <span class="text-[13px] font-semibold text-[#0284C7] group-hover:underline font-mono" x-text="'#' + b.code"></span>
+                                    <div class="h-4 w-20 rounded-md shimmer-mask"></div>
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
-                                        <img :src="b.avatar" :alt="b.name" class="w-8 h-8 rounded-lg object-cover shrink-0">
-                                        <span class="text-[13px] font-medium text-slate-800" x-text="b.name"></span>
+                                        <div class="w-8 h-8 rounded-lg shimmer-mask shrink-0"></div>
+                                        <div class="h-4 w-32 rounded-md shimmer-mask"></div>
                                     </div>
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap">
-                                    <span class="text-[13px] font-medium text-slate-800" x-text="b.date_short"></span>
-                                    <span class="text-[11px] font-medium text-slate-400 ml-1.5" x-text="b.time"></span>
+                                    <div class="h-4 w-24 rounded-md shimmer-mask"></div>
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap">
-                                    <span class="text-[13px] font-medium text-slate-700" x-text="b.service"></span>
+                                    <div class="h-4 w-28 rounded-md shimmer-mask"></div>
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap">
-                                    <span :class="{
-                                            'bg-[#E6F6EF] text-emerald-700': b.bookingStatus === 'Confirmed',
-                                            'bg-[#EAF3FF] text-blue-600': b.bookingStatus === 'Inquiry',
-                                            'bg-[#F3EAFF] text-purple-600': b.bookingStatus === 'Complete',
-                                            'bg-[#FEECEB] text-rose-600': b.bookingStatus === 'Cancelled'
-                                          }"
-                                          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
-                                        <span class="w-1.5 h-1.5 rounded-full"
-                                              :class="{
-                                                'bg-emerald-500': b.bookingStatus === 'Confirmed',
-                                                'bg-blue-500': b.bookingStatus === 'Inquiry',
-                                                'bg-purple-500': b.bookingStatus === 'Complete',
-                                                'bg-rose-500': b.bookingStatus === 'Cancelled'
-                                              }"></span>
-                                        <span x-text="b.bookingStatus"></span>
-                                    </span>
+                                    <div class="h-6 w-20 rounded-full shimmer-mask"></div>
                                 </td>
                                 <td class="py-4 px-6 whitespace-nowrap">
-                                    <span :class="{
-                                            'bg-[#E6F6EF] text-emerald-700': b.invoiceStatus === 'Paid',
-                                            'bg-[#FEF6E0] text-amber-600': b.invoiceStatus === 'Sent',
-                                            'bg-[#F1F5F9] text-slate-500': b.invoiceStatus === 'Draft',
-                                            'bg-[#FEECEB] text-rose-600': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
-                                          }"
-                                          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
-                                        <span class="w-1.5 h-1.5 rounded-full"
-                                              :class="{
-                                                'bg-emerald-500': b.invoiceStatus === 'Paid',
-                                                'bg-amber-400': b.invoiceStatus === 'Sent',
-                                                'bg-slate-400': b.invoiceStatus === 'Draft',
-                                                'bg-rose-500': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
-                                              }"></span>
-                                        <span x-text="b.invoiceStatus"></span>
-                                    </span>
+                                    <div class="h-6 w-16 rounded-full shimmer-mask"></div>
                                 </td>
                             </tr>
                         </template>
+                    </tbody>
+
+                    <!-- Real Data Rows -->
+                    <tbody x-show="!bookingTableLoading" class="divide-y divide-[#F1F5F4]">
+                            <template x-for="b in paginatedBookings" :key="b.id">
+                                <tr @click="openDetail(b)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <span class="text-[13px] font-semibold text-[#0284C7] group-hover:underline font-mono" x-text="'#' + b.code"></span>
+                                    </td>
+                                    <td class="py-4 px-5 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            <img :src="b.avatar" :alt="b.name" class="w-8 h-8 rounded-lg object-cover shrink-0">
+                                            <span class="text-[13px] font-medium text-slate-800" x-text="b.name"></span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-5 whitespace-nowrap">
+                                        <span class="text-[13px] font-medium text-slate-800" x-text="b.date_short"></span>
+                                        <span class="text-[11px] font-medium text-slate-400 ml-1.5" x-text="b.time"></span>
+                                    </td>
+                                    <td class="py-4 px-5 whitespace-nowrap">
+                                        <span class="text-[13px] font-medium text-slate-700" x-text="b.service"></span>
+                                    </td>
+                                    <td class="py-4 px-5 whitespace-nowrap">
+                                        <span :class="{
+                                                'bg-[#E6F6EF] text-emerald-700': b.bookingStatus === 'Confirmed',
+                                                'bg-[#EAF3FF] text-blue-600': b.bookingStatus === 'Inquiry',
+                                                'bg-[#F3EAFF] text-purple-600': b.bookingStatus === 'Complete',
+                                                'bg-[#FEECEB] text-rose-600': b.bookingStatus === 'Cancelled'
+                                              }"
+                                              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full"
+                                                  :class="{
+                                                    'bg-emerald-500': b.bookingStatus === 'Confirmed',
+                                                    'bg-blue-500': b.bookingStatus === 'Inquiry',
+                                                    'bg-purple-500': b.bookingStatus === 'Complete',
+                                                    'bg-rose-500': b.bookingStatus === 'Cancelled'
+                                                  }"></span>
+                                            <span x-text="b.bookingStatus"></span>
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <span :class="{
+                                                'bg-[#E6F6EF] text-emerald-700': b.invoiceStatus === 'Paid',
+                                                'bg-[#FEF6E0] text-amber-600': b.invoiceStatus === 'Sent',
+                                                'bg-[#F1F5F9] text-slate-500': b.invoiceStatus === 'Draft',
+                                                'bg-[#FEECEB] text-rose-600': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
+                                              }"
+                                              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full"
+                                                  :class="{
+                                                    'bg-emerald-500': b.invoiceStatus === 'Paid',
+                                                    'bg-amber-400': b.invoiceStatus === 'Sent',
+                                                    'bg-slate-400': b.invoiceStatus === 'Draft',
+                                                    'bg-rose-500': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
+                                                  }"></span>
+                                            <span x-text="b.invoiceStatus"></span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </template>
 
                         <tr x-show="filteredBookings.length === 0">
                             <td colspan="6" class="py-12 text-center text-xs text-slate-400">
@@ -1153,7 +1403,8 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- MONTHLY VIEW GRID -->
+        <div x-show="calendarView === 'Monthly View'" class="overflow-x-auto">
             <div class="min-w-[780px]">
                 <div class="grid grid-cols-7 border-b border-[#EFF4F2] bg-[#FCFDFD]">
                     <div class="py-3 text-center text-xs font-semibold text-slate-700">Sun</div>
@@ -1169,10 +1420,12 @@
                     <template x-for="cell in calendarCells" :key="cell.key">
                         <div :class="{
                                 'bg-[#FAFDFC]/60': cell.blank,
-                                'bg-[#F4F9F7]': !cell.blank && cell.isToday,
-                                'bg-white hover:bg-[#FAFDFC]': !cell.blank && !cell.isToday
+                                'bg-[#F4F9F7] ring-1 ring-brand-300 ring-inset': !cell.blank && cell.isToday,
+                                'bg-white hover:bg-[#F8FBFA]': !cell.blank && !cell.isToday
                              }"
-                             class="min-h-[116px] p-2.5 border-r border-b border-[#EFF4F2] transition-colors flex flex-col gap-1.5">
+                             :title="cell.blank ? '' : 'Klik tanggal untuk melihat semua agenda (' + (cell.events ? cell.events.length : 0) + ' reservasi)'"
+                             @click="if (!cell.blank) openDayModal(cell)"
+                             class="min-h-[120px] p-2 border-r border-b border-[#EFF4F2] transition-colors flex flex-col gap-1.5 cursor-pointer select-none group relative">
                             <template x-if="!cell.blank">
                                 <div class="flex flex-col gap-1.5 flex-1">
                                     <div class="flex items-center justify-between">
@@ -1180,17 +1433,17 @@
                                             <span :class="cell.isToday
                                                     ? 'w-6 h-6 rounded-full bg-brand-600 text-white text-[11px] font-bold inline-flex items-center justify-center shadow-xs'
                                                     : (cell.events.length > 0
-                                                        ? 'w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-bold inline-flex items-center justify-center'
+                                                        ? 'w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-bold inline-flex items-center justify-center group-hover:bg-brand-600 transition'
                                                         : 'text-xs font-bold text-slate-800')"
                                                   x-text="cell.day"></span>
                                             <template x-if="cell.isToday">
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                                                <span class="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                                                     Today
                                                 </span>
                                             </template>
                                         </div>
                                         <template x-if="cell.hasConflict">
-                                            <span title="Multiple bookings on the same date!" class="text-orange-500">
+                                            <span title="Melebihi kuota harian!" class="text-orange-500">
                                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                                     <path d="M12 2L1 21h22L12 2zm0 4.5l7.5 13h-15l7.5-13zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"/>
                                                 </svg>
@@ -1198,19 +1451,30 @@
                                         </template>
                                     </div>
 
-                                    <div class="space-y-1.5">
-                                        <template x-for="ev in cell.events" :key="ev.id">
+                                    <!-- Event chips (Up to 2 shown in cell) -->
+                                    <div class="space-y-1">
+                                        <template x-for="ev in cell.events.slice(0, 2)" :key="ev.id">
                                             <button type="button"
-                                                    @click="openDetail(ev)"
+                                                    @click.stop="openDetail(ev)"
                                                     :class="{
                                                         'bg-[#E6F6EF] hover:bg-[#D7F0E5] text-emerald-800': ev.bookingStatus === 'Confirmed',
                                                         'bg-[#F3EAFF] hover:bg-[#E9DAFF] text-purple-800': ev.bookingStatus === 'Complete',
                                                         'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800': ev.bookingStatus === 'Inquiry',
                                                         'bg-[#FEECEB] hover:bg-[#FCDCD9] text-rose-700': ev.bookingStatus === 'Cancelled'
                                                     }"
-                                                    class="w-full text-left px-2.5 py-1.5 rounded-lg transition cursor-pointer">
-                                                <p class="text-[10.5px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'H)' : '')"></p>
-                                                <p class="text-[10px] opacity-80 leading-tight truncate mt-0.5" x-text="ev.service"></p>
+                                                    class="w-full text-left px-2 py-1 rounded-lg transition cursor-pointer text-xs block group/chip">
+                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'H)' : '')"></p>
+                                                <p class="text-[9.5px] opacity-80 leading-tight truncate mt-0.5" x-text="ev.service"></p>
+                                            </button>
+                                        </template>
+
+                                        <!-- "+X reservasi lagi" Button if > 2 -->
+                                        <template x-if="cell.events.length > 2">
+                                            <button type="button"
+                                                    @click.stop="openDayModal(cell)"
+                                                    class="w-full py-1 px-2 rounded-lg bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-slate-700 font-bold text-[10px] text-center transition flex items-center justify-center gap-1 border border-[#E2EAE7] cursor-pointer">
+                                                <span x-text="'+ ' + (cell.events.length - 2) + ' reservasi lagi'"></span>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </template>
                                     </div>
@@ -1221,12 +1485,277 @@
                 </div>
             </div>
         </div>
+
+        <!-- AGENDA LIST VIEW -->
+        <div x-show="calendarView === 'Agenda List'" class="p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
+                <h3 class="text-sm font-bold text-slate-900" x-text="'Daftar Agenda Reservasi Bulan ' + calHeaderLabel"></h3>
+                <span class="text-xs font-semibold text-slate-500" x-text="monthBookings.length + ' Total Reservasi'"></span>
+            </div>
+
+            <template x-if="monthBookings.length === 0">
+                <div class="py-12 text-center text-xs text-slate-400">
+                    Tidak ada reservasi yang dijadwalkan pada bulan ini.
+                </div>
+            </template>
+
+            <div class="space-y-3" x-show="monthBookings.length > 0">
+                <template x-for="ev in monthBookings" :key="'agenda-' + ev.id">
+                    <div @click="openDetail(ev)"
+                         class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-12 h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase leading-none" x-text="monthShort[ev.event_month - 1]"></span>
+                                <span class="text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="ev.event_day"></span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
+                                    <span class="text-xs font-bold text-slate-900 truncate" x-text="ev.name"></span>
+                                    <span x-show="ev.duration_days > 1" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Hari'"></span>
+                                </div>
+                                <p class="text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
+                                <p class="text-[11px]" :class="ev.remaining_balance <= 0 ? 'text-emerald-600 font-semibold' : 'text-amber-600'"
+                                   x-text="ev.remaining_balance <= 0 ? 'Lunas' : 'Sisa ' + ev.remaining_formatted"></p>
+                            </div>
+                            <span :class="{
+                                    'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
+                                    'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
+                                    'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
+                                    'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
+                                  }"
+                                  class="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                  x-text="ev.bookingStatus"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- MODAL: DETAIL AGENDA TANGGAL / DAY BOOKINGS MODAL                  -->
+        <!-- ================================================================== -->
+        <div x-show="selectedDayModal"
+             @keydown.window.escape="closeDayModal()"
+             class="fixed inset-0 z-50 overflow-y-auto"
+             x-cloak>
+            <!-- Backdrop Blur -->
+            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+                 @click="closeDayModal()"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"></div>
+
+            <!-- Modal Dialog Box -->
+            <div class="min-h-full flex items-center justify-center p-4 sm:p-6 text-center">
+                <div @click.stop
+                     x-transition:enter="ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                     class="relative bg-white rounded-[28px] max-w-xl w-full p-5 sm:p-7 text-left shadow-2xl border border-[#EDF2F0] space-y-5 transform transition-all overflow-hidden">
+
+                    <!-- Header -->
+                    <div class="flex items-start justify-between gap-4 pb-4 border-b border-[#EFF4F2]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-brand-700 flex flex-col items-center justify-center text-center shrink-0 shadow-2xs">
+                                <span class="text-[9px] font-bold uppercase leading-none" x-text="selectedDayModal ? monthShort[calMonth - 1] : ''"></span>
+                                <span class="text-base font-extrabold leading-none mt-0.5 text-slate-900" x-text="selectedDayModal?.day"></span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight" x-text="selectedDayModal?.dateFull"></h3>
+                                    <template x-if="selectedDayModal?.isToday">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Hari Ini</span>
+                                    </template>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5" x-text="(selectedDayModal?.events?.length || 0) + ' Order Reservasi Terjadwal'"></p>
+                            </div>
+                        </div>
+                        <button type="button"
+                                @click="closeDayModal()"
+                                class="w-8 h-8 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Quota / Conflict Banner -->
+                    <template x-if="selectedDayModal && (selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length > maxEventsPerDay)">
+                        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs">
+                            <span class="text-base shrink-0 mt-0.5">⚠️</span>
+                            <div>
+                                <p class="font-bold">Peringatan: Kuota Harian Terlampaui!</p>
+                                <p class="text-[11.5px] text-amber-800 mt-0.5"
+                                   x-text="'Terdapat ' + selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length + ' acara pada tanggal ini (Batas standar: ' + maxEventsPerDay + ' acara/hari). Pastikan kesiapan kru & perlengkapan tenda/dekorasi.'"></p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Bookings Cards Container -->
+                    <div class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
+                        <template x-if="selectedDayModal?.events?.length === 0">
+                            <div class="py-12 text-center space-y-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-700">Tidak ada reservasi pada tanggal ini</p>
+                                <p class="text-[11px] text-slate-400">Jadwal tanggal ini masih kosong dan siap menerima booking baru.</p>
+                            </div>
+                        </template>
+
+                        <template x-for="(ev, idx) in (selectedDayModal?.events || [])" :key="ev.id">
+                            <div class="pt-3 first:pt-0">
+                                <div class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EAF0EE] hover:border-brand-300 hover:shadow-card transition space-y-3 group">
+                                    <!-- Top Row: Code, Date & Status -->
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
+                                            <template x-if="ev.duration_days > 1">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
+                                                      x-text="ev.duration_days + ' Hari: ' + ev.date_short"></span>
+                                            </template>
+                                        </div>
+                                        <span :class="{
+                                                'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
+                                                'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
+                                                'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
+                                                'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
+                                              }"
+                                              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full"
+                                                  :class="{
+                                                    'bg-emerald-500': ev.bookingStatus === 'Confirmed',
+                                                    'bg-purple-500': ev.bookingStatus === 'Complete',
+                                                    'bg-blue-500': ev.bookingStatus === 'Inquiry',
+                                                    'bg-rose-500': ev.bookingStatus === 'Cancelled'
+                                                  }"></span>
+                                            <span x-text="ev.bookingStatus"></span>
+                                        </span>
+                                    </div>
+
+                                    <!-- Middle Row: Customer Info & Service -->
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <img :src="ev.avatar" :alt="ev.name"
+                                                 class="w-10 h-10 rounded-xl object-cover shrink-0">
+                                            <div class="min-w-0">
+                                                <p class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="ev.name"></p>
+                                                <p class="text-[11px] text-slate-500 truncate" x-text="ev.phone"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <p class="text-xs font-bold text-brand-700" x-text="ev.service"></p>
+                                            <p class="text-[11px] text-slate-500" x-text="ev.grand_total_formatted"></p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Row: Payment Summary & Action Buttons -->
+                                    <div class="pt-2.5 border-t border-[#EDF2F0] flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] text-slate-400">Pembayaran:</span>
+                                            <span class="font-bold text-[11.5px]"
+                                                  :class="ev.remaining_balance <= 0 ? 'text-emerald-600' : 'text-amber-600'"
+                                                  x-text="ev.remaining_balance <= 0 ? 'Lunas (100%)' : 'Sisa ' + ev.remaining_formatted"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2 ml-auto">
+                                            <template x-if="ev.whatsapp_url">
+                                                <a :href="ev.whatsapp_url" target="_blank"
+                                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition cursor-pointer">
+                                                    <span>WhatsApp</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                </a>
+                                            </template>
+                                            <button type="button"
+                                                    @click="closeDayModal(); openDetail(ev)"
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
+                                                <span>Lihat Detail</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Footer Modal -->
+                    <div class="pt-3 border-t border-[#EFF4F2] flex items-center justify-between gap-3">
+                        <a href="{{ route('booking.create') }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline">
+                            <span>+ Buat Reservasi Baru</span>
+                        </a>
+                        <button type="button"
+                                @click="closeDayModal()"
+                                class="px-5 py-2 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-700 text-xs font-semibold transition cursor-pointer">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TAB 4: CLIENTS SKELETON SHIMMER (FLUTTER STYLE)                    -->
+    <!-- ================================================================== -->
+    <div x-show="$store.nav.tab === 'clients' && pageLoading"
+         class="space-y-5"
+         x-cloak>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <div class="h-10 w-64 sm:w-72 rounded-full shimmer-mask"></div>
+                <div class="h-10 w-36 rounded-full shimmer-mask"></div>
+            </div>
+            <div class="h-10 w-32 rounded-full shimmer-mask"></div>
+        </div>
+
+        <div class="bg-white rounded-[28px] shadow-card border border-[#EDF2F0] p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
+                <div class="h-4 w-32 rounded shimmer-mask"></div>
+                <div class="h-4 w-40 rounded shimmer-mask"></div>
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-24 rounded shimmer-mask"></div>
+                <div class="h-4 w-24 rounded shimmer-mask"></div>
+            </div>
+            <div class="space-y-4">
+                <template x-for="i in 5" :key="'shimmer-c-row-' + i">
+                    <div class="flex items-center justify-between py-2 border-b border-[#F8FAFA]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full shimmer-mask shrink-0"></div>
+                            <div class="space-y-1.5">
+                                <div class="h-4 w-32 rounded shimmer-mask"></div>
+                                <div class="h-3 w-24 rounded shimmer-mask"></div>
+                            </div>
+                        </div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-4 w-24 rounded shimmer-mask"></div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-6 w-20 rounded-full shimmer-mask"></div>
+                    </div>
+                </template>
+            </div>
+            <div class="pt-4 flex items-center justify-between border-t border-[#EFF4F2]">
+                <div class="h-4 w-36 rounded shimmer-mask"></div>
+                <div class="h-8 w-44 rounded-lg shimmer-mask"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ================================================================== -->
     <!-- TAB 4: CLIENTS (REAL DIRECTORY)                                    -->
     <!-- ================================================================== -->
-    <div x-show="$store.nav.tab === 'clients'"
+    <div x-show="$store.nav.tab === 'clients' && !pageLoading"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-1"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -1281,7 +1810,40 @@
                             <th class="py-4 px-6">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#F1F5F4]">
+                    <!-- Shimmer Rows during Pagination -->
+                    <tbody x-show="clientTableLoading" class="divide-y divide-[#F1F5F4]" x-cloak>
+                        <template x-for="i in Math.min(5, clientPerPage)" :key="'c-shim-' + i">
+                            <tr>
+                                <td class="py-4 px-6 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl shimmer-mask shrink-0"></div>
+                                        <div class="space-y-1.5">
+                                            <div class="h-4 w-28 rounded shimmer-mask"></div>
+                                            <div class="h-3 w-20 rounded shimmer-mask"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-24 rounded shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-24 rounded shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-16 rounded shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-24 rounded shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap">
+                                    <div class="h-6 w-16 rounded-full shimmer-mask"></div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+
+                    <!-- Real Data Rows -->
+                    <tbody x-show="!clientTableLoading" class="divide-y divide-[#F1F5F4]">
                         <template x-for="c in paginatedClients" :key="c.id">
                             <tr @click="openClientProfile(c)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
                                 <td class="py-4 px-6 whitespace-nowrap">
@@ -1539,9 +2101,71 @@
     </div>
 
     <!-- ================================================================== -->
+    <!-- TAB 6: INVOICE SKELETON SHIMMER (FLUTTER STYLE)                    -->
+    <!-- ================================================================== -->
+    <div x-show="$store.nav.tab === 'invoice' && pageLoading"
+         class="space-y-5"
+         x-cloak>
+        <!-- 3 Financial Summary Cards Shimmer -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white rounded-[24px] p-5 shadow-card border border-[#EDF2F0] flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                <div class="space-y-2">
+                    <div class="h-3 w-28 rounded shimmer-mask"></div>
+                    <div class="h-6 w-32 rounded shimmer-mask"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] p-5 shadow-card border border-[#EDF2F0] flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                <div class="space-y-2">
+                    <div class="h-3 w-28 rounded shimmer-mask"></div>
+                    <div class="h-6 w-32 rounded shimmer-mask"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] p-5 shadow-card border border-[#EDF2F0] flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                <div class="space-y-2">
+                    <div class="h-3 w-28 rounded shimmer-mask"></div>
+                    <div class="h-6 w-32 rounded shimmer-mask"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Skeleton -->
+        <div class="bg-white rounded-[28px] shadow-card border border-[#EDF2F0] p-6 space-y-4">
+            <div class="h-10 w-72 rounded-full shimmer-mask"></div>
+            <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-36 rounded shimmer-mask"></div>
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-28 rounded shimmer-mask"></div>
+                <div class="h-4 w-24 rounded shimmer-mask"></div>
+            </div>
+            <div class="space-y-4">
+                <template x-for="i in 5" :key="'shimmer-inv-row-' + i">
+                    <div class="flex items-center justify-between py-2 border-b border-[#F8FAFA]">
+                        <div class="h-4 w-24 rounded shimmer-mask"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg shimmer-mask shrink-0"></div>
+                            <div class="h-4 w-32 rounded shimmer-mask"></div>
+                        </div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-4 w-28 rounded shimmer-mask"></div>
+                        <div class="h-6 w-20 rounded-full shimmer-mask"></div>
+                    </div>
+                </template>
+            </div>
+            <div class="pt-4 flex items-center justify-between border-t border-[#EFF4F2]">
+                <div class="h-4 w-36 rounded shimmer-mask"></div>
+                <div class="h-8 w-44 rounded-lg shimmer-mask"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
     <!-- TAB 6: INVOICE (3 FINANCIAL SUMMARY CARDS + REAL 6-COLUMN TABLE)   -->
     <!-- ================================================================== -->
-    <div x-show="$store.nav.tab === 'invoice'"
+    <div x-show="$store.nav.tab === 'invoice' && !pageLoading"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-1"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -1621,7 +2245,37 @@
                             <th class="py-4 px-6 text-right">Quick Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#F1F5F4]">
+                    <!-- Shimmer Rows during Pagination -->
+                    <tbody x-show="invoiceTableLoading" class="divide-y divide-[#F1F5F4]" x-cloak>
+                        <template x-for="i in Math.min(5, invoicePerPage)" :key="'inv-shim-' + i">
+                            <tr>
+                                <td class="py-4 px-6 whitespace-nowrap">
+                                    <div class="h-4 w-20 rounded-md shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg shimmer-mask shrink-0"></div>
+                                        <div class="h-4 w-32 rounded-md shimmer-mask"></div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-28 rounded-md shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-4 w-24 rounded-md shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-5 whitespace-nowrap">
+                                    <div class="h-6 w-16 rounded-full shimmer-mask"></div>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap text-right">
+                                    <div class="h-6 w-24 rounded-full shimmer-mask ml-auto"></div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+
+                    <!-- Real Data Rows -->
+                    <tbody x-show="!invoiceTableLoading" class="divide-y divide-[#F1F5F4]">
                         <template x-for="inv in paginatedInvoices" :key="inv.id">
                             <tr @click="openDetail(inv)" class="hover:bg-[#F8FBFA] transition cursor-pointer group">
                                 <td class="py-4 px-6 whitespace-nowrap">
@@ -2186,6 +2840,88 @@
          class="space-y-5"
          x-cloak>
 
+        <!-- SKELETON SHIMMER SCREEN (FLUTTER STYLE) -->
+        <div x-show="detailLoading" class="space-y-5" x-cloak>
+            <div class="flex items-center justify-between">
+                <div class="h-8 w-24 rounded-full shimmer-mask"></div>
+                <div class="h-8 w-28 rounded-full shimmer-mask"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <div class="lg:col-span-8 space-y-5">
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-6">
+                        <div class="h-5 w-44 rounded-md shimmer-mask"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-full shimmer-mask shrink-0"></div>
+                                <div class="space-y-2">
+                                    <div class="h-3 w-16 rounded shimmer-mask"></div>
+                                    <div class="h-4 w-36 rounded shimmer-mask"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-full shimmer-mask shrink-0"></div>
+                                <div class="space-y-2">
+                                    <div class="h-3 w-16 rounded shimmer-mask"></div>
+                                    <div class="h-4 w-36 rounded shimmer-mask"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-5 border-t border-[#EFF4F2] flex items-center gap-4">
+                            <div class="h-4 w-36 rounded-full shimmer-mask"></div>
+                            <div class="h-4 w-40 rounded-full shimmer-mask"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
+                        <div class="h-5 w-40 rounded-md shimmer-mask"></div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
+                                <div class="space-y-2">
+                                    <div class="h-4 w-36 rounded shimmer-mask"></div>
+                                    <div class="h-3 w-28 rounded shimmer-mask"></div>
+                                </div>
+                            </div>
+                            <div class="h-8 w-28 rounded-full shimmer-mask"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
+                        <div class="h-5 w-32 rounded-md shimmer-mask"></div>
+                        <div class="space-y-3">
+                            <div class="h-12 w-full rounded-2xl shimmer-mask"></div>
+                            <div class="h-10 w-full rounded-2xl shimmer-mask"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-5">
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
+                        <div class="h-5 w-24 rounded-md shimmer-mask"></div>
+                        <div class="space-y-3">
+                            <div class="h-7 w-full rounded-xl shimmer-mask"></div>
+                            <div class="h-7 w-full rounded-xl shimmer-mask"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
+                        <div class="h-5 w-28 rounded-md shimmer-mask"></div>
+                        <div class="h-48 w-full rounded-2xl shimmer-mask"></div>
+                    </div>
+
+                    <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-3">
+                        <div class="h-5 w-20 rounded-md shimmer-mask"></div>
+                        <div class="h-11 w-full rounded-full shimmer-mask"></div>
+                        <div class="h-11 w-full rounded-full shimmer-mask"></div>
+                        <div class="h-11 w-full rounded-full shimmer-mask"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REAL DATA VIEW -->
+        <div x-show="!detailLoading" class="space-y-5">
         <div class="flex items-center justify-between">
             <button type="button" @click="closeDetail()" class="inline-flex items-center gap-2 group cursor-pointer">
                 <span class="w-8 h-8 rounded-full bg-white border border-[#E5ECE9] text-slate-600 group-hover:text-brand-600 flex items-center justify-center shadow-2xs transition">
@@ -2468,6 +3204,7 @@
                 </div>
 
             </div>
+        </div>
         </div>
     </div>
 

@@ -118,6 +118,25 @@
         .anim-slide-right { animation: slideInRight 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
         .anim-slide-left  { animation: slideInLeft  0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
         .anim-fade-up     { animation: fadeUpSoft   0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+        /* Flutter-style Shimmer Skeleton Effect */
+        @keyframes shimmerWave {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .shimmer-mask {
+            position: relative;
+            overflow: hidden;
+            background-color: #E2E8F0;
+        }
+        .shimmer-mask::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, rgba(226, 232, 240, 0) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(226, 232, 240, 0) 100%);
+            animation: shimmerWave 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
     </style>
 </head>
 <body class="min-h-full bg-[#F6F8F7] text-slate-800 antialiased font-sans selection:bg-brand-100 selection:text-brand-900"
@@ -319,7 +338,7 @@
                                             </a>
                                         @else
                                             <a href="{{ $item['action_url'] }}"
-                                               @click="notifOpen = false; window.dispatchEvent(new CustomEvent('open-booking-detail', { detail: { id: {{ $item['id'] }} } }));"
+                                               @click.prevent="notifOpen = false; window.dispatchEvent(new CustomEvent('open-booking-detail', { detail: { id: {{ $item['id'] }} } }));"
                                                class="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200 rounded-xl transition cursor-pointer">
                                                 <span>{{ $item['action_label'] }}</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -355,7 +374,7 @@
                                     </div>
                                     <div class="pt-1 flex items-center justify-end gap-2">
                                         <a href="{{ $item['action_url'] }}"
-                                           @click="notifOpen = false; window.dispatchEvent(new CustomEvent('open-booking-detail', { detail: { id: {{ $item['id'] }} } }));"
+                                           @click.prevent="notifOpen = false; window.dispatchEvent(new CustomEvent('open-booking-detail', { detail: { id: {{ $item['id'] }} } }));"
                                            class="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-teal-50 text-teal-800 hover:bg-teal-100 border border-teal-200 rounded-xl transition cursor-pointer">
                                             <span>{{ $item['action_label'] }}</span>
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
