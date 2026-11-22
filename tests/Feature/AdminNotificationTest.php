@@ -129,8 +129,8 @@ class AdminNotificationTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Notifikasi &amp; Agenda', false);
-        $response->assertSee('Perlu Tindakan');
-        $response->assertSee('Jadwal Lapangan');
+        $response->assertSee('Notifications &amp; Schedule', false);
+        $response->assertSee('Action Required');
+        $response->assertSee('Field Schedule');
     }
 }

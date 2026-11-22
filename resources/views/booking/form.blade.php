@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="id" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reserve Your Wedding Date | NK Barokah</title>
+    <title>Reservasi Pernikahan | NK Barokah</title>
 
     <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,6 +67,18 @@
         .pt-safe {
             padding-top: max(0.5rem, env(safe-area-inset-top));
         }
+
+        /* Hide scrollbars for categories & horizontal scrolling tabs */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body class="min-h-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col justify-between selection:bg-brand-100"
@@ -115,14 +127,14 @@
     <!-- ============================================================== -->
     <!-- MAIN FORM BODY (BALANCED PADDING FOR DESKTOP & MOBILE)         -->
     <!-- ============================================================== -->
-    <main class="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-5 pb-28 md:pb-12 flex-1">
+    <main class="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-5 pb-6 md:pb-10 flex-1">
 
         <!-- Server Validation Errors -->
         @if (isset($errors) && $errors->any())
             <div class="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-1">
                 <div class="font-bold flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>Please correct the following errors:</span>
+                    <span>Mohon periksa kesalahan berikut:</span>
                 </div>
                 <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-1">
                     @foreach ($errors->all() as $error)
@@ -146,10 +158,10 @@
 
                 <!-- Step Title -->
                 <div class="space-y-1">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 1 of 4 • Event Schedule</span>
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">When is your wedding date?</h1>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Langkah 1 dari 4 • Jadwal Acara</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Kapan tanggal pernikahan Anda?</h1>
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        We accept only 1 exclusive wedding per date. Pick an open date from the calendar.
+                        Kami hanya melayani 1 pernikahan eksklusif per tanggal. Pilih tanggal yang masih kosong pada kalender.
                     </p>
                 </div>
 
@@ -160,7 +172,7 @@
                     <div class="flex items-center justify-between gap-1.5 sm:gap-2 pb-3 border-b border-slate-100">
                         <!-- Left: Prev Month Button -->
                         <button type="button" @click="prevCalMonth()"
-                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Previous Month">
+                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Bulan Sebelumnya">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                         </button>
 
@@ -235,20 +247,20 @@
                             <!-- Today Button Pill -->
                             <button type="button" @click="goToTodayMonth()"
                                     class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 transition cursor-pointer shrink-0">
-                                Today
+                                Hari Ini
                             </button>
                         </div>
 
                         <!-- Right: Next Month Button -->
                         <button type="button" @click="nextCalMonth()"
-                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Next Month">
+                                class="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center text-slate-600 transition cursor-pointer shrink-0" title="Bulan Berikutnya">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
 
                     <!-- Days of Week Headers (7 Columns with Unique Index Key) -->
                     <div class="grid grid-cols-7 gap-1 text-center">
-                        <template x-for="(dow, idx) in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="idx">
+                        <template x-for="(dow, idx) in ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']" :key="idx">
                             <span class="text-[11px] font-bold text-slate-400 py-1" x-text="dow"></span>
                         </template>
                     </div>
@@ -297,7 +309,7 @@
 
                                         <!-- Booked dot / label -->
                                         <template x-if="cell.isBooked && !cell.isPast">
-                                            <span class="text-[8px] sm:text-[9px] font-bold text-rose-400 leading-none mt-0.5">FULL</span>
+                                            <span class="text-[8px] sm:text-[9px] font-bold text-rose-400 leading-none mt-0.5">PENUH</span>
                                         </template>
 
                                         <!-- Today micro dot -->
@@ -338,7 +350,7 @@
                                     <span class="text-slate-900 font-semibold" x-text="formattedSelectedDate"></span>
                                 </template>
                                 <template x-if="selectedDate && isDateBooked">
-                                    <span class="text-rose-600 font-semibold">Tanggal yang dipilih sudah penuh (FULL)</span>
+                                    <span class="text-rose-600 font-semibold">Tanggal yang dipilih sudah penuh (PENUH)</span>
                                 </template>
                             </div>
                         </div>
@@ -381,7 +393,7 @@
                     <div class="hidden md:flex items-center justify-end pt-3 border-t border-slate-100">
                         <button type="button" @click="goToStep(2)" :disabled="!selectedDate || isDateBooked"
                                 class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-subtle">
-                            <span>Continue to Package</span>
+                            <span>Lanjut ke Pilih Paket</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
                     </div>
@@ -401,10 +413,10 @@
 
                 <!-- Step Title -->
                 <div class="space-y-1">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 2 of 4 • Package & Services</span>
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Choose your wedding package</h1>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Langkah 2 dari 4 • Paket & Layanan</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Pilih paket pernikahan Anda</h1>
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Tap a package to select. You can add extra services below.
+                        Ketuk paket untuk memilih. Anda juga dapat menambahkan perlengkapan tambahan di bawah.
                     </p>
                 </div>
 
@@ -435,7 +447,7 @@
                                         <h3 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight truncate" x-text="pkg.name"></h3>
                                         <template x-if="pkg.slug === 'paket-1' || pkg.slug === 'tenda-decor-6m'">
                                             <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold tracking-wide uppercase border border-brand-200/60 shrink-0">
-                                                Favorite
+                                                Favorit
                                             </span>
                                         </template>
                                     </div>
@@ -453,14 +465,9 @@
 
                 <!-- Add-ons Selection -->
                 <div x-show="addons.length > 0" class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <div>
-                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Optional Add-ons (20 Pilihan)</h4>
-                            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Pilih perlengkapan tambahan sesuai kebutuhan venue Anda</p>
-                        </div>
-                        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg transition"
-                              :class="activeAddons.length > 0 ? 'bg-brand-50 text-brand-700 border border-brand-200/80 shadow-xs' : 'bg-slate-100 text-slate-500'"
-                              x-text="`${activeAddons.length} added`"></span>
+                    <div class="pb-3 border-b border-slate-100">
+                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Perlengkapan Tambahan (Opsional)</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Pilih perlengkapan tambahan sesuai kebutuhan venue Anda</p>
                     </div>
 
                     <!-- Category Filter Tabs for 20 Add-ons -->
@@ -565,16 +572,16 @@
                     <button type="button" @click="goToStep(1)"
                             class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        <span>Back</span>
+                        <span>Kembali</span>
                     </button>
                     <div class="flex items-center gap-4 sm:gap-5">
                         <div class="text-right">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Estimated Total</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Estimasi Total</span>
                             <span class="text-base sm:text-lg font-extrabold font-mono text-brand-700" x-text="formatRupiah(grandTotal)"></span>
                         </div>
                         <button type="button" @click="goToStep(3)"
                                 class="px-6 py-2.5 sm:py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
-                            <span>Continue to Couple Details</span>
+                            <span>Lanjut ke Data Pemesan</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
                     </div>
@@ -592,10 +599,10 @@
                  class="space-y-4 sm:space-y-5" x-cloak>
 
                 <div class="space-y-1">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 3 of 4 • Couple Details</span>
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Who are we planning for?</h1>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Langkah 3 dari 4 • Data Calon Pengantin</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Data Calon Pengantin</h1>
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Enter couple names and WhatsApp contact for contract and coordination.
+                        Masukkan nama kedua mempelai dan kontak WhatsApp untuk koordinasi dan surat perjanjian resmi.
                     </p>
                 </div>
 
@@ -611,12 +618,12 @@
 
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700 tracking-tight">
-                            Couple Names <span class="text-rose-500">*</span>
+                            Nama Calon Pengantin (Kedua Mempelai) <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" name="customer_name" required x-model="customerName"
                                @input="customerName = $event.target.value.toUpperCase(); formErrors.customer_name = null; formErrors.step3 = null"
                                autocapitalize="characters" autocomplete="name"
-                               placeholder="e.g. MUHAMMAD REZA & DIAN SASTROWARDOYO"
+                               placeholder="Contoh: MUHAMMAD REZA & DIAN SASTROWARDOYO"
                                class="w-full px-4 py-3 rounded-xl border text-base sm:text-sm uppercase placeholder:normal-case placeholder:text-slate-400 focus:outline-none transition"
                                :class="formErrors.customer_name 
                                    ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/20 text-slate-900' 
@@ -625,12 +632,12 @@
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             <span x-text="formErrors.customer_name"></span>
                         </p>
-                        <p x-show="!formErrors.customer_name" class="text-[11px] text-slate-400">Both bride and groom names to appear on the official contract.</p>
+                        <p x-show="!formErrors.customer_name" class="text-[11px] text-slate-400">Nama kedua mempelai akan tercantum pada invoice dan surat perjanjian resmi.</p>
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700 tracking-tight">
-                            WhatsApp Phone Number <span class="text-rose-500">*</span>
+                            Nomor WhatsApp Aktif <span class="text-rose-500">*</span>
                         </label>
                         <div class="relative flex items-center">
                             <span class="absolute left-4 text-xs font-bold text-slate-400 select-none">+62</span>
@@ -649,12 +656,12 @@
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             <span x-text="formErrors.customer_phone"></span>
                         </p>
-                        <p x-show="!formErrors.customer_phone" class="text-[11px] text-slate-400">Invoice receipt and schedule confirmation are delivered here.</p>
+                        <p x-show="!formErrors.customer_phone" class="text-[11px] text-slate-400">Kwitansi pembayaran dan konfirmasi jadwal akan dikirimkan ke nomor ini.</p>
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700 tracking-tight">
-                            Email Address <span class="text-slate-400 font-normal">(Optional)</span>
+                            Alamat Email <span class="text-slate-400 font-normal">(Opsional)</span>
                         </label>
                         <input type="email" name="customer_email" x-model="customerEmail"
                                @input="customerEmail = $event.target.value.toLowerCase()"
@@ -671,11 +678,11 @@
                     <button type="button" @click="goToStep(2)"
                             class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        <span>Back</span>
+                        <span>Kembali</span>
                     </button>
                     <button type="button" @click="goToStep(4)"
                             class="px-6 py-2.5 sm:py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
-                        <span>Continue to Payment</span>
+                        <span>Lanjut ke Pembayaran</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                 </div>
@@ -692,55 +699,63 @@
                  class="space-y-4 sm:space-y-5" x-cloak>
 
                 <div class="space-y-1">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Step 4 of 4 • Confirmation & Payment</span>
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Review & lock your reservation</h1>
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">Langkah 4 dari 4 • Konfirmasi & Pembayaran</span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">Periksa & Kunci Reservasi Anda</h1>
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Verify invoice details and upload your bank transfer receipt.
+                        Pastikan rincian pesanan sudah sesuai dan unggah bukti transfer pembayaran.
                     </p>
                 </div>
 
                 <!-- Quotation Breakdown Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3">
-                    <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Reservation Breakdown</h3>
-                        <span class="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-md"
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
+                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                        <h3 class="text-[11px] sm:text-xs font-bold text-slate-900 uppercase tracking-wider shrink-0">Rincian Reservasi</h3>
+                        <span class="inline-flex items-center text-[10.5px] sm:text-xs font-bold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200/70 whitespace-nowrap shrink-0"
                               x-text="formattedSelectedDate"></span>
                     </div>
 
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-slate-600">
-                            <span>Package: <strong class="text-slate-900 font-semibold" x-text="currentPackageName"></strong></span>
-                            <span class="font-mono font-semibold text-slate-900" x-text="formatRupiah(currentPackagePrice)"></span>
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex justify-between items-center py-0.5 text-slate-600">
+                            <span class="truncate pr-2">Paket: <strong class="text-slate-900 font-bold" x-text="currentPackageName"></strong></span>
+                            <span class="font-mono font-bold text-slate-900 whitespace-nowrap shrink-0" x-text="formatRupiah(currentPackagePrice)"></span>
                         </div>
 
                         <template x-for="ad in activeAddons" :key="ad.id">
-                            <div class="flex justify-between items-center text-slate-500 pl-2 border-l border-slate-200">
-                                <span x-text="`${ad.name} (${ad.selectedQty}x)`"></span>
-                                <span class="font-mono text-slate-700" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
+                            <div class="flex justify-between items-center text-slate-600 pl-2.5 py-1 border-l-2 border-brand-200 bg-slate-50/60 rounded-r-lg">
+                                <span class="truncate pr-2 font-medium" x-text="`${ad.name} (${ad.selectedQty}x)`"></span>
+                                <span class="font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
                             </div>
                         </template>
 
                         <!-- Extra Day Charge if > 2 days -->
                         <template x-if="extraDays > 0">
-                            <div class="flex justify-between items-center text-amber-800 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80">
-                                <div class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>Tambahan Durasi (<span class="font-bold" x-text="`${extraDays} hari ekstra @ 15%`"></span>)</span>
+                            <div class="flex items-center justify-between gap-3 text-amber-900 bg-amber-50/90 px-3 py-2.5 rounded-xl border border-amber-200/90 shadow-2xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 text-amber-700">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold text-amber-950 leading-tight">Tambahan Durasi</div>
+                                        <div class="text-[10px] text-amber-700 font-medium leading-tight mt-0.5" x-text="`${extraDays} hari ekstra • +15%/hari`"></div>
+                                    </div>
                                 </div>
-                                <span class="font-mono font-bold text-amber-900" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
+                                <span class="font-mono font-extrabold text-xs sm:text-sm text-amber-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
                             </div>
                         </template>
 
-                        <div class="pt-2.5 border-t border-slate-100 flex justify-between items-baseline font-bold text-sm text-slate-900">
-                            <span>Grand Total</span>
-                            <span class="text-base sm:text-lg font-mono font-extrabold text-brand-700" x-text="formatRupiah(grandTotal)"></span>
+                        <div class="pt-3 border-t border-slate-200/90 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Total Tagihan</span>
+                                <span class="text-[10px] text-slate-400">Termasuk seluruh layanan & fasilitas sewa</span>
+                            </div>
+                            <span class="text-base sm:text-lg font-mono font-black text-brand-700 tracking-tight" x-text="formatRupiah(grandTotal)"></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Payment Options -->
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-4">
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Payment Method</h3>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Metode Pembayaran</h3>
 
                     <!-- Toggle DP vs Lunas -->
                     <div class="grid grid-cols-2 gap-2.5">
@@ -749,8 +764,8 @@
                                    ? 'border-brand-600 bg-brand-50/50 text-brand-900 font-semibold ring-1 ring-brand-600/20' 
                                    : 'border-slate-200 hover:border-slate-300 text-slate-700'">
                             <input type="radio" name="payment_type" value="dp" class="sr-only" x-model="paymentType">
-                            <span class="text-xs block font-bold">Down Payment (DP)</span>
-                            <span class="text-[10px] text-slate-500 mt-0.5 block">Lock date with minimum DP</span>
+                            <span class="text-xs block font-bold">Uang Muka (DP)</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Kunci tanggal dengan DP minimal</span>
                         </label>
 
                         <label class="p-3 rounded-xl border text-center cursor-pointer transition select-none active:scale-[0.98]"
@@ -758,15 +773,15 @@
                                    ? 'border-brand-600 bg-brand-50/50 text-brand-900 font-semibold ring-1 ring-brand-600/20' 
                                    : 'border-slate-200 hover:border-slate-300 text-slate-700'">
                             <input type="radio" name="payment_type" value="lunas" class="sr-only" x-model="paymentType">
-                            <span class="text-xs block font-bold">Full Settlement (100%)</span>
-                            <span class="text-[10px] text-slate-500 mt-0.5 block">Settle full contract balance</span>
+                            <span class="text-xs block font-bold">Pelunasan (100%)</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5 block">Bayar lunas seluruh tagihan</span>
                         </label>
                     </div>
 
                     <!-- DP Amount Input -->
                     <div x-show="paymentType === 'dp'" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5" x-cloak>
                         <div class="flex items-center justify-between text-xs">
-                            <label class="font-semibold text-slate-700">DP Transfer Amount</label>
+                            <label class="font-semibold text-slate-700">Nominal Transfer DP</label>
                             <span class="text-slate-500 text-[11px]">Min: <span class="font-mono font-bold text-slate-800" x-text="formatRupiah(minDpAmount)"></span></span>
                         </div>
                         <div class="relative flex items-center">
@@ -782,19 +797,19 @@
                         <!-- Quick DP Preset Pills -->
                         <div class="flex items-center gap-2 pt-0.5">
                             <button type="button" @click="setNominalDp(minDpAmount)"
-                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
-                                    :class="nominalDp === minDpAmount ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
+                                     class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
+                                     :class="nominalDp === minDpAmount ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
                                 <span x-text="`Min DP (${formatRupiah(minDpAmount)})`">Min DP (Rp 1.000.000)</span>
                             </button>
                             <button type="button" @click="setNominalDp(Math.round(grandTotal * 0.5))"
-                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
-                                    :class="nominalDp === Math.round(grandTotal * 0.5) ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
+                                     class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
+                                     :class="nominalDp === Math.round(grandTotal * 0.5) ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
                                 50% DP
                             </button>
                         </div>
 
                         <div class="flex justify-between items-center text-xs text-slate-500 pt-1.5 border-t border-slate-200/60">
-                            <span>Remaining balance due:</span>
+                            <span>Sisa tagihan yang harus dibayar:</span>
                             <strong class="font-mono font-bold text-slate-900" x-text="formatRupiah(remainingBalance)"></strong>
                         </div>
                     </div>
@@ -891,7 +906,7 @@
                             <!-- Card Bottom: Cardholder Name & GPN / Debit Badge -->
                             <div class="pt-3 border-t border-white/15 flex items-center justify-between text-xs relative z-10">
                                 <div>
-                                    <span class="text-[8px] uppercase font-bold tracking-wider text-white/50 block">Cardholder / Atas Nama</span>
+                                    <span class="text-[8px] uppercase font-bold tracking-wider text-white/50 block">Atas Nama Pemilik Rekening</span>
                                     <p class="font-mono font-bold tracking-wider text-white text-xs sm:text-sm uppercase" x-text="banks[activeBank].holder"></p>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -906,14 +921,14 @@
                         </div>
 
                         <p class="text-[11px] text-slate-500 text-center leading-relaxed">
-                            Silakan lakukan transfer ke rekening <strong class="text-slate-800" x-text="banks[activeBank].name"></strong> di atas atas nama <strong class="text-slate-800" x-text="banks[activeBank].holder"></strong>, lalu upload bukti transfer di bawah.
+                            Silakan lakukan transfer ke rekening <strong class="text-slate-800" x-text="banks[activeBank].name"></strong> di atas a.n. <strong class="text-slate-800" x-text="banks[activeBank].holder"></strong>, lalu unggah bukti transfer di bawah.
                         </p>
                     </div>
 
                     <!-- Payment Proof Upload Dropzone -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-slate-700 tracking-tight">
-                            Upload Transfer Receipt <span class="text-rose-500">*</span>
+                            Unggah Bukti Transfer <span class="text-rose-500">*</span>
                         </label>
                         
                         <div class="border-2 border-dashed rounded-2xl p-5 text-center transition cursor-pointer relative group"
@@ -929,14 +944,14 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                 </div>
                                 <p class="text-xs font-semibold text-slate-800">
-                                    <span class="text-brand-600 underline">Tap to take photo or upload</span>
+                                    <span class="text-brand-600 underline">Ketuk untuk foto atau unggah berkas</span>
                                 </p>
-                                <p class="text-[11px] text-slate-400">JPG, PNG, or PDF up to 3MB</p>
+                                <p class="text-[11px] text-slate-400">JPG, PNG, atau PDF maksimal 3MB</p>
                             </div>
 
                             <template x-if="previewUrl">
                                 <div class="mt-3 pt-3 border-t border-slate-200">
-                                    <img :src="previewUrl" alt="Receipt preview" class="max-h-28 mx-auto rounded-lg border border-slate-200 object-cover shadow-sm">
+                                    <img :src="previewUrl" alt="Bukti transfer" class="max-h-28 mx-auto rounded-lg border border-slate-200 object-cover shadow-sm">
                                 </div>
                             </template>
                             <template x-if="!previewUrl && fileName">
@@ -951,10 +966,12 @@
 
                 </div>
 
-                <!-- Booking Rules Accordion (Sesuai Pricelist Resmi 2026 NK Barokah) -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card" x-data="{ rulesOpen: false }">
-                    <button type="button" @click="rulesOpen = !rulesOpen" class="w-full flex items-center justify-between text-left cursor-pointer select-none">
-                        <div class="flex items-center gap-2.5">
+                <!-- Unified Booking Rules & Consent Card -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card divide-y divide-slate-100 overflow-hidden" x-data="{ rulesOpen: false }">
+                    <!-- Rules Accordion Header -->
+                    <button type="button" @click="rulesOpen = !rulesOpen"
+                            class="w-full p-4 sm:p-5 flex items-center justify-between text-left cursor-pointer select-none hover:bg-slate-50/60 transition">
+                        <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-200/60">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </div>
@@ -963,9 +980,14 @@
                                 <p class="text-[11px] text-slate-400">Ringkasan S&K resmi NK Barokah 2026</p>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': rulesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        <div class="flex items-center gap-1.5 text-xs font-semibold text-brand-600">
+                            <span class="text-[11px] hidden sm:inline" x-text="rulesOpen ? 'Tutup' : 'Lihat'"></span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': rulesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </button>
-                    <div x-show="rulesOpen" x-cloak x-transition class="mt-3.5 pt-3.5 border-t border-slate-100 text-xs text-slate-600 space-y-2">
+
+                    <!-- Rules Content (Expandable) -->
+                    <div x-show="rulesOpen" x-cloak x-transition class="p-4 sm:p-5 bg-slate-50/50 text-xs text-slate-600 space-y-2">
                         <ul class="list-disc pl-4 space-y-1.5 leading-relaxed text-[11px] sm:text-xs text-slate-600">
                             <li><strong>Keep Tanggal:</strong> Wajib DP minimal Rp 1.000.000 via transfer atau langsung ke galeri (sertakan bukti transfer).</li>
                             <li><strong>Durasi Acara:</strong> Pemakaian paket tenda berlaku maksimal <strong>2 hari acara</strong> (Loading tenda H-2, loading dekor H-1 sore/malam, bongkar H+1). Acara lebih dari 2 hari dikenakan <strong>charge 15% per hari</strong>.</li>
@@ -976,27 +998,29 @@
                             <li><strong>Alat Prasmanan:</strong> Pengembalian alat prasmanan dalam kondisi bersih & dicuci.</li>
                         </ul>
                     </div>
-                </div>
 
-                <!-- Checkbox Persetujuan Syarat & Ketentuan Resmi -->
-                <label id="termsConsentCheckbox" class="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-white hover:bg-[#FAFDFC] border border-slate-200/90 cursor-pointer transition select-none shadow-card group">
-                    <input type="checkbox" x-model="agreedToTerms" required
-                           class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer shrink-0">
-                    <span class="text-xs text-slate-700 leading-relaxed">
-                        Saya telah membaca dan menyetujui seluruh <strong class="text-slate-900 group-hover:text-brand-700 transition">Aturan & Ketentuan Reservasi Resmi NK Barokah</strong> (termasuk kebijakan keep tanggal, pembayaran DP, durasi sewa tenda, dan pembatalan acara).
-                    </span>
-                </label>
+                    <!-- Consent Checkbox Row -->
+                    <label id="termsConsentCheckbox"
+                           class="flex items-center gap-3 p-4 sm:p-4.5 cursor-pointer transition select-none group"
+                           :class="agreedToTerms ? 'bg-brand-50/40 text-brand-900' : 'bg-white hover:bg-slate-50/60 text-slate-700'">
+                        <input type="checkbox" x-model="agreedToTerms" required
+                               class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer shrink-0">
+                        <span class="text-xs leading-snug">
+                            Saya telah membaca dan menyetujui seluruh <strong class="text-slate-900 group-hover:text-brand-700 transition">Aturan & Ketentuan Reservasi Resmi</strong> di atas.
+                        </span>
+                    </label>
+                </div>
 
                 <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
                 <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
                     <button type="button" @click="goToStep(3)"
                             class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        <span>Back</span>
+                        <span>Kembali</span>
                     </button>
                     <button type="button" @click="submitBookingForm()" :disabled="isDateBooked || !agreedToTerms"
                             class="px-7 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
-                        <span>Confirm Reservation</span>
+                        <span>Konfirmasi Reservasi</span>
                     </button>
                 </div>
 
@@ -1015,13 +1039,13 @@
             <!-- Left Info / Running Total Indicator -->
             <div class="min-w-0 flex-1">
                 <div x-show="step === 1">
-                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Date Status</p>
+                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status Tanggal</p>
                     <p class="text-xs font-bold text-slate-900 truncate"
-                       x-text="selectedDate ? formattedSelectedDate : 'No date chosen'"></p>
+                       x-text="selectedDate ? formattedSelectedDate : 'Belum pilih tanggal'"></p>
                 </div>
 
                 <div x-show="step > 1" x-cloak>
-                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Grand Total</p>
+                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Tagihan</p>
                     <p class="text-sm font-bold font-mono text-brand-700 tracking-tight"
                        x-text="formatRupiah(grandTotal)"></p>
                 </div>
@@ -1031,21 +1055,20 @@
             <div class="flex items-center gap-2 shrink-0">
                 <button type="button" x-show="step > 1" @click="step--"
                         class="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 font-semibold text-xs transition cursor-pointer">
-                    Back
+                    Kembali
                 </button>
 
                 <button type="button" x-show="step < 4" @click="goToStep(step + 1)"
                         :disabled="step === 1 && (!selectedDate || isDateBooked)"
                         class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-subtle">
-                    <span x-text="step === 1 ? 'Select Package' : (step === 2 ? 'Couple Details' : 'Payment')"></span>
+                    <span x-text="step === 1 ? 'Pilih Paket' : (step === 2 ? 'Data Pemesan' : 'Pembayaran')"></span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
 
                 <button type="button" x-show="step === 4" @click="submitBookingForm()"
                         :disabled="isDateBooked || !agreedToTerms"
                         class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-pill" x-cloak>
-                    <span>Confirm Booking</span>
-                    
+                    <span>Konfirmasi Reservasi</span>
                 </button>
             </div>
 
@@ -1053,10 +1076,10 @@
     </div>
 
     <!-- Minimal Clean Footer -->
-    <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-        <div class="max-w-2xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
-            <p>&copy; {{ date('Y') }} NK Barokah Wedding Organizer. All rights reserved.</p>
-            <p class="text-slate-400">Direct booking & schedule locking system</p>
+    <footer class="border-t border-slate-200 bg-white pt-3.5 pb-20 md:py-3.5 text-center text-xs text-slate-400">
+        <div class="max-w-2xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px]">
+            <p>&copy; {{ date('Y') }} NK Barokah Wedding Organizer. Hak cipta dilindungi.</p>
+            <p class="text-slate-400">Sistem reservasi & penguncian jadwal resmi</p>
         </div>
     </footer>
 
@@ -1116,8 +1139,8 @@
             monthOpen: false,
             yearOpen: false,
             monthNames: [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
             ],
 
             activeBank: 'bca',
@@ -1225,10 +1248,10 @@
             },
 
             get stepTitle() {
-                if (this.step === 1) return 'Schedule';
-                if (this.step === 2) return 'Package';
-                if (this.step === 3) return 'Couple';
-                return 'Payment';
+                if (this.step === 1) return 'Jadwal Acara';
+                if (this.step === 2) return 'Pilih Paket';
+                if (this.step === 3) return 'Data Pemesan';
+                return 'Pembayaran';
             },
 
             get calendarGrid() {
@@ -1335,7 +1358,7 @@
                     } else {
                         // Clicked later date: check if any date in between is booked
                         if (this.hasBookedDateBetween(this.selectedDate, dateStr)) {
-                            this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati tanggal yang sudah penuh (FULL). Silakan pilih rentang tanggal yang seluruhnya kosong.';
+                            this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati tanggal yang sudah terisi (PENUH). Silakan pilih rentang tanggal lain.';
                             return;
                         }
                         this.selectedEndDate = dateStr;
@@ -1450,16 +1473,17 @@
                 if (!this.selectedDate) return '';
                 const endStr = this.selectedEndDate || this.selectedDate;
                 const days = this.durationDays;
+                const dayLabel = `${days} Hari`;
                 if (endStr === this.selectedDate || days === 1) {
-                    return this.formatSingleDate(this.selectedDate) + ' (1 Hari)';
+                    return `${this.formatSingleDate(this.selectedDate)} (${dayLabel})`;
                 }
                 const pStart = this.selectedDate.split('-');
                 const pEnd = endStr.split('-');
                 if (pStart[0] === pEnd[0] && pStart[1] === pEnd[1]) {
                     const dayStart = parseInt(pStart[2], 10);
-                    return `${dayStart} – ${this.formatSingleDate(endStr)} (${days} Hari)`;
+                    return `${dayStart} – ${this.formatSingleDate(endStr)} (${dayLabel})`;
                 }
-                return this.formatSingleDate(this.selectedDate) + ' – ' + this.formatSingleDate(endStr) + ` (${days} Hari)`;
+                return `${this.formatSingleDate(this.selectedDate)} – ${this.formatSingleDate(endStr)} (${dayLabel})`;
             },
 
             get currentPackage() {
@@ -1523,7 +1547,7 @@
                         return;
                     }
                     if (this.isDateBooked) {
-                        this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati hari yang sudah penuh (FULL). Silakan pilih rentang lain.';
+                        this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati tanggal yang sudah terisi (PENUH). Silakan pilih rentang tanggal lain.';
                         return;
                     }
                     this.formErrors.step1 = null;
@@ -1531,7 +1555,7 @@
 
                 if (nextStep === 3) {
                     if (!this.selectedPackageId) {
-                        this.formErrors.step2 = 'Please select a wedding package to continue.';
+                        this.formErrors.step2 = 'Silakan pilih paket pernikahan terlebih dahulu untuk melanjutkan.';
                         return;
                     }
                     this.formErrors.step2 = null;
@@ -1543,24 +1567,24 @@
                     const phone = (this.rawPhoneDigits || '').trim();
 
                     if (!name) {
-                        this.formErrors.customer_name = 'Please enter bride & groom couple names.';
+                        this.formErrors.customer_name = 'Silakan masukkan nama kedua calon pengantin.';
                         hasErr = true;
                     } else {
                         this.formErrors.customer_name = null;
                     }
 
                     if (!phone) {
-                        this.formErrors.customer_phone = 'Please enter WhatsApp phone number.';
+                        this.formErrors.customer_phone = 'Silakan masukkan nomor WhatsApp aktif.';
                         hasErr = true;
                     } else if (phone.length < 8) {
-                        this.formErrors.customer_phone = 'Please enter a valid WhatsApp number (min. 8 digits).';
+                        this.formErrors.customer_phone = 'Nomor WhatsApp tidak valid (minimal 8 digit).';
                         hasErr = true;
                     } else {
                         this.formErrors.customer_phone = null;
                     }
 
                     if (hasErr) {
-                        this.formErrors.step3 = 'Please complete the required couple contact details below.';
+                        this.formErrors.step3 = 'Silakan lengkapi data kontak calon pengantin di bawah ini.';
                         this.$nextTick(() => {
                             if (!name) {
                                 document.querySelector('input[name="customer_name"]')?.focus();
@@ -1599,8 +1623,8 @@
 
                 const fileInput = form.querySelector('input[name="payment_proof"]');
                 if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                    this.formErrors.payment_proof = 'Please upload your bank transfer receipt before confirming.';
-                    this.formErrors.step4 = 'Bank transfer receipt is required to lock your reservation.';
+                    this.formErrors.payment_proof = 'Silakan unggah bukti transfer pembayaran sebelum konfirmasi.';
+                    this.formErrors.step4 = 'Bukti transfer pembayaran wajib diunggah untuk mengunci reservasi.';
                     this.$nextTick(() => {
                         fileInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     });

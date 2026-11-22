@@ -152,7 +152,7 @@
     <!-- ============================================================== -->
     <!-- CONTAINER UTAMA (FLOATING TOP PILL NAV + AIRY CANVAS)          -->
     <!-- ============================================================== -->
-    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-24 lg:pb-10">
+    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-32 lg:pb-10">
 
         <!-- TOP FLOATING PILL NAVBAR -->
         <header class="sticky top-3 z-40 bg-white/95 backdrop-blur-md rounded-full px-3.5 sm:px-5 py-2.5 shadow-nav border border-[#EAF0EE] flex items-center justify-between gap-3">
@@ -251,8 +251,8 @@
                 <div class="relative" x-data="{ notifTab: 'actions' }">
                     <button type="button"
                             @click="notifOpen = !notifOpen"
-                            title="Pusat Notifikasi & Agenda"
-                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition relative">
+                            title="Notifications &amp; Schedule"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition relative cursor-pointer">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
@@ -265,33 +265,42 @@
                         @endif
                     </button>
 
+                    <!-- Mobile Backdrop Overlay -->
+                    <div x-show="notifOpen"
+                         @click="notifOpen = false"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="fixed inset-0 z-40 bg-slate-900/25 backdrop-blur-2xs sm:hidden"
+                         x-cloak></div>
+
                     <!-- Dropdown Pusat Notifikasi & Agenda Lapangan -->
                     <div x-show="notifOpen"
                          @click.away="notifOpen = false"
                          x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute right-0 mt-2.5 w-[330px] sm:w-[380px] bg-white rounded-3xl shadow-2xl border border-[#E2ECE8] p-4 sm:p-5 z-50 text-left"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         class="fixed inset-x-3.5 top-[68px] max-w-[360px] mx-auto sm:max-w-none sm:mx-0 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2.5 sm:w-[380px] bg-white rounded-3xl shadow-2xl border border-[#E2ECE8] p-4 sm:p-5 z-50 text-left"
                          x-cloak>
                         
                         <!-- Header Dropdown -->
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">Notifikasi &amp; Agenda</h3>
-                                <p class="text-[10px] text-slate-400">Pusat kendali operasional WO</p>
+                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">Notifications &amp; Schedule</h3>
+                                <p class="text-[10px] text-slate-400">Operations control center</p>
                             </div>
                             <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full {{ $notifs['urgent_count'] > 0 ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-teal-700 bg-teal-50 border border-teal-200' }}">
-                                {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' Butuh Tindakan' : 'Semua Aman' }}
+                                {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' Action Required' : 'All Clear' }}
                             </span>
                         </div>
 
                         <!-- Pill Switcher (Tab Buttons) -->
                         <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/80 rounded-2xl my-3 text-xs font-semibold">
                             <button type="button"
-                                    @click="notifTab = 'actions'"
-                                    :class="notifTab === 'actions' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
-                                    class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                <span>Perlu Tindakan</span>
+                                     @click="notifTab = 'actions'"
+                                     :class="notifTab === 'actions' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                                     class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>Action Required</span>
                                 @if($notifs['urgent_count'] > 0)
                                     <span class="px-1.5 py-0.2 text-[9px] font-extrabold rounded-full"
                                           :class="notifTab === 'actions' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-700'">
@@ -300,10 +309,10 @@
                                 @endif
                             </button>
                             <button type="button"
-                                    @click="notifTab = 'field'"
-                                    :class="notifTab === 'field' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
-                                    class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                <span>Jadwal Lapangan</span>
+                                     @click="notifTab = 'field'"
+                                     :class="notifTab === 'field' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                                     class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>Field Schedule</span>
                                 @if($notifs['field_count'] > 0)
                                     <span class="px-1.5 py-0.2 text-[9px] font-extrabold rounded-full"
                                           :class="notifTab === 'field' ? 'bg-teal-600 text-white' : 'bg-teal-100 text-teal-800'">
@@ -313,7 +322,7 @@
                             </button>
                         </div>
 
-                        <!-- Content Tab: Perlu Tindakan -->
+                        <!-- Content Tab: Action Required -->
                         <div x-show="notifTab === 'actions'" class="max-h-[340px] overflow-y-auto space-y-2.5 pr-0.5">
                             @forelse($notifs['action_required'] as $item)
                                 <div class="p-3 bg-[#FAFDFC] hover:bg-[#F4F9F7] rounded-2xl border border-slate-100 hover:border-slate-200 transition space-y-2">
@@ -351,13 +360,13 @@
                                     <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-800">Semua Beres!</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Tidak ada verifikasi bayar atau tagihan tertunda.</p>
+                                    <p class="text-xs font-bold text-slate-800">All Caught Up!</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">No pending payment verifications or due settlements.</p>
                                 </div>
                             @endforelse
                         </div>
 
-                        <!-- Content Tab: Jadwal Lapangan -->
+                        <!-- Content Tab: Field Schedule -->
                         <div x-show="notifTab === 'field'" class="max-h-[340px] overflow-y-auto space-y-2.5 pr-0.5">
                             @forelse($notifs['field_operations'] as $item)
                                 <div class="p-3 bg-[#FAFDFC] hover:bg-[#F4F9F7] rounded-2xl border border-slate-100 hover:border-slate-200 transition space-y-2">
@@ -386,19 +395,19 @@
                                     <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-800">Tidak Ada Agenda Terdekat</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Tidak ada jadwal loading tenda dalam 2 hari ke depan.</p>
+                                    <p class="text-xs font-bold text-slate-800">No Upcoming Schedule</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">No tent loading operations in the next 2 days.</p>
                                 </div>
                             @endforelse
                         </div>
 
                         <!-- Footer Dropdown -->
                         <div class="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[10px] text-slate-400">Total: {{ $notifs['total_count'] }} agenda</span>
+                            <span class="text-[10px] text-slate-400">Total: {{ $notifs['total_count'] }} events</span>
                             <a href="{{ route('admin.bookings.index', ['tab' => 'bookings']) }}"
                                @click="notifOpen = false; if (typeof $store !== 'undefined' && $store.nav) $store.nav.setTab('bookings')"
                                class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition">
-                                <span>Buka Semua Reservasi</span>
+                                <span>View All Bookings</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
                         </div>
@@ -574,7 +583,7 @@
     <!-- ============================================================== -->
     <!-- MOBILE FLOATING BOTTOM NAVIGATION BAR (KHUSUS HP)              -->
     <!-- ============================================================== -->
-    <nav class="fixed bottom-3 inset-x-3 z-40 lg:hidden bg-white/95 backdrop-blur-md rounded-full px-3 py-2 shadow-xl border border-[#E6ECEA] flex items-center justify-around">
+    <nav class="fixed bottom-4 sm:bottom-6 inset-x-4 max-w-[370px] sm:max-w-md mx-auto z-40 lg:hidden bg-white/95 backdrop-blur-xl rounded-full h-[62px] px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-[#DFE7E4] flex items-center justify-between">
         @php
             $mobileTabs = [
                 ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
@@ -587,17 +596,23 @@
             @if($isDashboardPage)
                 <button type="button"
                         @click="$store.nav.setTab('{{ $mTab['key'] }}')"
-                        :class="$store.nav.tab === '{{ $mTab['key'] }}' ? 'bg-brand-600 text-white px-4 py-2 rounded-full shadow-sm' : 'text-slate-500 px-3 py-2'"
-                        class="flex items-center gap-1.5 text-[11px] font-semibold transition-all">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        :class="$store.nav.tab === '{{ $mTab['key'] }}' 
+                            ? 'bg-brand-600 text-white shadow-md font-bold px-4 h-11 rounded-full' 
+                            : 'text-slate-400 hover:text-slate-700 w-11 h-11 rounded-full hover:bg-slate-50'"
+                        class="flex items-center justify-center gap-2 text-xs transition-all active:scale-95 cursor-pointer shrink-0">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $mTab['icon'] }}"/>
                     </svg>
-                    <span x-show="$store.nav.tab === '{{ $mTab['key'] }}'">{{ $mTab['label'] }}</span>
+                    <span x-show="$store.nav.tab === '{{ $mTab['key'] }}'"
+                          x-transition:enter="transition ease-out duration-150"
+                          x-transition:enter-start="opacity-0 scale-95"
+                          x-transition:enter-end="opacity-100 scale-100"
+                          class="whitespace-nowrap">{{ $mTab['label'] }}</span>
                 </button>
             @else
                 <a href="{{ route('admin.bookings.index') }}"
-                   class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 px-3 py-2">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $mTab['icon'] }}"/>
                     </svg>
                 </a>

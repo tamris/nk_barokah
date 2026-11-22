@@ -512,38 +512,38 @@
     <!-- ================================================================== -->
     <div x-show="$store.nav.tab === 'dashboard' && pageLoading" class="space-y-6" x-cloak>
         <!-- Shimmer KPI Strip -->
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 px-1">
-            <div class="space-y-2">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 px-0.5 sm:px-1">
+            <div class="space-y-2 pt-1 sm:pt-0">
                 <div class="h-4 w-28 rounded-md shimmer-mask"></div>
                 <div class="h-8 w-56 rounded-xl shimmer-mask"></div>
             </div>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-0 xl:flex xl:items-center xl:divide-x xl:divide-[#E3EAE7]">
-                <div class="flex items-center gap-3.5 xl:pr-7">
-                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
-                    <div class="space-y-2">
-                        <div class="h-6 w-12 rounded shimmer-mask"></div>
-                        <div class="h-3 w-24 rounded shimmer-mask"></div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-0 xl:flex xl:items-center xl:divide-x xl:divide-[#E3EAE7]">
+                <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:pr-7">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2 min-w-0">
+                        <div class="h-5 sm:h-6 w-12 rounded shimmer-mask"></div>
+                        <div class="h-3 w-20 sm:w-24 rounded shimmer-mask"></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3.5 xl:px-7">
-                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
-                    <div class="space-y-2">
-                        <div class="h-6 w-16 rounded shimmer-mask"></div>
-                        <div class="h-3 w-28 rounded shimmer-mask"></div>
+                <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:px-7">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2 min-w-0">
+                        <div class="h-5 sm:h-6 w-16 rounded shimmer-mask"></div>
+                        <div class="h-3 w-24 sm:w-28 rounded shimmer-mask"></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3.5 xl:px-7">
-                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
-                    <div class="space-y-2">
-                        <div class="h-6 w-12 rounded shimmer-mask"></div>
-                        <div class="h-3 w-28 rounded shimmer-mask"></div>
+                <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:px-7">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2 min-w-0">
+                        <div class="h-5 sm:h-6 w-12 rounded shimmer-mask"></div>
+                        <div class="h-3 w-24 sm:w-28 rounded shimmer-mask"></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3.5 xl:pl-7">
-                    <div class="w-12 h-12 rounded-full shimmer-mask shrink-0"></div>
-                    <div class="space-y-2">
-                        <div class="h-6 w-24 rounded shimmer-mask"></div>
-                        <div class="h-3 w-24 rounded shimmer-mask"></div>
+                <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:pl-7">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full shimmer-mask shrink-0"></div>
+                    <div class="space-y-2 min-w-0">
+                        <div class="h-5 sm:h-6 w-20 sm:w-24 rounded shimmer-mask"></div>
+                        <div class="h-3 w-20 sm:w-24 rounded shimmer-mask"></div>
                     </div>
                 </div>
             </div>
@@ -602,73 +602,77 @@
     <!-- GREETING + 4 REAL-TIME KPI STRIP (DASHBOARD ONLY)                  -->
     <!-- ================================================================== -->
     <section x-show="$store.nav.tab === 'dashboard' && !pageLoading"
-             class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 px-1">
+             class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 px-0.5 sm:px-1">
 
-        <div class="shrink-0">
-            <p class="text-sm font-medium text-slate-400">{{ $greeting }}</p>
+        <div class="shrink-0 pt-1 sm:pt-0">
+            <p class="text-xs sm:text-sm font-medium text-slate-400">{{ $greeting }}</p>
             <h1 class="text-2xl sm:text-[30px] font-bold text-slate-900 tracking-tight leading-tight mt-0.5">
                 {{ $ownerName }}
             </h1>
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-0 xl:flex xl:items-center xl:divide-x xl:divide-[#E3EAE7]">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-0 xl:flex xl:items-center xl:divide-x xl:divide-[#E3EAE7]">
 
-            <div class="flex items-center gap-3.5 xl:pr-7">
-                <div class="w-12 h-12 rounded-full bg-white shadow-card border border-[#EEF2F1] flex items-center justify-center text-brand-600 shrink-0">
+            <!-- KPI 1: Today's Schedule -->
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:pr-7">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full bg-emerald-50 text-brand-600 xl:bg-white xl:shadow-card xl:border xl:border-[#EEF2F1] flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <div>
-                    <div class="text-2xl font-bold text-slate-900 leading-none">{{ $metrics['today_schedule'] }}</div>
-                    <div class="text-xs font-medium text-slate-500 mt-1.5 whitespace-nowrap">Today's Schedule</div>
+                <div class="min-w-0">
+                    <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['today_schedule'] }}</div>
+                    <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Today's Schedule</div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3.5 xl:px-7">
-                <div class="w-12 h-12 rounded-full bg-white shadow-card border border-[#EEF2F1] flex items-center justify-center text-brand-600 shrink-0">
+            <!-- KPI 2: Upcoming Bookings -->
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:px-7">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full bg-emerald-50 text-brand-600 xl:bg-white xl:shadow-card xl:border xl:border-[#EEF2F1] flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl font-bold text-slate-900 leading-none">{{ $metrics['upcoming_count'] }}</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['upcoming_count'] }}</span>
                         @if($metrics['pending_count'] > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 whitespace-nowrap">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-50 text-amber-700 whitespace-nowrap">
                                 {{ $metrics['pending_count'] }} pending
                             </span>
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E6F4F1] text-brand-600 whitespace-nowrap">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-[#E6F4F1] text-brand-600 whitespace-nowrap">
                                 On Track
                             </span>
                         @endif
                     </div>
-                    <div class="text-xs font-medium text-slate-500 mt-1.5 whitespace-nowrap">Upcoming Bookings</div>
+                    <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Upcoming Bookings</div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3.5 xl:px-7">
-                <div class="w-12 h-12 rounded-full bg-white shadow-card border border-[#EEF2F1] flex items-center justify-center text-brand-600 shrink-0">
+            <!-- KPI 3: Outstanding Invoices -->
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:px-7">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full bg-emerald-50 text-brand-600 xl:bg-white xl:shadow-card xl:border xl:border-[#EEF2F1] flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
-                <div>
-                    <div class="text-2xl font-bold text-slate-900 leading-none">{{ $metrics['outstanding_count'] }}</div>
-                    <div class="text-xs font-medium text-slate-500 mt-1.5 whitespace-nowrap">Outstanding Invoices</div>
+                <div class="min-w-0">
+                    <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['outstanding_count'] }}</div>
+                    <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Outstanding Invoices</div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3.5 xl:pl-7">
-                <div class="w-12 h-12 rounded-full bg-white shadow-card border border-[#EEF2F1] flex items-center justify-center text-brand-600 shrink-0">
+            <!-- KPI 4: Verified Revenue -->
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#EDF2F0] shadow-card xl:bg-transparent xl:border-0 xl:shadow-none xl:rounded-none xl:p-0 flex items-center gap-2.5 sm:gap-3.5 xl:pl-7">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-full bg-emerald-50 text-brand-600 xl:bg-white xl:shadow-card xl:border xl:border-[#EEF2F1] flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <div>
-                    <div class="text-2xl font-bold text-slate-900 leading-none tracking-tight">{{ $metrics['revenue_short'] }}</div>
-                    <div class="text-xs font-medium text-slate-500 mt-1.5 whitespace-nowrap">Verified Revenue</div>
+                <div class="min-w-0">
+                    <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none tracking-tight">{{ $metrics['revenue_short'] }}</div>
+                    <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Verified Revenue</div>
                 </div>
             </div>
 
@@ -1342,64 +1346,86 @@
          class="bg-white rounded-[28px] shadow-card border border-[#EDF2F0] overflow-hidden"
          x-cloak>
 
-        <div class="px-5 sm:px-6 py-4 border-b border-[#EFF4F2] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-                <div class="flex items-center gap-2.5">
+        <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#EFF4F2] flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+            <!-- Row 1 di Mobile / Left Section di Desktop -->
+            <div class="flex items-center justify-between gap-2 w-full lg:w-auto lg:justify-start lg:gap-4">
+                <!-- Kiri: Navigator Bulan -->
+                <div class="flex items-center gap-1.5 sm:gap-2.5">
                     <button type="button" @click="prevCalMonth()"
-                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] text-slate-500 flex items-center justify-center transition">
+                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
+                            title="Bulan sebelumnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"/></svg>
                     </button>
 
-                    <div class="w-11 rounded-xl border border-[#E5ECE9] overflow-hidden text-center shadow-2xs shrink-0">
+                    <!-- Mini Date Sheet (hanya tampil di sm ke atas agar di HP tidak sesak) -->
+                    <div class="hidden sm:block w-11 rounded-xl border border-[#E5ECE9] overflow-hidden text-center shadow-2xs shrink-0">
                         <div class="bg-[#F4F7F6] text-[9px] font-bold uppercase tracking-wider text-slate-500 py-0.5"
                              x-text="monthShort[calMonth - 1]"></div>
                         <div class="bg-white text-xs font-extrabold text-slate-900 py-1 leading-none"
                              x-text="(calYear === currentRealYear && calMonth === currentRealMonth) ? currentRealDay : '01'"></div>
                     </div>
 
-                    <div class="min-w-[140px]">
-                        <h2 class="text-[15px] font-bold text-slate-900 leading-tight" x-text="calHeaderLabel"></h2>
-                        <p class="text-[11px] font-medium text-slate-400 mt-0.5" x-text="calRangeLabel"></p>
+                    <div class="min-w-0">
+                        <h2 class="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight whitespace-nowrap" x-text="calHeaderLabel"></h2>
+                        <p class="hidden sm:block text-[11px] font-medium text-slate-400 mt-0.5 whitespace-nowrap" x-text="calRangeLabel"></p>
                     </div>
 
                     <button type="button" @click="nextCalMonth()"
-                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] text-slate-500 flex items-center justify-center transition">
+                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
+                            title="Bulan berikutnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-
-                    <button type="button"
-                            @click="goToTodayCalendar()"
-                            :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs'"
-                            class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ml-1">
-                        Today
                     </button>
                 </div>
 
-                <div class="relative" @click.away="calendarViewOpen = false">
+                <!-- Kanan: Tombol Today + Switcher View (Monthly / Agenda) -->
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button type="button"
-                            @click="calendarViewOpen = !calendarViewOpen"
-                            class="inline-flex items-center justify-between gap-4 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-3.5 py-2 text-xs font-medium text-slate-700 transition min-w-[138px]">
-                        <span x-text="calendarView"></span>
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+                            @click="goToTodayCalendar()"
+                            :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs active:scale-95'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition shrink-0">
+                        Today
                     </button>
-                    <div x-show="calendarViewOpen" class="absolute left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
-                        <template x-for="v in ['Monthly View', 'Agenda List']" :key="v">
-                            <button type="button" @click="calendarView = v; calendarViewOpen = false"
-                                    :class="calendarView === v ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
-                                    class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between">
-                                <span x-text="v"></span>
-                                <span x-show="calendarView === v" class="text-brand-600">✓</span>
-                            </button>
-                        </template>
+
+                    <div class="relative shrink-0" @click.away="calendarViewOpen = false">
+                        <button type="button"
+                                @click="calendarViewOpen = !calendarViewOpen"
+                                class="inline-flex items-center justify-between gap-1.5 sm:gap-3 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-slate-700 transition cursor-pointer">
+                            <span x-text="calendarView === 'Monthly View' ? 'Monthly' : 'Agenda'" class="sm:hidden"></span>
+                            <span x-text="calendarView" class="hidden sm:inline"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="calendarViewOpen" class="absolute right-0 lg:left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
+                            <template x-for="v in ['Monthly View', 'Agenda List']" :key="v">
+                                <button type="button" @click="calendarView = v; calendarViewOpen = false"
+                                        :class="calendarView === v ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
+                                        class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
+                                    <span x-text="v"></span>
+                                    <span x-show="calendarView === v" class="text-brand-600 font-bold">✓</span>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
-                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-[3px] bg-blue-600"></span>Inquiry</span>
-                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-[3px] bg-emerald-500"></span>Confirmed</span>
-                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-[3px] bg-purple-500"></span>Complete</span>
-                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-[3px] bg-rose-500"></span>Cancelled</span>
+            <!-- Row 2 di Mobile: Strip Status Legend Rapi 4 Kolom (Di Desktop tetap sejajar di sisi kanan) -->
+            <div class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
+                    Inquiry
+                </span>
+                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
+                    Confirmed
+                </span>
+                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-500 shrink-0"></span>
+                    Complete
+                </span>
+                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-rose-500 shrink-0"></span>
+                    Cancelled
+                </span>
             </div>
         </div>
 
@@ -1423,7 +1449,7 @@
                                 'bg-[#F4F9F7] ring-1 ring-brand-300 ring-inset': !cell.blank && cell.isToday,
                                 'bg-white hover:bg-[#F8FBFA]': !cell.blank && !cell.isToday
                              }"
-                             :title="cell.blank ? '' : 'Klik tanggal untuk melihat semua agenda (' + (cell.events ? cell.events.length : 0) + ' reservasi)'"
+                             :title="cell.blank ? '' : 'Click date to view all events (' + (cell.events ? cell.events.length : 0) + ' bookings)'"
                              @click="if (!cell.blank) openDayModal(cell)"
                              class="min-h-[120px] p-2 border-r border-b border-[#EFF4F2] transition-colors flex flex-col gap-1.5 cursor-pointer select-none group relative">
                             <template x-if="!cell.blank">
@@ -1443,7 +1469,7 @@
                                             </template>
                                         </div>
                                         <template x-if="cell.hasConflict">
-                                            <span title="Melebihi kuota harian!" class="text-orange-500">
+                                            <span title="Daily capacity limit exceeded!" class="text-orange-500">
                                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                                     <path d="M12 2L1 21h22L12 2zm0 4.5l7.5 13h-15l7.5-13zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"/>
                                                 </svg>
@@ -1463,17 +1489,17 @@
                                                         'bg-[#FEECEB] hover:bg-[#FCDCD9] text-rose-700': ev.bookingStatus === 'Cancelled'
                                                     }"
                                                     class="w-full text-left px-2 py-1 rounded-lg transition cursor-pointer text-xs block group/chip">
-                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'H)' : '')"></p>
+                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'D)' : '')"></p>
                                                 <p class="text-[9.5px] opacity-80 leading-tight truncate mt-0.5" x-text="ev.service"></p>
                                             </button>
                                         </template>
 
-                                        <!-- "+X reservasi lagi" Button if > 2 -->
+                                        <!-- "+X more" Button if > 2 -->
                                         <template x-if="cell.events.length > 2">
                                             <button type="button"
                                                     @click.stop="openDayModal(cell)"
                                                     class="w-full py-1 px-2 rounded-lg bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-slate-700 font-bold text-[10px] text-center transition flex items-center justify-center gap-1 border border-[#E2EAE7] cursor-pointer">
-                                                <span x-text="'+ ' + (cell.events.length - 2) + ' reservasi lagi'"></span>
+                                                <span x-text="'+ ' + (cell.events.length - 2) + ' more'"></span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </template>
@@ -1487,52 +1513,75 @@
         </div>
 
         <!-- AGENDA LIST VIEW -->
-        <div x-show="calendarView === 'Agenda List'" class="p-5 sm:p-6 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
-                <h3 class="text-sm font-bold text-slate-900" x-text="'Daftar Agenda Reservasi Bulan ' + calHeaderLabel"></h3>
-                <span class="text-xs font-semibold text-slate-500" x-text="monthBookings.length + ' Total Reservasi'"></span>
+        <div x-show="calendarView === 'Agenda List'" class="p-4 sm:p-6 space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                        <span class="sm:hidden" x-text="'Agenda · ' + calHeaderLabel"></span>
+                        <span class="hidden sm:inline" x-text="'Monthly Booking Agenda · ' + calHeaderLabel"></span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400 sm:hidden">All scheduled bookings</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
+                      x-text="monthBookings.length + ' Bookings'"></span>
             </div>
 
             <template x-if="monthBookings.length === 0">
                 <div class="py-12 text-center text-xs text-slate-400">
-                    Tidak ada reservasi yang dijadwalkan pada bulan ini.
+                    No bookings scheduled for this month.
                 </div>
             </template>
 
             <div class="space-y-3" x-show="monthBookings.length > 0">
                 <template x-for="ev in monthBookings" :key="'agenda-' + ev.id">
                     <div @click="openDetail(ev)"
-                         class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            <div class="w-12 h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs">
+                         class="p-3.5 sm:p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group">
+                        
+                        <!-- Bagian Atas / Kiri: Date Sheet + Info Reservasi -->
+                        <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                            <!-- Date Sheet -->
+                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs group-hover:border-brand-200 transition">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase leading-none" x-text="monthShort[ev.event_month - 1]"></span>
-                                <span class="text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="ev.event_day"></span>
+                                <span class="text-sm sm:text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="ev.event_day"></span>
                             </div>
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2">
+
+                            <!-- Text Info -->
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                     <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
-                                    <span class="text-xs font-bold text-slate-900 truncate" x-text="ev.name"></span>
-                                    <span x-show="ev.duration_days > 1" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Hari'"></span>
+                                    <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="ev.name"></span>
+                                    <span x-show="ev.duration_days > 1" class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Days'"></span>
                                 </div>
-                                <p class="text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
+                                <p class="text-[11.5px] sm:text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                            <div class="text-right">
-                                <p class="text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
-                                <p class="text-[11px]" :class="ev.remaining_balance <= 0 ? 'text-emerald-600 font-semibold' : 'text-amber-600'"
-                                   x-text="ev.remaining_balance <= 0 ? 'Lunas' : 'Sisa ' + ev.remaining_formatted"></p>
+                        <!-- Bagian Bawah di Mobile / Kanan di Desktop: Keuangan & Badge Status -->
+                        <div class="border-t border-[#F0F4F2] pt-2.5 sm:border-t-0 sm:pt-0 flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <!-- Info Biaya & Pelunasan -->
+                            <div class="flex items-baseline sm:block sm:text-right gap-1.5">
+                                <p class="text-xs sm:text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
+                                <span class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.2 sm:px-0 sm:py-0 rounded sm:rounded-none inline-block"
+                                      :class="ev.remaining_balance <= 0 ? 'text-emerald-700 bg-emerald-50 sm:bg-transparent' : 'text-amber-700 bg-amber-50 sm:bg-transparent'"
+                                      x-text="ev.remaining_balance <= 0 ? 'Paid' : 'Due ' + ev.remaining_formatted"></span>
                             </div>
-                            <span :class="{
-                                    'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
-                                    'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
-                                    'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
-                                    'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
-                                  }"
-                                  class="px-3 py-1 rounded-full text-[11px] font-semibold"
-                                  x-text="ev.bookingStatus"></span>
+
+                            <!-- Status Badge -->
+                            <div class="flex items-center gap-2">
+                                <span :class="{
+                                        'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
+                                        'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
+                                        'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
+                                        'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
+                                      }"
+                                      class="px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                      x-text="ev.bookingStatus"></span>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
                         </div>
+
                     </div>
                 </template>
             </div>
@@ -1577,10 +1626,10 @@
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight" x-text="selectedDayModal?.dateFull"></h3>
                                     <template x-if="selectedDayModal?.isToday">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Hari Ini</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Today</span>
                                     </template>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-0.5" x-text="(selectedDayModal?.events?.length || 0) + ' Order Reservasi Terjadwal'"></p>
+                                <p class="text-xs text-slate-500 mt-0.5" x-text="(selectedDayModal?.events?.length || 0) + ' Scheduled Bookings'"></p>
                             </div>
                         </div>
                         <button type="button"
@@ -1595,9 +1644,9 @@
                         <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs">
                             <span class="text-base shrink-0 mt-0.5">⚠️</span>
                             <div>
-                                <p class="font-bold">Peringatan: Kuota Harian Terlampaui!</p>
+                                <p class="font-bold">Warning: Daily Capacity Limit Exceeded!</p>
                                 <p class="text-[11.5px] text-amber-800 mt-0.5"
-                                   x-text="'Terdapat ' + selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length + ' acara pada tanggal ini (Batas standar: ' + maxEventsPerDay + ' acara/hari). Pastikan kesiapan kru & perlengkapan tenda/dekorasi.'"></p>
+                                   x-text="'There are ' + selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length + ' events on this date (Standard capacity: ' + maxEventsPerDay + ' events/day). Ensure crew and inventory readiness.'"></p>
                             </div>
                         </div>
                     </template>
@@ -1609,8 +1658,8 @@
                                 <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
-                                <p class="text-xs font-semibold text-slate-700">Tidak ada reservasi pada tanggal ini</p>
-                                <p class="text-[11px] text-slate-400">Jadwal tanggal ini masih kosong dan siap menerima booking baru.</p>
+                                <p class="text-xs font-semibold text-slate-700">No bookings on this date</p>
+                                <p class="text-[11px] text-slate-400">This date is currently open and ready for new bookings.</p>
                             </div>
                         </template>
 
@@ -1623,7 +1672,7 @@
                                             <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
                                             <template x-if="ev.duration_days > 1">
                                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
-                                                      x-text="ev.duration_days + ' Hari: ' + ev.date_short"></span>
+                                                      x-text="ev.duration_days + ' Days: ' + ev.date_short"></span>
                                             </template>
                                         </div>
                                         <span :class="{
@@ -1663,10 +1712,10 @@
                                     <!-- Bottom Row: Payment Summary & Action Buttons -->
                                     <div class="pt-2.5 border-t border-[#EDF2F0] flex flex-wrap items-center justify-between gap-2.5 text-xs">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-[11px] text-slate-400">Pembayaran:</span>
+                                            <span class="text-[11px] text-slate-400">Payment:</span>
                                             <span class="font-bold text-[11.5px]"
                                                   :class="ev.remaining_balance <= 0 ? 'text-emerald-600' : 'text-amber-600'"
-                                                  x-text="ev.remaining_balance <= 0 ? 'Lunas (100%)' : 'Sisa ' + ev.remaining_formatted"></span>
+                                                  x-text="ev.remaining_balance <= 0 ? 'Paid in Full (100%)' : 'Due ' + ev.remaining_formatted"></span>
                                         </div>
                                         <div class="flex items-center gap-2 ml-auto">
                                             <template x-if="ev.whatsapp_url">
@@ -1679,7 +1728,7 @@
                                             <button type="button"
                                                     @click="closeDayModal(); openDetail(ev)"
                                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
-                                                <span>Lihat Detail</span>
+                                                <span>View Details</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </div>
@@ -1693,12 +1742,12 @@
                     <div class="pt-3 border-t border-[#EFF4F2] flex items-center justify-between gap-3">
                         <a href="{{ route('booking.create') }}" target="_blank"
                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline">
-                            <span>+ Buat Reservasi Baru</span>
+                            <span>+ New Booking</span>
                         </a>
                         <button type="button"
                                 @click="closeDayModal()"
                                 class="px-5 py-2 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-700 text-xs font-semibold transition cursor-pointer">
-                            Tutup
+                            Close
                         </button>
                     </div>
                 </div>
@@ -2032,7 +2081,7 @@
 
             <a href="{{ route('admin.masters.index') }}"
                class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
-                <span>Manage Master Data ↗</span>
+                <span>Manage Master Data</span>
             </a>
         </div>
 
@@ -2469,12 +2518,7 @@
                 <div>
                     <div class="flex items-center gap-2.5 flex-wrap">
                         <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Pengaturan & Kebijakan Acara</h1>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Fleksibel & Real-Time
-                        </span>
                     </div>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Kelola aturan operasional persewaan tenda, rekening resmi transfer, serta sinkronisasi Google Cloud.</p>
                 </div>
             </div>
 
@@ -3027,8 +3071,8 @@
                         <template x-if="(activeDetail?.additional_day_charge || 0) > 0">
                             <div class="flex items-center justify-between gap-3 pt-2 border-t border-[#EBF1EF] text-amber-800">
                                 <div>
-                                    <p class="font-semibold" x-text="'Tambahan Durasi (' + (activeDetail.duration_days - 2) + ' hari ekstra @ 15%)'"></p>
-                                    <p class="text-[11px] text-amber-600">Charge Durasi Ekstra</p>
+                                    <p class="font-semibold" x-text="'Extra Duration (' + (activeDetail.duration_days - 2) + ' extra days @ 15%)'"></p>
+                                    <p class="text-[11px] text-amber-600">Additional Day Surcharge</p>
                                 </div>
                                 <span class="font-bold shrink-0" x-text="'+ ' + activeDetail.additional_day_charge_formatted"></span>
                             </div>
