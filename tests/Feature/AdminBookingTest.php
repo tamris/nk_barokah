@@ -172,6 +172,39 @@ class AdminBookingTest extends TestCase
         Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
     }
 
+    public function test_admin_can_settle_booking_and_stays_on_booking_detail(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202610-SETTLE',
+            'customer_name'      => 'Ahmad & Salma',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addMonths(2)->format('Y-m-d'),
+            'duration_days'      => 1,
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 10000000,
+            'amount_paid'        => 3000000,
+            'remaining_balance'  => 7000000,
+            'grand_total'        => 10000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.settle', $booking->id));
+
+        $response->assertSessionHas('success');
+        $response->assertRedirect(route('admin.bookings.index', ['booking_id' => $booking->id]));
+        $this->assertEquals(0, $booking->fresh()->remaining_balance);
+        $this->assertEquals('lunas', $booking->fresh()->payment_type);
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
     public function test_admin_can_create_and_toggle_package(): void
     {
         $admin = User::first();
@@ -246,8 +279,7 @@ class AdminBookingTest extends TestCase
         $response->assertSee('Muchamad Rizqi Pratama');
 
         $showResponse = $this->actingAs($admin)->get(route('admin.bookings.show', $booking->id));
-        $showResponse->assertStatus(200);
-        $showResponse->assertSee('(2 Hari Acara)');
+        $showResponse->assertRedirect(route('admin.bookings.index', ['booking_id' => $booking->id]));
     }
 
     public function test_admin_can_access_settings_tab_and_trigger_sync_all(): void

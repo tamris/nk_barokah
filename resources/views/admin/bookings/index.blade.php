@@ -9,7 +9,8 @@
     $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
 @endphp
 
-<div x-data="{
+<div @open-booking-detail.window="const target = allBookings.find(b => String(b.id) === String($event.detail.id)); if (target) openDetail(target);"
+     x-data="{
         allBookings: @js($bookingsPayload),
         clientsList: @js($clientsPayload),
         packagesList: @js($packagesPayload),
@@ -70,6 +71,25 @@
             this.$watch('invoiceSearch', () => { this.invoicePage = 1; });
             this.$watch('invoiceFilter', () => { this.invoicePage = 1; });
             this.$watch('invoicePerPage', () => { this.invoicePage = 1; });
+
+            // Auto open booking detail if query parameter is present (e.g. ?booking_id=12)
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('booking_id') || urlParams.get('id');
+            if (targetId) {
+                const found = this.allBookings.find(b => String(b.id) === String(targetId) || b.code === targetId);
+                if (found) {
+                    this.$nextTick(() => {
+                        this.openDetail(found);
+                    });
+                }
+                // Bersihkan parameter booking_id dari URL agar saat refresh (F5) tidak membuka ulang
+                try {
+                    const cleanUrl = new URL(window.location);
+                    cleanUrl.searchParams.delete('booking_id');
+                    cleanUrl.searchParams.delete('id');
+                    window.history.replaceState({}, '', cleanUrl);
+                } catch (e) {}
+            }
         },
         activeDetail: null,
         confirmModal: {
@@ -371,7 +391,15 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         closeDetail() {
-            this.$store.nav.setTab(this.previousTab || 'dashboard');
+            this.activeDetail = null;
+            const fallbackTab = (this.previousTab && this.previousTab !== 'booking_detail') ? this.previousTab : 'dashboard';
+            this.$store.nav.setTab(fallbackTab);
+            try {
+                const cleanUrl = new URL(window.location);
+                cleanUrl.searchParams.delete('booking_id');
+                cleanUrl.searchParams.delete('id');
+                window.history.replaceState({}, '', cleanUrl);
+            } catch (e) {}
         },
         openClientProfile(clientOrBooking) {
             if (this.$store.nav.tab !== 'client_profile') {

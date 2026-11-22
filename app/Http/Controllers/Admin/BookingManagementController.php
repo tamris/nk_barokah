@@ -232,10 +232,9 @@ class BookingManagementController extends Controller
 
     public function show($id)
     {
-        $booking = Booking::with(['package', 'addons'])->findOrFail($id);
-        $waConfirmUrl = $booking->whatsapp_url;
+        $booking = Booking::findOrFail($id);
 
-        return view('admin.bookings.show', compact('booking', 'waConfirmUrl'));
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id]);
     }
 
     public function confirm($id)
@@ -245,7 +244,8 @@ class BookingManagementController extends Controller
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
-        return back()->with('success', "Reservasi #{$booking->invoice_number} atas nama {$booking->customer_name} berhasil diverifikasi & dikonfirmasi sah!");
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Reservasi #{$booking->invoice_number} atas nama {$booking->customer_name} berhasil diverifikasi & dikonfirmasi sah!");
     }
 
     public function reject($id)
@@ -255,7 +255,8 @@ class BookingManagementController extends Controller
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
-        return back()->with('success', "Reservasi #{$booking->invoice_number} atas nama {$booking->customer_name} telah ditolak.");
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Reservasi #{$booking->invoice_number} atas nama {$booking->customer_name} telah ditolak.");
     }
 
     public function complete($id)
@@ -270,7 +271,8 @@ class BookingManagementController extends Controller
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
-        return back()->with('success', "Status acara #{$booking->invoice_number} ({$booking->customer_name}) telah diselesaikan. Pembayaran otomatis tercatat LUNAS 100%.");
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Status acara #{$booking->invoice_number} ({$booking->customer_name}) telah diselesaikan. Pembayaran otomatis tercatat LUNAS 100%.");
     }
 
     public function settle($id)
@@ -284,7 +286,8 @@ class BookingManagementController extends Controller
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
-        return back()->with('success', "Pelunasan reservasi #{$booking->invoice_number} ({$booking->customer_name}) berhasil dicatat. Status pembayaran kini LUNAS 100%.");
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Pelunasan reservasi #{$booking->invoice_number} ({$booking->customer_name}) berhasil dicatat. Status pembayaran kini LUNAS 100%.");
     }
 
     public function syncAllGoogle()

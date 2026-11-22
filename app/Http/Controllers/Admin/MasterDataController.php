@@ -12,10 +12,7 @@ class MasterDataController extends Controller
 {
     public function index()
     {
-        $packages = Package::latest()->get();
-        $addons = Addon::latest()->get();
-
-        return view('admin.masters.index', compact('packages', 'addons'));
+        return redirect()->route('admin.bookings.index', ['tab' => 'services']);
     }
 
     public function storePackage(Request $request)
