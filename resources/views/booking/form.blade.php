@@ -361,6 +361,15 @@
                         </template>
                     </div>
 
+                    <!-- Micro Info Jadwal Acara (Highlight Ringan) -->
+                    <div class="p-3 sm:p-3.5 rounded-xl bg-[#F4F9F7] border border-[#DCEDE7] text-[11.5px] text-brand-900 flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-brand-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="leading-relaxed">
+                            <span class="font-bold text-brand-800">Ketentuan Durasi Acara:</span>
+                            <span class="text-slate-600"> Paket sewa standar mencakup <strong>2 hari acara</strong> (Loading tenda H-2, dekorasi H-1, bongkar H+1). Acara lebih dari 2 hari dikenakan charge 15%/hari.</span>
+                        </div>
+                    </div>
+
                     <!-- Step 1 Inline Error Alert -->
                     <div x-show="formErrors.step1" x-cloak x-transition
                          class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 shadow-subtle">
@@ -969,6 +978,15 @@
                     </div>
                 </div>
 
+                <!-- Checkbox Persetujuan Syarat & Ketentuan Resmi -->
+                <label id="termsConsentCheckbox" class="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-white hover:bg-[#FAFDFC] border border-slate-200/90 cursor-pointer transition select-none shadow-card group">
+                    <input type="checkbox" x-model="agreedToTerms" required
+                           class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer shrink-0">
+                    <span class="text-xs text-slate-700 leading-relaxed">
+                        Saya telah membaca dan menyetujui seluruh <strong class="text-slate-900 group-hover:text-brand-700 transition">Aturan & Ketentuan Reservasi Resmi NK Barokah</strong> (termasuk kebijakan keep tanggal, pembayaran DP, durasi sewa tenda, dan pembatalan acara).
+                    </span>
+                </label>
+
                 <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
                 <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
                     <button type="button" @click="goToStep(3)"
@@ -976,7 +994,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                         <span>Back</span>
                     </button>
-                    <button type="button" @click="submitBookingForm()" :disabled="isDateBooked"
+                    <button type="button" @click="submitBookingForm()" :disabled="isDateBooked || !agreedToTerms"
                             class="px-7 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-pill">
                         <span>Confirm Reservation</span>
                     </button>
@@ -1024,7 +1042,7 @@
                 </button>
 
                 <button type="button" x-show="step === 4" @click="submitBookingForm()"
-                        :disabled="isDateBooked"
+                        :disabled="isDateBooked || !agreedToTerms"
                         class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-pill" x-cloak>
                     <span>Confirm Booking</span>
                     
@@ -1068,6 +1086,7 @@
             nominalDp: {{ old('nominal_dp') ? old('nominal_dp') : 'config.minDpAmount' }},
             nominalDpDisplay: '',
             activeAddonCategory: 'all',
+            agreedToTerms: false,
 
             getAddonCategory(name) {
                 const n = (name || '').toLowerCase();
@@ -1424,7 +1443,7 @@
                 const parts = dateStr.split('-');
                 if (parts.length !== 3) return dateStr;
                 const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-                return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             },
 
             get formattedSelectedDate() {
@@ -1433,6 +1452,12 @@
                 const days = this.durationDays;
                 if (endStr === this.selectedDate || days === 1) {
                     return this.formatSingleDate(this.selectedDate) + ' (1 Hari)';
+                }
+                const pStart = this.selectedDate.split('-');
+                const pEnd = endStr.split('-');
+                if (pStart[0] === pEnd[0] && pStart[1] === pEnd[1]) {
+                    const dayStart = parseInt(pStart[2], 10);
+                    return `${dayStart} – ${this.formatSingleDate(endStr)} (${days} Hari)`;
                 }
                 return this.formatSingleDate(this.selectedDate) + ' – ' + this.formatSingleDate(endStr) + ` (${days} Hari)`;
             },
@@ -1582,6 +1607,15 @@
                     return;
                 }
                 this.formErrors.payment_proof = null;
+
+                if (!this.agreedToTerms) {
+                    this.formErrors.step4 = 'Harap centang persetujuan Aturan & Ketentuan Reservasi Resmi sebelum konfirmasi.';
+                    this.$nextTick(() => {
+                        document.getElementById('termsConsentCheckbox')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                    return;
+                }
+
                 this.formErrors.step4 = null;
                 form.submit();
             },
