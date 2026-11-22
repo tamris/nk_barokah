@@ -2647,6 +2647,72 @@
                         <p class="text-[11px] text-slate-400">Format internasional tanpa spasi/tanda hubung (Contoh: 6282255969313).</p>
                     </div>
 
+                    <!-- Pengaturan Basecamp & Ongkir Muatan Tenda -->
+                    <div class="pt-3 border-t border-slate-100 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Logistik Basecamp & Ongkir Muatan Tenda</span>
+                        </div>
+
+                        <!-- Alamat Basecamp -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Alamat Basecamp / Gudang Muatan Slawi
+                            </label>
+                            <input type="text" name="warehouse_address" required
+                                   value="{{ $settings['warehouse_address'] ?? 'Jl. K.H. Ahmad Dahlan, RT 04 / RW 01, Slawi Kulon, Kec. Slawi, Kab. Tegal' }}"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                            <p class="text-[11px] text-slate-400">Titik asal keberangkatan armada & pengiriman tenda.</p>
+                        </div>
+
+                        <!-- Koordinat Basecamp Slawi Kulon -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Latitude Basecamp</label>
+                                <input type="text" name="warehouse_lat" required
+                                       value="{{ $settings['warehouse_lat'] ?? '-6.9857806' }}"
+                                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Longitude Basecamp</label>
+                                <input type="text" name="warehouse_lng" required
+                                       value="{{ $settings['warehouse_lng'] ?? '109.136971' }}"
+                                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                            </div>
+                        </div>
+
+                        <!-- Radius Gratis, Kelipatan Jarak & Tarif -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Bebas Ongkir (&le; km)</label>
+                                <div class="relative">
+                                    <input type="number" min="0" step="1" name="free_distance_km" required
+                                           value="{{ $settings['free_distance_km'] ?? 10 }}"
+                                           class="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">km</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Kelipatan Jarak</label>
+                                <div class="relative">
+                                    <input type="number" min="1" step="1" name="distance_tier_km" required
+                                           value="{{ $settings['distance_tier_km'] ?? 10 }}"
+                                           class="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">km</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Biaya / Kelipatan</label>
+                                <div class="relative">
+                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none">Rp</span>
+                                    <input type="number" min="0" step="10000" name="transport_fee_per_tier" required
+                                           value="{{ $settings['transport_fee_per_tier'] ?? 300000 }}"
+                                           class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="pt-3 border-t border-[#F0F4F2] flex items-center justify-end">
                         <button type="submit"
                                 class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer">
@@ -3053,139 +3119,261 @@
                 </div>
 
                 <!-- Event Location & Logistics -->
-                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4"
+                     x-data="{
+                         editingTransport: false,
+                         distanceKm: 0,
+                         rawFee: 0,
+                         displayFee: '',
+                         initTransport() {
+                             this.distanceKm = activeDetail?.delivery_distance_km || 0;
+                             this.rawFee = activeDetail?.transport_fee || 0;
+                             this.displayFee = this.rawFee ? new Intl.NumberFormat('id-ID').format(this.rawFee) : '0';
+                             this.editingTransport = false;
+                         },
+                         formatFeeInput(e) {
+                             const clean = e.target.value.replace(/\D/g, '');
+                             if (!clean) {
+                                 this.rawFee = 0;
+                                 this.displayFee = '';
+                                 e.target.value = '';
+                                 return;
+                             }
+                             const num = parseInt(clean, 10);
+                             this.rawFee = num;
+                             this.displayFee = new Intl.NumberFormat('id-ID').format(num);
+                             e.target.value = this.displayFee;
+                         }
+                     }"
+                     x-init="$watch('activeDetail', () => initTransport())">
+
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-slate-900 tracking-tight">Event Location & Logistics</h2>
                         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Field Info</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1 sm:col-span-2">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Venue / Delivery Address</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <!-- Venue Address -->
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1.5 sm:col-span-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Delivery Address</span>
+                                <template x-if="activeDetail?.maps_route_url">
+                                    <a :href="activeDetail.maps_route_url" target="_blank"
+                                       class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:text-brand-700 transition">
+                                        <span>Open in Google Maps</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+                                </template>
+                            </div>
                             <p class="font-bold text-slate-900 text-sm leading-relaxed" x-text="activeDetail?.venue_address || '-'"></p>
                         </div>
 
+                        <!-- Distance -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Landmark / Ancer-ancer</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Distance</span>
+                            <p class="font-bold text-slate-800 text-sm font-mono" x-text="activeDetail?.delivery_distance_km ? `${activeDetail.delivery_distance_km} km` : '-'"></p>
+                        </div>
+
+                        <!-- Transport Fee -->
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transport Fee</span>
+                                <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
+                                    <button type="button" @click="editingTransport = !editingTransport"
+                                            class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
+                                        <span x-text="editingTransport ? 'Cancel' : 'Edit'"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <p class="font-bold text-slate-800 text-sm font-mono"
+                               x-text="(activeDetail?.transport_fee || 0) > 0 ? activeDetail.transport_fee_formatted : 'FREE'"></p>
+                        </div>
+
+                        <!-- Edit Transport Fee Form (Inline) -->
+                        <div x-show="editingTransport && activeDetail?.invoiceStatus !== 'Paid'" x-cloak
+                             class="sm:col-span-2 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
+                            <form :action="activeDetail?.transport_url" method="POST" class="flex flex-col sm:flex-row items-end gap-3 text-xs">
+                                @csrf
+                                <div class="w-full sm:w-32 space-y-1">
+                                    <label class="font-bold text-slate-600">Distance (km)</label>
+                                    <input type="number" step="0.1" min="0" max="500" name="delivery_distance_km"
+                                           x-model="distanceKm"
+                                           class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                                <div class="w-full flex-1 space-y-1">
+                                    <label class="font-bold text-slate-600">Transport Fee</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none select-none">Rp</span>
+                                        <input type="text"
+                                               inputmode="numeric"
+                                               :value="displayFee"
+                                               @input="formatFeeInput($event)"
+                                               @blur="if (rawFee) { displayFee = new Intl.NumberFormat('id-ID').format(rawFee); $el.value = displayFee; }"
+                                               placeholder="300.000"
+                                               class="w-full pl-10 pr-3 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600">
+                                        <input type="hidden" name="transport_fee" :value="rawFee">
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <button type="submit"
+                                            class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold transition cursor-pointer">
+                                        Save
+                                    </button>
+                                    <button type="button" @click="editingTransport = false"
+                                            class="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Landmark -->
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Landmark</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.address_landmark || '-'"></p>
                         </div>
 
+                        <!-- Event Time -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Event Time</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.event_time || '-'"></p>
                         </div>
 
+                        <!-- Parents' Names -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Parents' Names</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.parents_name || '-'"></p>
                         </div>
 
+                        <!-- Instagram Account -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Instagram Account</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Instagram</span>
                             <p class="font-semibold text-brand-700" x-text="activeDetail?.instagram_account || '-'"></p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Vendor Partners & Discount Management -->
-                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4"
+                     x-data="{
+                         editingDiscount: false,
+                         pct: '',
+                         initDiscount() {
+                             this.pct = (activeDetail?.discount_percent > 0) ? activeDetail.discount_percent : '';
+                             this.editingDiscount = false;
+                         },
+                         get subtotal() {
+                             return Number(activeDetail?.subtotal_before_discount || (Number(activeDetail?.grand_total || 0) + Number(activeDetail?.discount_amount || 0)));
+                         },
+                         get nominal() {
+                             const p = parseFloat(this.pct) || 0;
+                             return Math.round((Math.min(100, Math.max(0, p)) / 100) * this.subtotal);
+                         },
+                         handleInput(e) {
+                             const raw = e.target.value;
+                             if (raw === '') {
+                                 this.pct = '';
+                                 return;
+                             }
+                             let n = parseFloat(raw);
+                             if (isNaN(n) || n < 0) {
+                                 this.pct = 0;
+                                 e.target.value = 0;
+                             } else if (n > 100) {
+                                 this.pct = 100;
+                                 e.target.value = 100;
+                             } else {
+                                 this.pct = raw;
+                             }
+                         }
+                     }"
+                     x-init="$watch('activeDetail', () => { initDiscount(); })">
                     <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 tracking-tight">Vendor Partners & Discount</h2>
-                            <p class="text-xs text-slate-400 mt-0.5">Manage partner discounts and external wedding vendors</p>
-                        </div>
+                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Vendor Partners</h2>
                         <template x-if="activeDetail?.vendor_name">
-                            <span class="px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold font-mono">
-                                Partner: <span x-text="activeDetail.vendor_name"></span>
-                            </span>
+                            <span class="px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold" x-text="activeDetail.vendor_name"></span>
                         </template>
                     </div>
 
                     <!-- External Vendors Grid -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-400">MUA</span>
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">MUA</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_mua || '-'"></p>
                         </div>
-                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-400">Decoration</span>
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Decoration</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_decor || '-'"></p>
                         </div>
-                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-400">Photo / Video</span>
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Photo / Video</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_photo_video || '-'"></p>
                         </div>
-                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-400">MC / WO</span>
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">MC / WO</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_mc_wo || '-'"></p>
                         </div>
                     </div>
 
-                    <!-- Compact Inline Vendor Discount Form -->
-                    <form :action="activeDetail?.discount_url" method="POST"
-                          x-data="{
-                              pct: (activeDetail?.discount_percent > 0) ? activeDetail?.discount_percent : '',
-                              get subtotal() {
-                                  return Number(activeDetail?.subtotal_before_discount || (Number(activeDetail?.grand_total || 0) + Number(activeDetail?.discount_amount || 0)));
-                              },
-                              get nominal() {
-                                  const p = parseFloat(this.pct) || 0;
-                                  return Math.round((Math.min(100, Math.max(0, p)) / 100) * this.subtotal);
-                              },
-                              handleInput(e) {
-                                  const raw = e.target.value;
-                                  if (raw === '') {
-                                      this.pct = '';
-                                      return;
-                                  }
-                                  let n = parseFloat(raw);
-                                  if (isNaN(n) || n < 0) {
-                                      this.pct = 0;
-                                      e.target.value = 0;
-                                  } else if (n > 100) {
-                                      this.pct = 100;
-                                      e.target.value = 100;
-                                  } else {
-                                      this.pct = raw;
-                                  }
-                              }
-                          }"
-                          x-init="$watch('activeDetail', (val) => { pct = (val?.discount_percent > 0) ? val.discount_percent : ''; })"
-                          class="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        @csrf
-                        
-                        <!-- Left: Label & Live Deduction Preview -->
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-slate-800">Diskon Vendor:</span>
-                            <template x-if="pct && parseFloat(pct) > 0 && subtotal > 0">
-                                <span class="font-mono font-bold text-emerald-700">
-                                    -<span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(nominal)"></span>
-                                    <span class="text-slate-400 font-sans font-normal text-[11px]" x-text="'(' + pct + '%)'"></span>
-                                </span>
-                            </template>
-                            <template x-if="!pct || parseFloat(pct) <= 0">
-                                <span class="text-slate-400 text-[11px]">Tidak ada diskon</span>
+                    <!-- Partner Discount Display Card -->
+                    <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Partner Discount</span>
+                            <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
+                                <button type="button" @click="editingDiscount = !editingDiscount; if(editingDiscount) { pct = (activeDetail?.discount_percent > 0) ? activeDetail.discount_percent : ''; }"
+                                        class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
+                                    <span x-text="editingDiscount ? 'Cancel' : 'Edit'"></span>
+                                </button>
                             </template>
                         </div>
+                        <div>
+                            <template x-if="(activeDetail?.discount_amount || 0) > 0">
+                                <p class="font-bold text-emerald-700 text-sm font-mono">
+                                    -<span x-text="activeDetail?.discount_amount_formatted"></span>
+                                    <span class="text-slate-400 font-sans font-normal text-xs ml-1" x-text="'(' + (activeDetail?.discount_percent || 0) + '%)'"></span>
+                                </p>
+                            </template>
+                            <template x-if="!(activeDetail?.discount_amount > 0)">
+                                <p class="text-slate-400 text-xs font-medium">No discount applied</p>
+                            </template>
+                        </div>
+                    </div>
 
-                        <!-- Right: Single Compact Percentage Input & Save Button -->
-                        <div class="flex items-center gap-2 self-end sm:self-auto">
-                            <div class="relative w-24">
-                                <input type="number" name="discount_percent" min="0" max="100" step="1"
-                                       :value="pct"
-                                       @input="handleInput($event)"
-                                       @focus="$event.target.select()"
-                                       placeholder="0"
-                                       class="w-full pl-3 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 shadow-2xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400 select-none">%</span>
+                    <!-- Inline Edit Partner Discount Form -->
+                    <div x-show="editingDiscount && activeDetail?.invoiceStatus !== 'Paid'" x-cloak
+                         class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
+                        <form :action="activeDetail?.discount_url" method="POST" class="flex flex-col sm:flex-row items-end gap-3 text-xs">
+                            @csrf
+                            <div class="w-full sm:w-36 space-y-1">
+                                <label class="font-bold text-slate-600">Discount (%)</label>
+                                <div class="relative">
+                                    <input type="number" name="discount_percent" min="0" max="100" step="1"
+                                           :value="pct"
+                                           @input="handleInput($event)"
+                                           @focus="$event.target.select()"
+                                           placeholder="0"
+                                           class="w-full pl-3 pr-7 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600">
+                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">%</span>
+                                </div>
                             </div>
-
-                            <button type="submit"
-                                    class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs tracking-wide transition shadow-2xs cursor-pointer active:scale-95 shrink-0">
-                                Simpan
-                            </button>
-                        </div>
-                    </form>
+                            <div class="w-full flex-1 space-y-1">
+                                <label class="font-bold text-slate-600">Deduction Preview</label>
+                                <div class="py-1.5 px-3 rounded-lg bg-[#F8FAFA] border border-[#EFF4F2] font-mono font-bold text-emerald-700 min-h-[34px] flex items-center">
+                                    <span x-text="nominal > 0 ? '-Rp ' + new Intl.NumberFormat('id-ID').format(nominal) : 'Rp 0'"></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <button type="submit"
+                                        class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold transition shadow-2xs cursor-pointer active:scale-95">
+                                    Save
+                                </button>
+                                <button type="button" @click="editingDiscount = false"
+                                        class="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer transition">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Service Details -->
@@ -3218,6 +3406,17 @@
                                     <p class="text-[11px] text-amber-600">Additional Day Surcharge</p>
                                 </div>
                                 <span class="font-bold shrink-0" x-text="'+ ' + activeDetail.additional_day_charge_formatted"></span>
+                            </div>
+                        </template>
+
+                        <!-- Tent Delivery & Transport Fee -->
+                        <template x-if="(activeDetail?.transport_fee || 0) > 0">
+                            <div class="flex items-center justify-between gap-3 pt-2 border-t border-[#EBF1EF] text-slate-800">
+                                <div>
+                                    <p class="font-semibold" x-text="'Tent Transport & Delivery (' + (activeDetail.delivery_distance_km || 0) + ' km)'"></p>
+                                    <p class="text-[11px] text-slate-400">Logistics fleet &amp; tent cargo delivery</p>
+                                </div>
+                                <span class="font-bold shrink-0 text-emerald-800" x-text="'+ ' + activeDetail.transport_fee_formatted"></span>
                             </div>
                         </template>
 

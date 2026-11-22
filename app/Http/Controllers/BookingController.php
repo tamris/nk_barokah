@@ -96,7 +96,10 @@ class BookingController extends Controller
             $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
             $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
 
-            $grandTotal = (float) $package->base_price + $addonTotalPrice + $additionalDayCharge;
+            $deliveryDistance = (float) ($validated['delivery_distance_km'] ?? 0);
+            $transportFee = Setting::calculateTransportFee($deliveryDistance);
+
+            $grandTotal = (float) $package->base_price + $addonTotalPrice + $additionalDayCharge + $transportFee;
 
             if ($validated['payment_type'] === 'lunas') {
                 $amountPaid = $grandTotal;
@@ -141,6 +144,8 @@ class BookingController extends Controller
                 'payment_proof_path'    => $proofPath,
                 'status'                => 'pending_verification',
                 'venue_address'         => $validated['venue_address'] ?? null,
+                'delivery_distance_km'  => $deliveryDistance,
+                'transport_fee'         => $transportFee,
                 'address_landmark'      => $validated['address_landmark'] ?? null,
                 'parents_name'          => $validated['parents_name'] ?? null,
                 'instagram_account'     => $validated['instagram_account'] ?? null,

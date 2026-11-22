@@ -66,7 +66,7 @@ class BookingManagementController extends Controller
                 ? strtolower(pathinfo($b->payment_proof_path, PATHINFO_EXTENSION)) === 'pdf'
                 : false;
 
-            $subtotalBeforeDiscount = (float) $b->package_price + (float) $b->addon_total_price + (float) $b->additional_day_charge;
+            $subtotalBeforeDiscount = (float) $b->package_price + (float) $b->addon_total_price + (float) $b->additional_day_charge + (float) ($b->transport_fee ?? 0);
             $discountAmount = (float) ($b->discount_amount ?? 0);
             $discountPercent = (float) ($b->discount_percent ?? 0);
             if ($discountPercent <= 0 && $discountAmount > 0 && $subtotalBeforeDiscount > 0) {
@@ -182,6 +182,11 @@ class BookingManagementController extends Controller
                 'discount_amount'         => $discountAmount,
                 'discount_percent'        => $discountPercent,
                 'discount_amount_formatted' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
+                'delivery_distance_km'    => (float) ($b->delivery_distance_km ?? 0),
+                'transport_fee'           => (float) ($b->transport_fee ?? 0),
+                'transport_fee_formatted' => 'Rp ' . number_format((float) ($b->transport_fee ?? 0), 0, ',', '.'),
+                'transport_url'           => route('admin.bookings.transport', $b->id),
+                'maps_route_url'          => 'https://www.google.com/maps/dir/?api=1&origin=' . urlencode(Setting::get('warehouse_address', 'NK Barokah Tenda Slawi Kulon')) . '&destination=' . urlencode($b->venue_address ?? ''),
                 'vendor_mua'              => $b->vendor_mua ?: '-',
                 'vendor_decor'            => $b->vendor_decor ?: '-',
                 'vendor_photo_video'      => $b->vendor_photo_video ?: '-',
@@ -364,6 +369,11 @@ class BookingManagementController extends Controller
     {
         $booking = Booking::with('addons')->findOrFail($id);
 
+        if ($booking->remaining_balance <= 0 && $booking->status !== 'pending_verification') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', "Diskon tidak dapat diubah karena invoice pesanan #{$booking->invoice_number} sudah berstatus LUNAS (Paid).");
+        }
+
         if ($request->has('discount_amount') && !$request->has('discount_percent')) {
             $cleanDiscount = preg_replace('/[^\d]/', '', (string) $request->input('discount_amount'));
             $request->merge(['discount_amount' => $cleanDiscount !== '' ? (float) $cleanDiscount : 0]);
@@ -384,11 +394,12 @@ class BookingManagementController extends Controller
             'vendor_mc_wo'      => ['nullable', 'string', 'max:150'],
         ]);
 
-        // Subtotal kotor sebelum diskon (paket + addon + extra charge)
+        // Subtotal kotor sebelum diskon (paket + addon + extra charge + transport fee)
         $basePrice = (float) $booking->package_price;
         $addonTotal = (float) $booking->addon_total_price;
         $extraCharge = (float) $booking->additional_day_charge;
-        $subtotal = $basePrice + $addonTotal + $extraCharge;
+        $transportFee = (float) ($booking->transport_fee ?? 0);
+        $subtotal = $basePrice + $addonTotal + $extraCharge + $transportFee;
 
         if ($request->filled('discount_percent')) {
             $percent = max(0, min(100, (float) $validated['discount_percent']));
@@ -436,6 +447,59 @@ class BookingManagementController extends Controller
             ->with('success', "Diskon vendor ({$percent}%) & tagihan pesanan #{$booking->invoice_number} berhasil diperbarui!");
     }
 
+    public function updateTransport(Request $request, $id)
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($booking->remaining_balance <= 0 && $booking->status !== 'pending_verification') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', "Biaya transport tidak dapat diubah karena invoice pesanan #{$booking->invoice_number} sudah berstatus LUNAS (Paid).");
+        }
+
+        $validated = $request->validate([
+            'delivery_distance_km' => ['nullable', 'numeric', 'min:0'],
+            'transport_fee'        => ['nullable', 'string'],
+        ]);
+
+        $distance = isset($validated['delivery_distance_km']) ? (float) $validated['delivery_distance_km'] : (float) $booking->delivery_distance_km;
+
+        if ($request->filled('transport_fee')) {
+            $cleanFee = (float) preg_replace('/[^\d]/', '', (string) $validated['transport_fee']);
+            $transportFee = $cleanFee;
+        } else {
+            $transportFee = Setting::calculateTransportFee($distance);
+        }
+
+        $packagePrice = (float) $booking->package_price;
+        $addonTotal = (float) $booking->addon_total_price;
+        $additionalDayCharge = (float) $booking->additional_day_charge;
+        $discountAmount = (float) ($booking->discount_amount ?? 0);
+
+        $subtotal = $packagePrice + $addonTotal + $additionalDayCharge + $transportFee;
+        $newGrandTotal = max(0, $subtotal - $discountAmount);
+
+        if (strtolower((string) $booking->payment_type) === 'lunas' || $booking->status === 'completed') {
+            $newAmountPaid = $newGrandTotal;
+            $newRemaining = 0;
+        } else {
+            $newAmountPaid = (float) $booking->amount_paid;
+            $newRemaining = max(0, $newGrandTotal - $newAmountPaid);
+        }
+
+        $booking->update([
+            'delivery_distance_km' => $distance,
+            'transport_fee'        => $transportFee,
+            'grand_total'          => $newGrandTotal,
+            'amount_paid'          => $newAmountPaid,
+            'remaining_balance'    => $newRemaining,
+        ]);
+
+        SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Biaya transport pengiriman tenda pesanan #{$booking->invoice_number} berhasil diperbarui!");
+    }
+
     public function syncAllGoogle()
     {
         $bookings = Booking::with('addons')
@@ -456,12 +520,23 @@ class BookingManagementController extends Controller
             $request->merge(['min_dp_amount' => $cleanMinDp !== '' ? (float) $cleanMinDp : 0]);
         }
 
+        if ($request->has('transport_fee_per_tier')) {
+            $cleanTransport = preg_replace('/[^\d]/', '', (string) $request->input('transport_fee_per_tier'));
+            $request->merge(['transport_fee_per_tier' => $cleanTransport !== '' ? (float) $cleanTransport : 300000]);
+        }
+
         $validated = $request->validate([
             'standard_package_max_days' => ['required', 'integer', 'min:1', 'max:14'],
             'extra_day_charge_rate'     => ['required', 'numeric', 'min:0', 'max:100'],
             'min_dp_amount'             => ['required', 'numeric', 'min:0'],
             'max_events_per_day'        => ['required', 'integer', 'min:1', 'max:10'],
             'admin_whatsapp'            => ['required', 'string', 'max:25'],
+            'warehouse_address'         => ['nullable', 'string', 'max:255'],
+            'warehouse_lat'             => ['nullable', 'string', 'max:50'],
+            'warehouse_lng'             => ['nullable', 'string', 'max:50'],
+            'free_distance_km'          => ['nullable', 'numeric', 'min:0'],
+            'distance_tier_km'          => ['nullable', 'numeric', 'min:1'],
+            'transport_fee_per_tier'    => ['nullable', 'numeric', 'min:0'],
         ]);
 
         foreach ($validated as $key => $value) {

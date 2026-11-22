@@ -89,9 +89,16 @@
           minDpAmount: {{ $settings['min_dp_amount'] ?? config('wo.min_dp_amount', 1000000) }},
           standardDays: {{ $settings['standard_package_max_days'] ?? config('wo.standard_package_max_days', 2) }},
           extraDayRate: {{ (($settings['extra_day_charge_rate'] ?? 15) > 1 ? ($settings['extra_day_charge_rate'] ?? 15) / 100 : ($settings['extra_day_charge_rate'] ?? 0.15)) }},
+          warehouseLat: {{ $settings['warehouse_lat'] ?? '-6.9857806' }},
+          warehouseLng: {{ $settings['warehouse_lng'] ?? '109.136971' }},
+          warehouseAddress: '{{ $settings['warehouse_address'] ?? 'Jl. K.H. Ahmad Dahlan, RT 04 / RW 01, Slawi Kulon, Kec. Slawi, Kab. Tegal' }}',
+          freeDistanceKm: {{ $settings['free_distance_km'] ?? 10 }},
+          distanceTierKm: {{ $settings['distance_tier_km'] ?? 10 }},
+          transportFeePerTier: {{ $settings['transport_fee_per_tier'] ?? 300000 }},
           oldEventDate: '{{ old('event_date', '') }}',
           oldEventEndDate: '{{ old('event_end_date', '') }}',
-          oldDurationDays: {{ (int) old('duration_days', 1) }}
+          oldDurationDays: {{ (int) old('duration_days', 1) }},
+          oldDistanceKm: {{ (float) old('delivery_distance_km', 0) }}
       })"
       x-cloak>
 
@@ -691,6 +698,126 @@
                         <p x-show="!formErrors.venue_address" class="text-[11px] text-slate-400">Digunakan oleh kru operasional untuk survey lokasi dan pengiriman muatan tenda.</p>
                     </div>
 
+                    <!-- Jarak & Wilayah Pengiriman Muatan Tenda -->
+                    <div class="space-y-2 pt-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Jarak Lokasi Acara dari Slawi <span class="text-rose-500">*</span>
+                            </label>
+                            <span class="text-[10px] text-slate-400 font-medium">
+                                Pilih estimasi jarak tempuh
+                            </span>
+                        </div>
+
+                        <input type="hidden" name="delivery_distance_km" :value="deliveryDistanceKm">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <!-- Tier 1: <= 10 km (FREE) -->
+                            <label class="relative p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5"
+                                   :class="selectedDistanceTier === '0_10' 
+                                       ? 'border-brand-600 bg-brand-50/40 ring-1 ring-brand-600' 
+                                       : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="radio" name="_distance_tier" value="0_10" 
+                                           x-model="selectedDistanceTier"
+                                           @change="selectDistanceTier('0_10', 0)"
+                                           class="text-brand-600 focus:ring-brand-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-900 leading-tight">&le; 10 km</p>
+                                        <p class="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">Slawi, Lebaksiu, Adiwerna, Pangkah</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 shrink-0">
+                                    Gratis Ongkir
+                                </span>
+                            </label>
+
+                            <!-- Tier 2: 11 - 20 km -->
+                            <label class="relative p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5"
+                                   :class="selectedDistanceTier === '11_20' 
+                                       ? 'border-brand-600 bg-brand-50/40 ring-1 ring-brand-600' 
+                                       : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="radio" name="_distance_tier" value="11_20" 
+                                           x-model="selectedDistanceTier"
+                                           @change="selectDistanceTier('11_20', 15)"
+                                           class="text-brand-600 focus:ring-brand-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-900 leading-tight">11 – 20 km</p>
+                                        <p class="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">Kota Tegal, Balapulang, Jatibarang</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Tier 3: 21 - 30 km -->
+                            <label class="relative p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5"
+                                   :class="selectedDistanceTier === '21_30' 
+                                       ? 'border-brand-600 bg-brand-50/40 ring-1 ring-brand-600' 
+                                       : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="radio" name="_distance_tier" value="21_30" 
+                                           x-model="selectedDistanceTier"
+                                           @change="selectDistanceTier('21_30', 25)"
+                                           class="text-brand-600 focus:ring-brand-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-900 leading-tight">21 – 30 km</p>
+                                        <p class="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">Brebes Kota, Suradadi, Margasari</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Tier 4: 31 - 40 km -->
+                            <label class="relative p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5"
+                                   :class="selectedDistanceTier === '31_40' 
+                                       ? 'border-brand-600 bg-brand-50/40 ring-1 ring-brand-600' 
+                                       : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="radio" name="_distance_tier" value="31_40" 
+                                           x-model="selectedDistanceTier"
+                                           @change="selectDistanceTier('31_40', 35)"
+                                           class="text-brand-600 focus:ring-brand-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-900 leading-tight">31 – 40 km</p>
+                                        <p class="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">Bumiayu, Pemalang Kota, Tanjung</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Tier 5: > 40 km -->
+                            <label class="relative p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5 sm:col-span-2"
+                                   :class="selectedDistanceTier === 'gt_40' 
+                                       ? 'border-brand-600 bg-brand-50/40 ring-1 ring-brand-600' 
+                                       : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="radio" name="_distance_tier" value="gt_40" 
+                                           x-model="selectedDistanceTier"
+                                           @change="selectDistanceTier('gt_40', 45)"
+                                           class="text-brand-600 focus:ring-brand-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-slate-900 leading-tight">&gt; 40 km</p>
+                                        <p class="text-[10px] text-slate-500 leading-tight mt-0.5">Wilayah Lainnya / Luar Kota (Comal, Losari, Pekalongan, dll)</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- GPS Button & Status -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1 text-[11px]">
+                            <button type="button" @click="detectGpsDistance()" 
+                                    :disabled="gpsLoading"
+                                    class="inline-flex items-center gap-1.5 text-brand-700 hover:text-brand-800 font-semibold cursor-pointer transition">
+                                <template x-if="!gpsLoading">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </template>
+                                <template x-if="gpsLoading">
+                                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </template>
+                                <span x-text="gpsLoading ? 'Mendeteksi titik...' : 'Cek Jarak Otomatis via Lokasi Anda'"></span>
+                            </button>
+                            <span class="text-slate-400" x-text="gpsStatus"></span>
+                        </div>
+                    </div>
+
                     <!-- Grid: Ancer-ancer Rumah & Jam Acara -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
@@ -740,8 +867,8 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Vendor Rekanan / Rujukan <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
-                            <p class="text-[11px] text-slate-400">Diisi jika pemesanan dikoordinasikan atau dipesan langsung oleh vendor rekanan.</p>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Vendor <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
+                            <!-- <p class="text-[11px] text-slate-400">Diisi jika pemesanan dikoordinasikan atau dipesan langsung oleh vendor rekanan.</p> -->
                         </div>
                     </div>
                     <input type="text" name="vendor_name" x-model="vendorName"
@@ -861,6 +988,22 @@
                                     </div>
                                 </div>
                                 <span class="font-mono font-extrabold text-xs sm:text-sm text-amber-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
+                            </div>
+                        </template>
+
+                        <!-- Biaya Transport Muatan Tenda -->
+                        <template x-if="transportFee > 0">
+                            <div class="flex items-center justify-between gap-3 text-slate-700 bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-teal-50 flex items-center justify-center shrink-0 text-brand-700">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold text-slate-900 leading-tight">Biaya Transport Muatan Tenda</div>
+                                        <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5" x-text="`Estimasi jarak tempuh: ${deliveryDistanceKm} km`"></div>
+                                    </div>
+                                </div>
+                                <span class="font-mono font-bold text-xs sm:text-sm text-slate-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(transportFee)}`"></span>
                             </div>
                         </template>
 
@@ -1215,6 +1358,16 @@
             minDpAmount: config.minDpAmount,
             standardDays: config.standardDays || 2,
             extraDayRate: config.extraDayRate || 0.15,
+            warehouseLat: config.warehouseLat || -6.9857806,
+            warehouseLng: config.warehouseLng || 109.136971,
+            warehouseAddress: config.warehouseAddress || 'Jl. K.H. Ahmad Dahlan, RT 04 / RW 01, Slawi Kulon, Kec. Slawi, Kab. Tegal',
+            freeDistanceKm: config.freeDistanceKm || 10,
+            distanceTierKm: config.distanceTierKm || 10,
+            transportFeePerTier: config.transportFeePerTier || 300000,
+            deliveryDistanceKm: config.oldDistanceKm || 0,
+            selectedDistanceTier: (config.oldDistanceKm > 40 ? 'gt_40' : (config.oldDistanceKm > 30 ? '31_40' : (config.oldDistanceKm > 20 ? '21_30' : (config.oldDistanceKm > 10 ? '11_20' : '0_10')))),
+            gpsLoading: false,
+            gpsStatus: '',
 
             // Form inputs
             customerName: '{{ old("customer_name", "") }}'.toUpperCase(),
@@ -1647,8 +1800,70 @@
                 return this.extraDays * this.extraDayRate * this.currentPackagePrice;
             },
 
+            selectDistanceTier(tier, km) {
+                this.selectedDistanceTier = tier;
+                this.deliveryDistanceKm = km;
+                this.gpsStatus = km === 0 ? 'Bebas ongkir hingga 10 km' : `Estimasi jarak: ${km} km`;
+            },
+
+            detectGpsDistance() {
+                if (!navigator.geolocation) {
+                    this.gpsStatus = 'Browser tidak mendukung GPS';
+                    return;
+                }
+                this.gpsLoading = true;
+                this.gpsStatus = 'Mendeteksi titik koordinat HP...';
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat1 = position.coords.latitude;
+                        const lon1 = position.coords.longitude;
+                        const lat2 = parseFloat(this.warehouseLat);
+                        const lon2 = parseFloat(this.warehouseLng);
+
+                        const R = 6371;
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                                  Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        const rawDistance = R * c;
+                        const roadDistance = Math.round(rawDistance * 1.25 * 10) / 10;
+
+                        this.deliveryDistanceKm = roadDistance;
+                        if (roadDistance <= 10) {
+                            this.selectedDistanceTier = '0_10';
+                        } else if (roadDistance <= 20) {
+                            this.selectedDistanceTier = '11_20';
+                        } else if (roadDistance <= 30) {
+                            this.selectedDistanceTier = '21_30';
+                        } else if (roadDistance <= 40) {
+                            this.selectedDistanceTier = '31_40';
+                        } else {
+                            this.selectedDistanceTier = 'gt_40';
+                        }
+                        this.gpsStatus = `Terdeteksi ~${roadDistance} km (via GPS)`;
+                        this.gpsLoading = false;
+                    },
+                    (error) => {
+                        this.gpsLoading = false;
+                        this.gpsStatus = 'Gagal mendeteksi GPS (izin ditolak atau timeout)';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            },
+
+            get transportFee() {
+                const km = parseFloat(this.deliveryDistanceKm) || 0;
+                if (km <= this.freeDistanceKm) return 0;
+                const extraKm = km - this.freeDistanceKm;
+                const tiers = Math.ceil(extraKm / this.distanceTierKm);
+                return tiers * this.transportFeePerTier;
+            },
+
             get grandTotal() {
-                return this.currentPackagePrice + this.addonTotalPrice + this.additionalDayCharge;
+                return this.currentPackagePrice + this.addonTotalPrice + this.additionalDayCharge + this.transportFee;
             },
 
             get remainingBalance() {

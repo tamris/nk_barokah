@@ -151,7 +151,7 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(3)->format('Y-m-d');
+        $eventDate = now()->addMonths(11)->format('Y-m-d');
 
         // Case 1: Below minimum (min is Rp 1.000.000)
         $responseBelow = $this->post(route('booking.store'), [
@@ -315,6 +315,41 @@ class BookingTest extends TestCase
         $this->assertEquals('Barokah Floral', $booking->vendor_decor);
         $this->assertEquals('Lensa Cerita', $booking->vendor_photo_video);
         $this->assertEquals('MC Rama', $booking->vendor_mc_wo);
+    }
+
+    public function test_customer_can_create_booking_with_distance_transport_fee(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $eventDate = now()->addMonths(11)->format('Y-m-d');
+
+        // Distance 25 km:
+        // <= 10 km free, remaining 15 km is 2 tiers of 10 km -> 2 * 300,000 = 600,000 transport fee
+        $response = $this->post(route('booking.store'), [
+            'customer_name'        => 'Rudi & Maya Slawi',
+            'customer_phone'       => '081234567891',
+            'venue_address'        => 'Jl. Pahlawan No. 45, Margasari',
+            'delivery_distance_km' => 25,
+            'event_date'           => $eventDate,
+            'package_id'           => $package->id,
+            'payment_type'         => 'lunas',
+            'payment_proof'        => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $expectedTransportFee = 600000;
+        $expectedGrandTotal = $package->base_price + $expectedTransportFee;
+
+        $this->assertEquals(25, (float) $booking->delivery_distance_km);
+        $this->assertEquals($expectedTransportFee, (float) $booking->transport_fee);
+        $this->assertEquals($expectedGrandTotal, (float) $booking->grand_total);
+        $this->assertEquals($expectedGrandTotal, (float) $booking->amount_paid);
     }
 }
 

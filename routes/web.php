@@ -40,6 +40,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/settle', [BookingManagementController::class, 'settle'])->name('bookings.settle');
         Route::post('/bookings/{id}/complete', [BookingManagementController::class, 'complete'])->name('bookings.complete');
         Route::post('/bookings/{id}/discount', [BookingManagementController::class, 'updateDiscount'])->name('bookings.discount');
+        Route::post('/bookings/{id}/transport', [BookingManagementController::class, 'updateTransport'])->name('bookings.transport');
 
         // Master Packages & Addons
         Route::get('/masters', [MasterDataController::class, 'index'])->name('masters.index');

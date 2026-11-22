@@ -77,6 +77,7 @@ class StoreBookingRequest extends FormRequest
             'vendor_decor'       => ['nullable', 'string', 'max:150'],
             'vendor_photo_video' => ['nullable', 'string', 'max:150'],
             'vendor_mc_wo'       => ['nullable', 'string', 'max:150'],
+            'delivery_distance_km' => ['nullable', 'numeric', 'min:0', 'max:500'],
         ];
     }
 
@@ -114,7 +115,10 @@ class StoreBookingRequest extends FormRequest
                 $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
                 $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
 
-                $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge;
+                $deliveryDistance = (float) $this->input('delivery_distance_km', 0);
+                $transportFee = Setting::calculateTransportFee($deliveryDistance);
+
+                $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge + $transportFee;
 
                 if ($nominalDp < $minDpConfig) {
                     $validator->errors()->add('nominal_dp', 'Nominal DP minimal adalah Rp ' . number_format($minDpConfig, 0, ',', '.') . '.');

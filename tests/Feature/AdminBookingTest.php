@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminBookingTest extends TestCase
@@ -372,6 +373,9 @@ class AdminBookingTest extends TestCase
 
     public function test_business_rules_settings_dynamically_affect_booking_calculations(): void
     {
+        Queue::fake();
+        Storage::fake('public');
+
         $admin = User::first();
         $package = Package::first();
 
@@ -462,6 +466,166 @@ class AdminBookingTest extends TestCase
         $this->assertEquals(500000, (float) $booking->discount_amount);
         $this->assertEquals(9500000, (float) $booking->grand_total);
         $this->assertEquals(6500000, (float) $booking->remaining_balance);
+    }
+
+    public function test_admin_can_update_transport_fee_on_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-TRANSPORT',
+            'customer_name'        => 'Transport Test Customer',
+            'customer_phone'       => '081234567890',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 10000000,
+            'addon_total_price'    => 0,
+            'delivery_distance_km' => 10,
+            'transport_fee'        => 0,
+            'grand_total'          => 10000000,
+            'amount_paid'          => 3000000,
+            'remaining_balance'    => 7000000,
+            'payment_type'         => 'dp',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'pending_verification',
+        ]);
+
+        // Admin updates transport to 25 km and 600,000 fee
+        $response = $this->actingAs($admin)->post(route('admin.bookings.transport', $booking->id), [
+            'delivery_distance_km' => 25,
+            'transport_fee'        => '600.000',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(25, (float) $booking->delivery_distance_km);
+        $this->assertEquals(600000, (float) $booking->transport_fee);
+        $this->assertEquals(10600000, (float) $booking->grand_total);
+        $this->assertEquals(7600000, (float) $booking->remaining_balance);
+
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_admin_cannot_update_transport_fee_on_paid_booking(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-PAID-TR',
+            'customer_name'        => 'Paid Customer',
+            'customer_phone'       => '081234567890',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 10000000,
+            'addon_total_price'    => 0,
+            'delivery_distance_km' => 15,
+            'transport_fee'        => 300000,
+            'grand_total'          => 10300000,
+            'amount_paid'          => 10300000,
+            'remaining_balance'    => 0,
+            'payment_type'         => 'lunas',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.transport', $booking->id), [
+            'delivery_distance_km' => 30,
+            'transport_fee'        => '600.000',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+
+        $booking->refresh();
+        $this->assertEquals(15, (float) $booking->delivery_distance_km);
+        $this->assertEquals(300000, (float) $booking->transport_fee);
+    }
+
+    public function test_admin_cannot_update_vendor_discount_on_paid_booking(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-PAID-DISC',
+            'customer_name'        => 'Paid Customer Disc',
+            'customer_phone'       => '081234567891',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 10000000,
+            'addon_total_price'    => 0,
+            'delivery_distance_km' => 10,
+            'transport_fee'        => 0,
+            'grand_total'          => 10000000,
+            'amount_paid'          => 10000000,
+            'remaining_balance'    => 0,
+            'payment_type'         => 'lunas',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+            'vendor_name'          => 'Partner Test',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.discount', $booking->id), [
+            'discount_percent' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+
+        $booking->refresh();
+        $this->assertEquals(0, (float) $booking->discount_percent);
+        $this->assertEquals(0, (float) $booking->discount_amount);
+    }
+
+    public function test_vendor_discount_calculation_includes_transport_fee(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-DISC-TR',
+            'customer_name'        => 'Disc Transport Customer',
+            'customer_phone'       => '081234567892',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 10000000,
+            'addon_total_price'    => 0,
+            'delivery_distance_km' => 20,
+            'transport_fee'        => 300000,
+            'grand_total'          => 10300000,
+            'amount_paid'          => 3000000,
+            'remaining_balance'    => 7300000,
+            'payment_type'         => 'dp',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'pending_verification',
+            'vendor_name'          => 'Partner With Transport',
+        ]);
+
+        // 10% discount on subtotal (10.000.000 + 300.000 = 10.300.000) -> 1.030.000
+        $response = $this->actingAs($admin)->post(route('admin.bookings.discount', $booking->id), [
+            'discount_percent' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(10, (float) $booking->discount_percent);
+        $this->assertEquals(1030000, (float) $booking->discount_amount);
+        $this->assertEquals(9270000, (float) $booking->grand_total);
+        $this->assertEquals(6270000, (float) $booking->remaining_balance);
     }
 }
 

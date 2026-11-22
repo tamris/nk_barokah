@@ -19,6 +19,8 @@ class Booking extends Model
         'addon_total_price'     => 'decimal:2',
         'discount_amount'       => 'decimal:2',
         'discount_percent'      => 'decimal:2',
+        'delivery_distance_km'  => 'decimal:2',
+        'transport_fee'         => 'decimal:2',
         'grand_total'       => 'decimal:2',
         'amount_paid'       => 'decimal:2',
         'remaining_balance' => 'decimal:2',

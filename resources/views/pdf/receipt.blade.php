@@ -403,7 +403,11 @@
                 <tr>
                     <td colspan="2" style="padding-top: 8px; border-top: 1px dashed #E2ECE8;">
                         <div class="info-label">Lokasi Pemasangan Tenda / Venue</div>
-                        <div class="info-val">{{ $booking->venue_address }} @if($booking->address_landmark) <span style="font-weight: normal; color: #64748B;">(Patokan: {{ $booking->address_landmark }})</span>@endif</div>
+                        <div class="info-val">
+                            {{ $booking->venue_address }} 
+                            @if($booking->address_landmark) <span style="font-weight: normal; color: #64748B;">(Patokan: {{ $booking->address_landmark }})</span>@endif
+                            @if(($booking->delivery_distance_km ?? 0) > 0) <span style="font-weight: normal; color: #045D56;"> &bull; Estimasi Jarak: {{ $booking->delivery_distance_km }} km dari Slawi</span>@endif
+                        </div>
                     </td>
                 </tr>
                 @endif
@@ -447,6 +451,23 @@
                     </td>
                     <td class="text-right font-mono" style="font-weight: 800; color: #B8934A;">
                         Rp {{ number_format($booking->additional_day_charge, 0, ',', '.') }}
+                    </td>
+                </tr>
+                @endif
+
+                <!-- Biaya Transport Muatan Tenda (if any) -->
+                @if(($booking->transport_fee ?? 0) > 0)
+                <tr style="background: #FAFCFB;">
+                    <td>
+                        <div class="item-name">Biaya Transport Muatan Tenda</div>
+                        <div class="item-desc">
+                            Pengiriman armada tenda &amp; muatan logistik lokasi acara (Jarak: {{ $booking->delivery_distance_km ?? 0 }} km dari Slawi)
+                        </div>
+                    </td>
+                    <td class="text-center font-mono">1 Rute</td>
+                    <td class="text-right font-mono">Rp {{ number_format($booking->transport_fee, 0, ',', '.') }}</td>
+                    <td class="text-right font-mono" style="font-weight: 800; color: #045D56;">
+                        Rp {{ number_format($booking->transport_fee, 0, ',', '.') }}
                     </td>
                 </tr>
                 @endif

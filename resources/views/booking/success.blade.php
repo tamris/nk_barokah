@@ -89,6 +89,13 @@
                 </span>
             </div>
 
+            @if(($booking->transport_fee ?? 0) > 0)
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Biaya Transport ({{ $booking->delivery_distance_km ?? 0 }} km):</span>
+                    <span class="font-mono font-bold text-slate-900">+Rp {{ number_format($booking->transport_fee, 0, ',', '.') }}</span>
+                </div>
+            @endif
+
             <div class="flex justify-between items-center text-slate-600">
                 <span>Nominal Ditransfer:</span>
                 <span class="font-mono font-extrabold text-brand-700 text-sm">Rp {{ number_format($booking->amount_paid, 0, ',', '.') }}</span>
