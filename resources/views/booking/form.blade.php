@@ -623,7 +623,7 @@
                         <input type="text" name="customer_name" required x-model="customerName"
                                @input="customerName = $event.target.value.toUpperCase(); formErrors.customer_name = null; formErrors.step3 = null"
                                autocapitalize="characters" autocomplete="name"
-                               placeholder="Contoh: MUHAMMAD REZA & DIAN SASTROWARDOYO"
+                               placeholder="Nama kedua mempelai (cth: Reza & Dian)"
                                class="w-full px-4 py-3 rounded-xl border text-base sm:text-sm uppercase placeholder:normal-case placeholder:text-slate-400 focus:outline-none transition"
                                :class="formErrors.customer_name 
                                    ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/20 text-slate-900' 
@@ -667,10 +667,131 @@
                                @input="customerEmail = $event.target.value.toLowerCase()"
                                inputmode="email" autocomplete="email"
                                autocapitalize="none" autocorrect="off" spellcheck="false"
-                               placeholder="reza.dian@example.com"
+                               placeholder="email@contoh.com"
                                class="w-full px-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm lowercase placeholder:normal-case placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
                     </div>
 
+                    <!-- Alamat Lengkap Lokasi Acara (Venue) -->
+                    <div class="space-y-1.5 pt-1">
+                        <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                            Alamat Lengkap Lokasi Acara (Pemasangan Tenda) <span class="text-rose-500">*</span>
+                        </label>
+                        <textarea name="venue_address" required x-model="venueAddress"
+                                  @input="formErrors.venue_address = null; formErrors.step3 = null"
+                                  rows="2"
+                                  placeholder="Jl. Nama Jalan, No. Rumah, RT/RW, Kelurahan, Kecamatan"
+                                  class="w-full px-4 py-2.5 rounded-xl border text-base sm:text-sm placeholder:text-slate-400 focus:outline-none transition resize-none leading-relaxed"
+                                  :class="formErrors.venue_address 
+                                      ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/20 text-slate-900' 
+                                      : 'border-slate-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15'"></textarea>
+                        <p x-show="formErrors.venue_address" x-cloak class="text-xs font-semibold text-rose-600 flex items-center gap-1.5 pt-0.5">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span x-text="formErrors.venue_address"></span>
+                        </p>
+                        <p x-show="!formErrors.venue_address" class="text-[11px] text-slate-400">Digunakan oleh kru operasional untuk survey lokasi dan pengiriman muatan tenda.</p>
+                    </div>
+
+                    <!-- Grid: Ancer-ancer Rumah & Jam Acara -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Patokan / Ancer-ancer Rumah <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="address_landmark" x-model="addressLandmark"
+                                   placeholder="Dekat masjid, gapura, atau warna pagar"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Jam Acara <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="event_time" x-model="eventTime"
+                                   placeholder="08:00 - Selesai"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                        </div>
+                    </div>
+
+                    <!-- Grid: Nama Orang Tua & Akun Instagram -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Nama Orang Tua <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="parents_name" x-model="parentsName"
+                                   placeholder="Bpk. Rahmat & Ibu Siti"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Akun Instagram <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="instagram_account" x-model="instagramAccount"
+                                   placeholder="@akun_instagram"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Vendor Rekanan / Rujukan (Opsional) -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-2.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Vendor Rekanan / Rujukan <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
+                            <p class="text-[11px] text-slate-400">Diisi jika pemesanan dikoordinasikan atau dipesan langsung oleh vendor rekanan.</p>
+                        </div>
+                    </div>
+                    <input type="text" name="vendor_name" x-model="vendorName"
+                           placeholder="Nama vendor rekanan (cth: MUA Lestari / WO Mas Dimas)"
+                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                </div>
+
+                <!-- Accordion Informasi Vendor Lainnya (Opsional) -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card" x-data="{ vendorsOpen: Boolean(vendorMua || vendorDecor || vendorPhotoVideo || vendorMcWo) }">
+                    <button type="button" @click="vendorsOpen = !vendorsOpen"
+                            class="w-full flex items-center justify-between text-left cursor-pointer select-none">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Rincian Vendor Acara Lainnya <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
+                                <p class="text-[11px] text-slate-400">Bisa diisi jika sudah ada, atau dilewati jika belum ditentukan.</p>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': vendorsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div x-show="vendorsOpen" x-cloak x-transition class="mt-4 pt-4 border-t border-slate-100 space-y-3.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-semibold text-slate-700">MUA / Tata Rias</label>
+                                <input type="text" name="vendor_mua" x-model="vendorMua" placeholder="Nama MUA"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-semibold text-slate-700">Vendor Dekorasi</label>
+                                <input type="text" name="vendor_decor" x-model="vendorDecor" placeholder="Nama Vendor Dekorasi (jika dari luar)"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-semibold text-slate-700">Fotografer / Videografer</label>
+                                <input type="text" name="vendor_photo_video" x-model="vendorPhotoVideo" placeholder="Nama Vendor Dokumentasi"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-semibold text-slate-700">MC / Wedding Organizer Luar</label>
+                                <input type="text" name="vendor_mc_wo" x-model="vendorMcWo" placeholder="Nama MC atau WO"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
@@ -1100,6 +1221,16 @@
             phoneDisplay: '',
             rawPhoneDigits: '',
             customerEmail: '{{ old("customer_email", "") }}'.toLowerCase(),
+            venueAddress: '{{ old("venue_address", "") }}',
+            addressLandmark: '{{ old("address_landmark", "") }}',
+            parentsName: '{{ old("parents_name", "") }}',
+            instagramAccount: '{{ old("instagram_account", "") }}',
+            eventTime: '{{ old("event_time", "") }}',
+            vendorName: '{{ old("vendor_name", "") }}',
+            vendorMua: '{{ old("vendor_mua", "") }}',
+            vendorDecor: '{{ old("vendor_decor", "") }}',
+            vendorPhotoVideo: '{{ old("vendor_photo_video", "") }}',
+            vendorMcWo: '{{ old("vendor_mc_wo", "") }}',
             selectedDate: config.oldEventDate || '',
             selectedEndDate: config.oldEventEndDate || config.oldEventDate || '',
             pickingRange: false,
@@ -1130,6 +1261,7 @@
                 step4: null,
                 customer_name: null,
                 customer_phone: null,
+                venue_address: null,
                 payment_proof: null
             },
 
@@ -1565,6 +1697,7 @@
                     let hasErr = false;
                     const name = (this.customerName || '').trim();
                     const phone = (this.rawPhoneDigits || '').trim();
+                    const address = (this.venueAddress || '').trim();
 
                     if (!name) {
                         this.formErrors.customer_name = 'Silakan masukkan nama kedua calon pengantin.';
@@ -1583,13 +1716,22 @@
                         this.formErrors.customer_phone = null;
                     }
 
+                    if (!address) {
+                        this.formErrors.venue_address = 'Silakan masukkan alamat lengkap lokasi acara.';
+                        hasErr = true;
+                    } else {
+                        this.formErrors.venue_address = null;
+                    }
+
                     if (hasErr) {
-                        this.formErrors.step3 = 'Silakan lengkapi data kontak calon pengantin di bawah ini.';
+                        this.formErrors.step3 = 'Silakan lengkapi data pemesan dan alamat acara yang wajib di bawah ini.';
                         this.$nextTick(() => {
                             if (!name) {
                                 document.querySelector('input[name="customer_name"]')?.focus();
                             } else if (!phone || phone.length < 8) {
                                 document.getElementById('phoneInput')?.focus();
+                            } else if (!address) {
+                                document.querySelector('textarea[name="venue_address"]')?.focus();
                             }
                         });
                         return;

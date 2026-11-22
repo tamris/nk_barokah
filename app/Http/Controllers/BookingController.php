@@ -140,6 +140,17 @@ class BookingController extends Controller
                 'payment_type'          => $validated['payment_type'],
                 'payment_proof_path'    => $proofPath,
                 'status'                => 'pending_verification',
+                'venue_address'         => $validated['venue_address'] ?? null,
+                'address_landmark'      => $validated['address_landmark'] ?? null,
+                'parents_name'          => $validated['parents_name'] ?? null,
+                'instagram_account'     => $validated['instagram_account'] ?? null,
+                'event_time'            => $validated['event_time'] ?? null,
+                'vendor_name'           => $validated['vendor_name'] ?? null,
+                'discount_amount'       => 0,
+                'vendor_mua'            => $validated['vendor_mua'] ?? null,
+                'vendor_decor'          => $validated['vendor_decor'] ?? null,
+                'vendor_photo_video'    => $validated['vendor_photo_video'] ?? null,
+                'vendor_mc_wo'          => $validated['vendor_mc_wo'] ?? null,
             ]);
 
             // Simpan Detail Relasi Add-ons

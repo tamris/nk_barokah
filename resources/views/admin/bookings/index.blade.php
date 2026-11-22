@@ -109,7 +109,7 @@
         init() {
             setTimeout(() => {
                 this.pageLoading = false;
-            }, 600);
+            }, 250);
 
             this.$watch('bookingSearch', () => { this.bookingPage = 1; });
             this.$watch('bookingFilter', () => { this.bookingPage = 1; });
@@ -254,8 +254,13 @@
         },
 
         get upcomingList() {
+            const today = '{{ now()->format('Y-m-d') }}';
             return this.allBookings
-                .filter(b => b.raw_status !== 'rejected')
+                .filter(b => {
+                    if (b.raw_status === 'rejected' || b.raw_status === 'completed') return false;
+                    return b.event_date_iso > today;
+                })
+                .sort((a, b) => a.event_date_iso.localeCompare(b.event_date_iso) || a.id - b.id)
                 .slice(0, 5);
         },
 
@@ -510,7 +515,7 @@
     <!-- ================================================================== -->
     <!-- DASHBOARD SKELETON SHIMMER (FLUTTER STYLE)                         -->
     <!-- ================================================================== -->
-    <div x-show="$store.nav.tab === 'dashboard' && pageLoading" class="space-y-6" x-cloak>
+    <div x-show="$store.nav.tab === 'dashboard' && pageLoading" class="space-y-6" {{ (request('tab') && request('tab') !== 'dashboard') ? 'x-cloak' : '' }}>
         <!-- Shimmer KPI Strip -->
         <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 px-0.5 sm:px-1">
             <div class="space-y-2 pt-1 sm:pt-0">
@@ -602,6 +607,7 @@
     <!-- GREETING + 4 REAL-TIME KPI STRIP (DASHBOARD ONLY)                  -->
     <!-- ================================================================== -->
     <section x-show="$store.nav.tab === 'dashboard' && !pageLoading"
+             x-cloak
              class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 px-0.5 sm:px-1">
 
         <div class="shrink-0 pt-1 sm:pt-0">
@@ -683,6 +689,7 @@
     <!-- TAB 1: DASHBOARD (3-COLUMN BENTO — REAL DATABASE DATA)             -->
     <!-- ================================================================== -->
     <div x-show="$store.nav.tab === 'dashboard' && !pageLoading"
+         x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-1"
          x-transition:enter-end="opacity-100 translate-y-0"
@@ -972,7 +979,7 @@
     <!-- ================================================================== -->
     <div x-show="$store.nav.tab === 'bookings' && pageLoading"
          class="space-y-5"
-         x-cloak>
+         {{ request('tab') === 'bookings' ? '' : 'x-cloak' }}>
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <div class="h-10 w-64 sm:w-72 rounded-full shimmer-mask"></div>
@@ -1760,7 +1767,7 @@
     <!-- ================================================================== -->
     <div x-show="$store.nav.tab === 'clients' && pageLoading"
          class="space-y-5"
-         x-cloak>
+         {{ request('tab') === 'clients' ? '' : 'x-cloak' }}>
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <div class="h-10 w-64 sm:w-72 rounded-full shimmer-mask"></div>
@@ -2154,7 +2161,7 @@
     <!-- ================================================================== -->
     <div x-show="$store.nav.tab === 'invoice' && pageLoading"
          class="space-y-5"
-         x-cloak>
+         {{ request('tab') === 'invoice' ? '' : 'x-cloak' }}>
         <!-- 3 Financial Summary Cards Shimmer -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-[24px] p-5 shadow-card border border-[#EDF2F0] flex items-center gap-4">
@@ -3045,6 +3052,142 @@
                     </div>
                 </div>
 
+                <!-- Event Location & Logistics -->
+                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Event Location & Logistics</h2>
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Field Info</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1 sm:col-span-2">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Venue / Delivery Address</span>
+                            <p class="font-bold text-slate-900 text-sm leading-relaxed" x-text="activeDetail?.venue_address || '-'"></p>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Landmark / Ancer-ancer</span>
+                            <p class="font-semibold text-slate-800" x-text="activeDetail?.address_landmark || '-'"></p>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Event Time</span>
+                            <p class="font-semibold text-slate-800" x-text="activeDetail?.event_time || '-'"></p>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Parents' Names</span>
+                            <p class="font-semibold text-slate-800" x-text="activeDetail?.parents_name || '-'"></p>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Instagram Account</span>
+                            <p class="font-semibold text-brand-700" x-text="activeDetail?.instagram_account || '-'"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vendor Partners & Discount Management -->
+                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 tracking-tight">Vendor Partners & Discount</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Manage partner discounts and external wedding vendors</p>
+                        </div>
+                        <template x-if="activeDetail?.vendor_name">
+                            <span class="px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold font-mono">
+                                Partner: <span x-text="activeDetail.vendor_name"></span>
+                            </span>
+                        </template>
+                    </div>
+
+                    <!-- External Vendors Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">MUA</span>
+                            <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_mua || '-'"></p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">Decoration</span>
+                            <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_decor || '-'"></p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">Photo / Video</span>
+                            <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_photo_video || '-'"></p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">MC / WO</span>
+                            <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_mc_wo || '-'"></p>
+                        </div>
+                    </div>
+
+                    <!-- Compact Inline Vendor Discount Form -->
+                    <form :action="activeDetail?.discount_url" method="POST"
+                          x-data="{
+                              pct: (activeDetail?.discount_percent > 0) ? activeDetail?.discount_percent : '',
+                              get subtotal() {
+                                  return Number(activeDetail?.subtotal_before_discount || (Number(activeDetail?.grand_total || 0) + Number(activeDetail?.discount_amount || 0)));
+                              },
+                              get nominal() {
+                                  const p = parseFloat(this.pct) || 0;
+                                  return Math.round((Math.min(100, Math.max(0, p)) / 100) * this.subtotal);
+                              },
+                              handleInput(e) {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                      this.pct = '';
+                                      return;
+                                  }
+                                  let n = parseFloat(raw);
+                                  if (isNaN(n) || n < 0) {
+                                      this.pct = 0;
+                                      e.target.value = 0;
+                                  } else if (n > 100) {
+                                      this.pct = 100;
+                                      e.target.value = 100;
+                                  } else {
+                                      this.pct = raw;
+                                  }
+                              }
+                          }"
+                          x-init="$watch('activeDetail', (val) => { pct = (val?.discount_percent > 0) ? val.discount_percent : ''; })"
+                          class="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        @csrf
+                        
+                        <!-- Left: Label & Live Deduction Preview -->
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-800">Diskon Vendor:</span>
+                            <template x-if="pct && parseFloat(pct) > 0 && subtotal > 0">
+                                <span class="font-mono font-bold text-emerald-700">
+                                    -<span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(nominal)"></span>
+                                    <span class="text-slate-400 font-sans font-normal text-[11px]" x-text="'(' + pct + '%)'"></span>
+                                </span>
+                            </template>
+                            <template x-if="!pct || parseFloat(pct) <= 0">
+                                <span class="text-slate-400 text-[11px]">Tidak ada diskon</span>
+                            </template>
+                        </div>
+
+                        <!-- Right: Single Compact Percentage Input & Save Button -->
+                        <div class="flex items-center gap-2 self-end sm:self-auto">
+                            <div class="relative w-24">
+                                <input type="number" name="discount_percent" min="0" max="100" step="1"
+                                       :value="pct"
+                                       @input="handleInput($event)"
+                                       @focus="$event.target.select()"
+                                       placeholder="0"
+                                       class="w-full pl-3 pr-7 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 shadow-2xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400 select-none">%</span>
+                            </div>
+
+                            <button type="submit"
+                                    class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs tracking-wide transition shadow-2xs cursor-pointer active:scale-95 shrink-0">
+                                Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <!-- Service Details -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 tracking-tight">Service Details</h2>
@@ -3079,6 +3222,12 @@
                         </template>
 
                         <div class="pt-3 border-t border-[#DFE8E5] space-y-1.5">
+                            <template x-if="(activeDetail?.discount_amount || 0) > 0">
+                                <div class="flex justify-between text-brand-700 font-semibold">
+                                    <span>Vendor Partner Discount (<span x-text="(activeDetail?.discount_percent || 0) + '%'"></span>)</span>
+                                    <span x-text="'- ' + activeDetail?.discount_amount_formatted"></span>
+                                </div>
+                            </template>
                             <div class="flex justify-between">
                                 <span class="text-slate-500">Grand Total</span>
                                 <span class="font-extrabold text-slate-900 text-sm" x-text="activeDetail?.grand_total_formatted"></span>

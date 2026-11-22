@@ -384,12 +384,12 @@ class AdminBookingTest extends TestCase
             'admin_whatsapp'            => '62899999999',
         ]);
 
-        // 2. Client submits a 3-day booking (e.g. 2027-03-01 to 2027-03-03 -> 2 extra days)
+        // 2. Client submits a 3-day booking (e.g. 2028-03-01 to 2028-03-03 -> 2 extra days)
         $response = $this->post(route('booking.store'), [
             'customer_name'  => 'Test Dynamic Rules',
             'customer_phone' => '081234567890',
-            'event_date'     => '2027-03-01',
-            'event_end_date' => '2027-03-03',
+            'event_date'     => '2028-03-01',
+            'event_end_date' => '2028-03-03',
             'package_id'     => $package->id,
             'payment_type'   => 'lunas',
             'payment_proof'  => \Illuminate\Http\UploadedFile::fake()->create('proof.jpg', 500),
@@ -406,5 +406,63 @@ class AdminBookingTest extends TestCase
         $this->assertEquals($expectedExtraCharge, (float) $booking->additional_day_charge);
         $this->assertEquals((float) $package->base_price + $expectedExtraCharge, (float) $booking->grand_total);
     }
+
+    public function test_admin_can_update_vendor_discount_on_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        // Create booking with DP
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202611-DISCOUNT',
+            'customer_name'      => 'Vendor Discount Test',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 10000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 10000000,
+            'amount_paid'        => 3000000,
+            'remaining_balance'  => 7000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'pending_verification',
+            'vendor_name'        => 'MUA Barokah Partner',
+        ]);
+
+        // 1. Admin applies 10% percentage discount
+        $response = $this->actingAs($admin)->post(route('admin.bookings.discount', $booking->id), [
+            'discount_percent' => 10,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(10, (float) $booking->discount_percent);
+        $this->assertEquals(1000000, (float) $booking->discount_amount);
+        $this->assertEquals(9000000, (float) $booking->grand_total);
+        $this->assertEquals(6000000, (float) $booking->remaining_balance);
+
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+
+        // 2. Admin applies nominal discount directly (fallback)
+        $responseNominal = $this->actingAs($admin)->post(route('admin.bookings.discount', $booking->id), [
+            'discount_amount' => '500.000',
+        ]);
+
+        $responseNominal->assertRedirect();
+        $responseNominal->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(5, (float) $booking->discount_percent);
+        $this->assertEquals(500000, (float) $booking->discount_amount);
+        $this->assertEquals(9500000, (float) $booking->grand_total);
+        $this->assertEquals(6500000, (float) $booking->remaining_balance);
+    }
 }
+
 

@@ -27,8 +27,10 @@ class BookingManagementController extends Controller
 
         $addons = Addon::orderBy('name')->get();
 
+        $today = Carbon::today();
+
         // Format semua reservasi untuk UI interaktif (Dashboard, Bookings, Calendar, Clients, Invoice, Detail)
-        $bookingsPayload = $allBookings->map(function (Booking $b) {
+        $bookingsPayload = $allBookings->map(function (Booking $b) use ($today) {
             $eventDate = Carbon::parse($b->event_date);
             $eventEndDate = $b->event_end_date ? Carbon::parse($b->event_end_date) : $eventDate;
             $durationDays = max(1, (int) ($b->duration_days ?: ($eventDate->diffInDays($eventEndDate) + 1)));
@@ -64,6 +66,58 @@ class BookingManagementController extends Controller
                 ? strtolower(pathinfo($b->payment_proof_path, PATHINFO_EXTENSION)) === 'pdf'
                 : false;
 
+            $subtotalBeforeDiscount = (float) $b->package_price + (float) $b->addon_total_price + (float) $b->additional_day_charge;
+            $discountAmount = (float) ($b->discount_amount ?? 0);
+            $discountPercent = (float) ($b->discount_percent ?? 0);
+            if ($discountPercent <= 0 && $discountAmount > 0 && $subtotalBeforeDiscount > 0) {
+                $discountPercent = round(($discountAmount / $subtotalBeforeDiscount) * 100, 1);
+            }
+
+            $eventStart = $eventDate->copy()->startOfDay();
+            $todayStart = $today->copy()->startOfDay();
+            $daysDiff = (int) $todayStart->diffInDays($eventStart, false);
+
+            if ($eventDate->isToday()) {
+                $relativeDate = 'Today';
+            } elseif ($eventEndDate && $today->between($eventStart, $eventEndDate->copy()->endOfDay())) {
+                $relativeDate = 'Ongoing';
+            } elseif ($daysDiff === 1) {
+                $relativeDate = '1 day from now';
+            } elseif ($daysDiff > 1) {
+                if ($daysDiff < 14) {
+                    $relativeDate = "{$daysDiff} days from now";
+                } elseif ($daysDiff < 30) {
+                    $weeks = (int) round($daysDiff / 7);
+                    $relativeDate = "{$weeks} " . ($weeks === 1 ? 'week' : 'weeks') . " from now";
+                } else {
+                    $months = (int) round($daysDiff / 30.416);
+                    if ($months < 12) {
+                        $relativeDate = "{$months} " . ($months === 1 ? 'month' : 'months') . " from now";
+                    } else {
+                        $years = (int) round($daysDiff / 365);
+                        $relativeDate = "{$years} " . ($years === 1 ? 'year' : 'years') . " from now";
+                    }
+                }
+            } else {
+                $pastDays = abs($daysDiff);
+                if ($pastDays === 1) {
+                    $relativeDate = '1 day ago';
+                } elseif ($pastDays < 14) {
+                    $relativeDate = "{$pastDays} days ago";
+                } elseif ($pastDays < 30) {
+                    $weeks = (int) round($pastDays / 7);
+                    $relativeDate = "{$weeks} " . ($weeks === 1 ? 'week' : 'weeks') . " ago";
+                } else {
+                    $months = (int) round($pastDays / 30.416);
+                    if ($months < 12) {
+                        $relativeDate = "{$months} " . ($months === 1 ? 'month' : 'months') . " ago";
+                    } else {
+                        $years = (int) round($pastDays / 365);
+                        $relativeDate = "{$years} " . ($years === 1 ? 'year' : 'years') . " ago";
+                    }
+                }
+            }
+
             return [
                 'id'                      => $b->id,
                 'code'                    => $b->invoice_number,
@@ -80,6 +134,8 @@ class BookingManagementController extends Controller
                     'unit_price'         => 'Rp ' . number_format((float) $a->unit_price, 0, ',', '.'),
                     'subtotal'           => 'Rp ' . number_format((float) $a->subtotal, 0, ',', '.'),
                 ])->values()->all(),
+                'subtotal_before_discount'=> $subtotalBeforeDiscount,
+                'subtotal_before_discount_formatted' => 'Rp ' . number_format($subtotalBeforeDiscount, 0, ',', '.'),
                 'grand_total'             => (float) $b->grand_total,
                 'amount_paid'             => (float) $b->amount_paid,
                 'remaining_balance'       => (float) $b->remaining_balance,
@@ -102,7 +158,7 @@ class BookingManagementController extends Controller
                 'date_short'              => $dateShortFormatted,
                 'formatted_event_date'    => $b->formatted_event_date,
                 'time'                    => $b->created_at->format('h:i A'),
-                'relative_date'           => $eventDate->diffForHumans(),
+                'relative_date'           => $relativeDate,
                 'created_at_label'        => $b->created_at->format('M d, Y · h:i A'),
                 'updated_at_label'        => $b->updated_at->format('M d, Y · h:i A'),
                 'payment_proof_url'       => $b->payment_proof_path ? asset('storage/' . $b->payment_proof_path) : null,
@@ -116,6 +172,20 @@ class BookingManagementController extends Controller
                 'reject_url'              => route('admin.bookings.reject', $b->id),
                 'settle_url'              => route('admin.bookings.settle', $b->id),
                 'complete_url'            => route('admin.bookings.complete', $b->id),
+                'discount_url'            => route('admin.bookings.discount', $b->id),
+                'venue_address'           => $b->venue_address ?: '-',
+                'address_landmark'        => $b->address_landmark ?: '-',
+                'parents_name'            => $b->parents_name ?: '-',
+                'instagram_account'       => $b->instagram_account ?: '-',
+                'event_time'              => $b->event_time ?: '-',
+                'vendor_name'             => $b->vendor_name ?: '',
+                'discount_amount'         => $discountAmount,
+                'discount_percent'        => $discountPercent,
+                'discount_amount_formatted' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
+                'vendor_mua'              => $b->vendor_mua ?: '-',
+                'vendor_decor'            => $b->vendor_decor ?: '-',
+                'vendor_photo_video'      => $b->vendor_photo_video ?: '-',
+                'vendor_mc_wo'            => $b->vendor_mc_wo ?: '-',
                 'avatar'                  => 'https://ui-avatars.com/api/?name=' . urlencode($b->customer_name) . '&background=E6F4F1&color=045D56&bold=true&size=128',
             ];
         })->values();
@@ -181,8 +251,8 @@ class BookingManagementController extends Controller
 
         $upcomingCount = $allBookings->filter(function ($b) use ($today) {
             if (!in_array($b->status, ['pending_verification', 'confirmed'])) return false;
-            $end = $b->event_end_date ? Carbon::parse($b->event_end_date) : Carbon::parse($b->event_date);
-            return $end->greaterThanOrEqualTo($today);
+            $start = Carbon::parse($b->event_date)->startOfDay();
+            return $start->greaterThan($today);
         })->count();
         $pendingCount = $allBookings->where('status', 'pending_verification')->count();
         $outstandingBookings = $allBookings->filter(fn ($b) => in_array($b->status, ['pending_verification', 'confirmed']) && (float) $b->remaining_balance > 0);
@@ -288,6 +358,82 @@ class BookingManagementController extends Controller
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
             ->with('success', "Pelunasan reservasi #{$booking->invoice_number} ({$booking->customer_name}) berhasil dicatat. Status pembayaran kini LUNAS 100%.");
+    }
+
+    public function updateDiscount(Request $request, $id)
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($request->has('discount_amount') && !$request->has('discount_percent')) {
+            $cleanDiscount = preg_replace('/[^\d]/', '', (string) $request->input('discount_amount'));
+            $request->merge(['discount_amount' => $cleanDiscount !== '' ? (float) $cleanDiscount : 0]);
+        }
+
+        $validated = $request->validate([
+            'discount_percent'  => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount_amount'   => ['nullable', 'numeric', 'min:0'],
+            'vendor_name'       => ['nullable', 'string', 'max:150'],
+            'venue_address'     => ['nullable', 'string', 'max:500'],
+            'address_landmark'  => ['nullable', 'string', 'max:255'],
+            'event_time'        => ['nullable', 'string', 'max:100'],
+            'parents_name'      => ['nullable', 'string', 'max:255'],
+            'instagram_account' => ['nullable', 'string', 'max:100'],
+            'vendor_mua'        => ['nullable', 'string', 'max:150'],
+            'vendor_decor'      => ['nullable', 'string', 'max:150'],
+            'vendor_photo_video'=> ['nullable', 'string', 'max:150'],
+            'vendor_mc_wo'      => ['nullable', 'string', 'max:150'],
+        ]);
+
+        // Subtotal kotor sebelum diskon (paket + addon + extra charge)
+        $basePrice = (float) $booking->package_price;
+        $addonTotal = (float) $booking->addon_total_price;
+        $extraCharge = (float) $booking->additional_day_charge;
+        $subtotal = $basePrice + $addonTotal + $extraCharge;
+
+        if ($request->filled('discount_percent')) {
+            $percent = max(0, min(100, (float) $validated['discount_percent']));
+            $rawDiscount = round(($percent / 100) * $subtotal);
+        } elseif ($request->filled('discount_amount')) {
+            $rawDiscount = (float) ($validated['discount_amount'] ?? 0);
+            $percent = $subtotal > 0 ? round(($rawDiscount / $subtotal) * 100, 2) : 0;
+        } else {
+            $rawDiscount = 0;
+            $percent = 0;
+        }
+
+        $discount = min($rawDiscount, $subtotal);
+        $newGrandTotal = max(0, $subtotal - $discount);
+
+        if (strtolower((string) $booking->payment_type) === 'lunas' || $booking->status === 'completed') {
+            $newAmountPaid = $newGrandTotal;
+            $newRemaining = 0;
+        } else {
+            $newAmountPaid = (float) $booking->amount_paid;
+            $newRemaining = max(0, $newGrandTotal - $newAmountPaid);
+        }
+
+        $booking->update([
+            'discount_percent'  => $percent,
+            'discount_amount'   => $discount,
+            'grand_total'       => $newGrandTotal,
+            'amount_paid'       => $newAmountPaid,
+            'remaining_balance' => $newRemaining,
+            'vendor_name'       => $validated['vendor_name'] ?? $booking->vendor_name,
+            'venue_address'     => $validated['venue_address'] ?? $booking->venue_address,
+            'address_landmark'  => $validated['address_landmark'] ?? $booking->address_landmark,
+            'event_time'        => $validated['event_time'] ?? $booking->event_time,
+            'parents_name'      => $validated['parents_name'] ?? $booking->parents_name,
+            'instagram_account' => $validated['instagram_account'] ?? $booking->instagram_account,
+            'vendor_mua'        => $validated['vendor_mua'] ?? $booking->vendor_mua,
+            'vendor_decor'      => $validated['vendor_decor'] ?? $booking->vendor_decor,
+            'vendor_photo_video'=> $validated['vendor_photo_video'] ?? $booking->vendor_photo_video,
+            'vendor_mc_wo'      => $validated['vendor_mc_wo'] ?? $booking->vendor_mc_wo,
+        ]);
+
+        SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Diskon vendor ({$percent}%) & tagihan pesanan #{$booking->invoice_number} berhasil diperbarui!");
     }
 
     public function syncAllGoogle()

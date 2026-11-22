@@ -64,9 +64,19 @@ class StoreBookingRequest extends FormRequest
             'addons'         => ['nullable', 'array'],
             'addons.*.id'    => ['required_with:addons', 'exists:addons,id'],
             'addons.*.qty'   => ['nullable', 'integer', 'min:0', 'max:1000'],
-            'payment_type'   => ['required', 'in:dp,lunas'],
-            'nominal_dp'     => ['required_if:payment_type,dp', 'nullable', 'numeric'],
-            'payment_proof'  => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // Max 3MB
+            'payment_type'       => ['required', 'in:dp,lunas'],
+            'nominal_dp'         => ['required_if:payment_type,dp', 'nullable', 'numeric'],
+            'payment_proof'      => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // Max 3MB
+            'venue_address'      => ['nullable', 'string', 'max:500'],
+            'address_landmark'   => ['nullable', 'string', 'max:255'],
+            'parents_name'       => ['nullable', 'string', 'max:255'],
+            'instagram_account'  => ['nullable', 'string', 'max:100'],
+            'event_time'         => ['nullable', 'string', 'max:100'],
+            'vendor_name'        => ['nullable', 'string', 'max:150'],
+            'vendor_mua'         => ['nullable', 'string', 'max:150'],
+            'vendor_decor'       => ['nullable', 'string', 'max:150'],
+            'vendor_photo_video' => ['nullable', 'string', 'max:150'],
+            'vendor_mc_wo'       => ['nullable', 'string', 'max:150'],
         ];
     }
 

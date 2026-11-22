@@ -604,6 +604,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $mTab['icon'] }}"/>
                     </svg>
                     <span x-show="$store.nav.tab === '{{ $mTab['key'] }}'"
+                          x-cloak
                           x-transition:enter="transition ease-out duration-150"
                           x-transition:enter-start="opacity-0 scale-95"
                           x-transition:enter-end="opacity-100 scale-100"

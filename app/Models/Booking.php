@@ -17,6 +17,8 @@ class Booking extends Model
         'package_price'         => 'decimal:2',
         'additional_day_charge' => 'decimal:2',
         'addon_total_price'     => 'decimal:2',
+        'discount_amount'       => 'decimal:2',
+        'discount_percent'      => 'decimal:2',
         'grand_total'       => 'decimal:2',
         'amount_paid'       => 'decimal:2',
         'remaining_balance' => 'decimal:2',

@@ -141,7 +141,7 @@ class BookingTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['event_date']);
-        $this->assertEquals(51, Booking::count());
+        $this->assertEquals(101, Booking::count());
     }
 
     public function test_dp_validation_fails_if_dp_exceeds_grand_total_or_below_minimum(): void
@@ -211,8 +211,8 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $startDate = now()->addMonths(5)->format('Y-m-d');
-        $endDate = now()->addMonths(5)->addDay()->format('Y-m-d');
+        $startDate = '2028-05-15';
+        $endDate = '2028-05-16';
 
         $response = $this->post(route('booking.store'), [
             'customer_name'  => 'Radit & Laura',
@@ -243,8 +243,8 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $startDate = now()->addMonths(6)->format('Y-m-d');
-        $endDate = now()->addMonths(6)->addDays(2)->format('Y-m-d'); // 3 days total
+        $startDate = '2028-06-10';
+        $endDate = '2028-06-12'; // 3 days total
 
         $response = $this->post(route('booking.store'), [
             'customer_name'  => 'Bayu & Citra',
@@ -271,6 +271,50 @@ class BookingTest extends TestCase
         $expectedCharge = $package->base_price * 0.15;
         $this->assertEquals($expectedCharge, $booking->additional_day_charge);
         $this->assertEquals($package->base_price + $expectedCharge, $booking->grand_total);
+    }
+
+    public function test_customer_can_create_booking_with_event_details_and_vendor_info(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $eventDate = now()->addMonths(7)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'       => 'Doni & Maya',
+            'customer_phone'      => '081234567899',
+            'venue_address'       => 'Jl. Mawar No. 12, RT 02 RW 05, Desa Sukamaju',
+            'address_landmark'    => 'Dekat Masjid Al-Hidayah, gang sebelah minimarket',
+            'parents_name'        => 'Bpk. Hendra & Ibu Eni',
+            'instagram_account'   => '@donimaya_wedding',
+            'event_time'          => '08:00 - 14:00 WIB',
+            'vendor_name'         => 'Rekan Vendor MUA Sarah',
+            'vendor_mua'          => 'Sarah MUA Gallery',
+            'vendor_decor'        => 'Barokah Floral',
+            'vendor_photo_video'  => 'Lensa Cerita',
+            'vendor_mc_wo'        => 'MC Rama',
+            'event_date'          => $eventDate,
+            'package_id'          => $package->id,
+            'payment_type'        => 'lunas',
+            'payment_proof'       => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals('Jl. Mawar No. 12, RT 02 RW 05, Desa Sukamaju', $booking->venue_address);
+        $this->assertEquals('Dekat Masjid Al-Hidayah, gang sebelah minimarket', $booking->address_landmark);
+        $this->assertEquals('Bpk. Hendra & Ibu Eni', $booking->parents_name);
+        $this->assertEquals('@donimaya_wedding', $booking->instagram_account);
+        $this->assertEquals('08:00 - 14:00 WIB', $booking->event_time);
+        $this->assertEquals('Rekan Vendor MUA Sarah', $booking->vendor_name);
+        $this->assertEquals('Sarah MUA Gallery', $booking->vendor_mua);
+        $this->assertEquals('Barokah Floral', $booking->vendor_decor);
+        $this->assertEquals('Lensa Cerita', $booking->vendor_photo_video);
+        $this->assertEquals('MC Rama', $booking->vendor_mc_wo);
     }
 }
 

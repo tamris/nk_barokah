@@ -399,6 +399,14 @@
                         </div>
                     </td>
                 </tr>
+                @if($booking->venue_address)
+                <tr>
+                    <td colspan="2" style="padding-top: 8px; border-top: 1px dashed #E2ECE8;">
+                        <div class="info-label">Lokasi Pemasangan Tenda / Venue</div>
+                        <div class="info-val">{{ $booking->venue_address }} @if($booking->address_landmark) <span style="font-weight: normal; color: #64748B;">(Patokan: {{ $booking->address_landmark }})</span>@endif</div>
+                    </td>
+                </tr>
+                @endif
             </table>
         </div>
 
@@ -480,6 +488,14 @@
                 </td>
                 <td class="summary-cell">
                     <table class="summary-box">
+                        @if(($booking->discount_amount ?? 0) > 0)
+                        <tr style="background: #F0FDF8;">
+                            <td class="summary-label" style="color: #045D56; font-weight: 700;">
+                                Diskon Vendor Rekanan{{ ($booking->discount_percent ?? 0) > 0 ? ' (' . rtrim(rtrim(number_format($booking->discount_percent, 1), '0'), '.') . '%)' : '' }}:
+                            </td>
+                            <td class="summary-val font-mono" style="color: #045D56; font-weight: 800;">-Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
                         <tr class="summary-grand">
                             <td class="summary-label">Grand Total Biaya:</td>
                             <td class="summary-val font-mono">Rp {{ number_format($booking->grand_total, 0, ',', '.') }}</td>
