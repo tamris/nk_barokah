@@ -78,6 +78,24 @@ class StoreBookingRequest extends FormRequest
             'vendor_photo_video' => ['nullable', 'string', 'max:150'],
             'vendor_mc_wo'       => ['nullable', 'string', 'max:150'],
             'delivery_distance_km' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'survey_requested'   => ['nullable', 'boolean'],
+            'survey_date'        => [
+                'nullable',
+                'required_if:survey_requested,true,1',
+                'date',
+                'after:today',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value) && $this->filled('event_date')) {
+                        $survey = \Carbon\Carbon::parse($value);
+                        $event = \Carbon\Carbon::parse($this->input('event_date'));
+                        if ($survey->greaterThanOrEqualTo($event)) {
+                            $fail('Tanggal request survey lokasi harus sebelum tanggal pelaksanaan acara.');
+                        }
+                    }
+                }
+            ],
+            'survey_time_slot'   => ['nullable', 'required_if:survey_requested,true,1', 'string', 'in:morning,afternoon,flexible'],
+            'survey_notes'       => ['nullable', 'string', 'max:500'],
         ];
     }
 

@@ -351,5 +351,106 @@ class BookingTest extends TestCase
         $this->assertEquals($expectedGrandTotal, (float) $booking->grand_total);
         $this->assertEquals($expectedGrandTotal, (float) $booking->amount_paid);
     }
+
+    public function test_customer_can_request_venue_survey_with_date_and_time_slot(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $eventDate = now()->addMonths(8)->format('Y-m-d');
+        $surveyDate = now()->addMonths(6)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'     => 'Fajar & Nita',
+            'customer_phone'    => '081234567895',
+            'venue_address'     => 'Jl. Gatot Subroto No. 10, Slawi',
+            'event_date'        => $eventDate,
+            'package_id'        => $package->id,
+            'payment_type'      => 'lunas',
+            'payment_proof'     => $file,
+            'survey_requested'  => '1',
+            'survey_date'       => $surveyDate,
+            'survey_time_slot'  => 'morning',
+            'survey_notes'      => 'Mohon kabari via WA 1 jam sebelum tiba, ada anjing penjaga.',
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertTrue((bool) $booking->survey_requested);
+        $this->assertEquals($surveyDate, $booking->survey_date->format('Y-m-d'));
+        $this->assertEquals('morning', $booking->survey_time_slot);
+        $this->assertEquals('Mohon kabari via WA 1 jam sebelum tiba, ada anjing penjaga.', $booking->survey_notes);
+        $this->assertEquals('requested', $booking->survey_status);
+        $this->assertStringContainsString('Request Survey Lokasi', $booking->whatsapp_message);
+    }
+
+    public function test_venue_survey_fails_if_survey_date_is_on_or_after_event_date(): void
+    {
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
+        $eventDate = now()->addMonths(4)->format('Y-m-d');
+        $surveyDateAfterEvent = now()->addMonths(4)->addDays(2)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'     => 'Budi & Susi',
+            'customer_phone'    => '081234567896',
+            'venue_address'     => 'Jl. Ahmad Yani No. 5',
+            'event_date'        => $eventDate,
+            'package_id'        => $package->id,
+            'payment_type'      => 'lunas',
+            'payment_proof'     => $file,
+            'survey_requested'  => '1',
+            'survey_date'       => $surveyDateAfterEvent,
+            'survey_time_slot'  => 'afternoon',
+        ]);
+
+        $response->assertSessionHasErrors('survey_date');
+    }
+
+    public function test_booking_success_page_renders_successfully(): void
+    {
+        $package = Package::first();
+        $eventDate = now()->addMonths(3)->format('Y-m-d');
+        $surveyDate = now()->addMonths(2)->format('Y-m-d');
+
+        $booking = Booking::create([
+            'invoice_number'        => 'NKB/11/99',
+            'customer_name'         => 'Rizal & Hasna',
+            'customer_phone'        => '081234567899',
+            'venue_address'         => 'Jl. Pahlawan No. 10, Slawi',
+            'address_landmark'      => 'Dekat Masjid Agung',
+            'event_date'            => $eventDate,
+            'duration_days'         => 2,
+            'package_id'            => $package->id,
+            'package_name'          => $package->name,
+            'package_price'         => $package->base_price,
+            'additional_day_charge' => 0,
+            'addon_total_price'     => 0,
+            'transport_fee'         => 0,
+            'grand_total'           => $package->base_price,
+            'amount_paid'           => 1000000,
+            'remaining_balance'     => $package->base_price - 1000000,
+            'payment_type'          => 'dp',
+            'payment_proof_path'    => 'proofs/test.jpg',
+            'status'                => 'pending_verification',
+            'survey_requested'      => true,
+            'survey_date'           => $surveyDate,
+            'survey_time_slot'      => 'morning',
+        ]);
+
+        $response = $this->get(route('booking.success', $booking->invoice_number));
+
+        $response->assertStatus(200);
+        $response->assertSee('Reservasi Berhasil Diajukan');
+        $response->assertSee('#NKB/11/99');
+        $response->assertSee('Rizal & Hasna');
+        $response->assertSee('Survey Lokasi:');
+        $response->assertSee('Konfirmasi via WhatsApp');
+        $response->assertSee(route('booking.receipt', $booking->invoice_number));
+    }
 }
 

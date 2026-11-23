@@ -839,6 +839,35 @@
                         </div>
                     </div>
 
+                    <!-- Grid: Request Tanggal Survey & Pilihan Waktu -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="hidden" name="survey_requested" :value="surveyDate ? '1' : '0'">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Request Tanggal Survey Tempat <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="date" name="survey_date" x-model="surveyDate"
+                                   :min="minSurveyDate" :max="maxSurveyDate"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition bg-white text-slate-800">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 tracking-tight">
+                                Waktu Survey <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <div class="relative">
+                                <select name="survey_time_slot" x-model="surveyTimeSlot"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-base sm:text-sm text-slate-700 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition bg-white appearance-none cursor-pointer">
+                                    <option value="flexible">Fleksibel (Sesuai Janji Temu)</option>
+                                    <option value="morning">Pagi (09:00 – 12:00 WIB)</option>
+                                    <option value="afternoon">Siang – Sore (13:00 – 17:00 WIB)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Grid: Nama Orang Tua & Akun Instagram -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
@@ -1005,6 +1034,22 @@
                                     </div>
                                 </div>
                                 <span class="font-mono font-bold text-xs sm:text-sm text-slate-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(transportFee)}`"></span>
+                            </div>
+                        </template>
+
+                        <!-- Ringkasan Request Survey Lokasi (Jika Diisi) -->
+                        <template x-if="surveyDate">
+                            <div class="flex items-center justify-between gap-3 text-slate-700 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-brand-700 flex items-center justify-center shrink-0 border border-brand-200/60">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-semibold text-slate-800 leading-tight">Request Survey Lokasi Tempat</div>
+                                        <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5" x-text="`Rencana: ${surveyDate} (${surveyTimeSlot === 'morning' ? 'Pagi (09:00 - 12:00)' : (surveyTimeSlot === 'afternoon' ? 'Siang - Sore (13:00 - 17:00)' : 'Fleksibel')})`"></div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-brand-700 bg-emerald-50 border border-brand-200/60 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Gratis</span>
                             </div>
                         </template>
 
@@ -1385,6 +1430,21 @@
             vendorDecor: '{{ old("vendor_decor", "") }}',
             vendorPhotoVideo: '{{ old("vendor_photo_video", "") }}',
             vendorMcWo: '{{ old("vendor_mc_wo", "") }}',
+            surveyRequested: {{ old('survey_requested') ? 'true' : 'false' }},
+            surveyDate: '{{ old("survey_date", "") }}',
+            surveyTimeSlot: '{{ old("survey_time_slot", "morning") }}',
+            surveyNotes: '{{ old("survey_notes", "") }}',
+            get minSurveyDate() {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                return d.toISOString().split('T')[0];
+            },
+            get maxSurveyDate() {
+                if (!this.selectedDate) return '';
+                const d = new Date(this.selectedDate);
+                d.setDate(d.getDate() - 1);
+                return d.toISOString().split('T')[0];
+            },
             selectedDate: config.oldEventDate || '',
             selectedEndDate: config.oldEventEndDate || config.oldEventDate || '',
             pickingRange: false,
@@ -1416,6 +1476,7 @@
                 customer_name: null,
                 customer_phone: null,
                 venue_address: null,
+                survey_date: null,
                 payment_proof: null
             },
 
@@ -1939,6 +2000,17 @@
                         this.formErrors.venue_address = null;
                     }
 
+                    if (this.surveyDate) {
+                        if (this.selectedDate && this.surveyDate >= this.selectedDate) {
+                            this.formErrors.survey_date = 'Tanggal survey harus sebelum tanggal pelaksanaan acara.';
+                            hasErr = true;
+                        } else {
+                            this.formErrors.survey_date = null;
+                        }
+                    } else {
+                        this.formErrors.survey_date = null;
+                    }
+
                     if (hasErr) {
                         this.formErrors.step3 = 'Silakan lengkapi data pemesan dan alamat acara yang wajib di bawah ini.';
                         this.$nextTick(() => {
@@ -1948,6 +2020,8 @@
                                 document.getElementById('phoneInput')?.focus();
                             } else if (!address) {
                                 document.querySelector('textarea[name="venue_address"]')?.focus();
+                            } else if (this.surveyDate && this.selectedDate && this.surveyDate >= this.selectedDate) {
+                                document.querySelector('input[name="survey_date"]')?.focus();
                             }
                         });
                         return;

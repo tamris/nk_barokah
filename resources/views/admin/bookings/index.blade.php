@@ -452,13 +452,13 @@
                         operations.push({
                             id: b.id + '-setup',
                             type: 'setup',
-                            statusLabel: 'Setup (H-2)',
+                            statusLabel: 'Setup',
                             badgeClass: 'bg-[#EAF3FF] text-blue-700',
                             badgeDot: 'bg-blue-600',
                             chipClass: 'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800',
-                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (H-2)',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Setup)',
                             chipSubtitle: 'Setup: ' + b.service,
-                            instruction: 'Fleet loading and tent installation at venue (H-2 before event).',
+                            instruction: 'Fleet loading and tent installation at venue.',
                             booking: b
                         });
                     }
@@ -468,13 +468,30 @@
                         operations.push({
                             id: b.id + '-teardown',
                             type: 'teardown',
-                            statusLabel: 'Teardown (H+1)',
+                            statusLabel: 'Teardown',
                             badgeClass: 'bg-[#FEF3C7] text-amber-800',
                             badgeDot: 'bg-amber-500',
                             chipClass: 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-900',
-                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (H+1)',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Teardown)',
                             chipSubtitle: 'Teardown: ' + b.service,
-                            instruction: 'Tent dismantling and returning all equipment to NK Barokah warehouse.',
+                            instruction: 'Tent dismantling and returning equipment to warehouse.',
+                            booking: b
+                        });
+                    }
+
+                    // 3. Site Survey
+                    if (b.survey_requested && b.survey_date && iso === b.survey_date) {
+                        const isDone = b.survey_status === 'completed';
+                        operations.push({
+                            id: b.id + '-survey',
+                            type: 'survey',
+                            statusLabel: isDone ? 'Survey Done' : 'Site Survey',
+                            badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800' : 'bg-[#EEF2FF] text-indigo-700',
+                            badgeDot: isDone ? 'bg-emerald-500' : 'bg-indigo-600',
+                            chipClass: isDone ? 'bg-[#ECFDF5] hover:bg-[#D1FAE5] text-emerald-900' : 'bg-[#EEF2FF] hover:bg-[#E0E7FF] text-indigo-900',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Survey)',
+                            chipSubtitle: (b.survey_time_slot_label || 'Survey') + ': ' + b.service,
+                            instruction: 'Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : 'Contact: ' + b.phone),
                             booking: b
                         });
                     }
@@ -525,10 +542,10 @@
                         day: parseInt(setupDate.split('-')[2], 10),
                         month: parseInt(setupDate.split('-')[1], 10),
                         type: 'setup',
-                        statusLabel: 'Setup (H-2)',
+                        statusLabel: 'Setup',
                         badgeClass: 'bg-[#EAF3FF] text-blue-700',
                         badgeDot: 'bg-blue-600',
-                        instruction: 'Fleet loading and tent installation at venue (H-2 before event).',
+                        instruction: 'Fleet loading and tent installation at venue.',
                         booking: b
                     });
                 }
@@ -539,10 +556,25 @@
                         day: parseInt(teardownDate.split('-')[2], 10),
                         month: parseInt(teardownDate.split('-')[1], 10),
                         type: 'teardown',
-                        statusLabel: 'Teardown (H+1)',
+                        statusLabel: 'Teardown',
                         badgeClass: 'bg-[#FEF3C7] text-amber-800',
                         badgeDot: 'bg-amber-500',
-                        instruction: 'Tent dismantling and returning all equipment to NK Barokah warehouse.',
+                        instruction: 'Tent dismantling and returning equipment to warehouse.',
+                        booking: b
+                    });
+                }
+                if (b.survey_requested && b.survey_date && b.survey_date >= monthStart && b.survey_date <= monthEnd) {
+                    const isDone = b.survey_status === 'completed';
+                    ops.push({
+                        key: b.id + '-survey',
+                        date_iso: b.survey_date,
+                        day: parseInt(b.survey_date.split('-')[2], 10),
+                        month: parseInt(b.survey_date.split('-')[1], 10),
+                        type: 'survey',
+                        statusLabel: isDone ? 'Survey Done' : 'Site Survey',
+                        badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800' : 'bg-[#EEF2FF] text-indigo-700',
+                        badgeDot: isDone ? 'bg-emerald-500' : 'bg-indigo-600',
+                        instruction: (b.survey_time_slot_label || 'Survey') + ': Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : ''),
                         booking: b
                     });
                 }
@@ -1578,14 +1610,18 @@
                 </div>
 
                 <div x-show="calendarMode === 'operations'"
-                     class="grid grid-cols-2 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                     class="grid grid-cols-3 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-indigo-600 shrink-0"></span>
+                        Site Survey
+                    </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
-                        Setup (H-2)
+                        Setup
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-amber-500 shrink-0"></span>
-                        Teardown (H+1)
+                        Teardown
                     </span>
                 </div>
             </div>
@@ -1859,10 +1895,10 @@
                      x-transition:leave="ease-in duration-150"
                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                      x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                     class="relative bg-white rounded-[28px] max-w-xl w-full p-5 sm:p-7 text-left shadow-2xl border border-[#EDF2F0] space-y-5 transform transition-all overflow-hidden">
+                     class="relative bg-white rounded-[24px] sm:rounded-[28px] max-w-lg w-full p-4 sm:p-6 text-left shadow-2xl border border-[#EDF2F0] space-y-4 transform transition-all overflow-hidden">
 
                     <!-- Header Modal -->
-                    <div class="flex items-start justify-between gap-4 pb-4 border-b border-[#EFF4F2]">
+                    <div class="flex items-start justify-between gap-3 pb-3 sm:pb-4 border-b border-[#EFF4F2]">
                         <div class="flex items-center gap-3.5">
                             <div class="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-brand-700 flex flex-col items-center justify-center text-center shrink-0 shadow-2xs">
                                 <span class="text-[9px] font-bold uppercase leading-none" x-text="selectedDayModal ? monthShort[calMonth - 1] : ''"></span>
@@ -1984,77 +2020,78 @@
                         </template>
                     </div>
 
-                    <!-- MODE 2: FIELD OPERATIONS CARDS (SETUP H-2 & TEARDOWN H+1) -->
-                    <div x-show="calendarMode === 'operations'" class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
+                    <!-- MODE 2: FIELD OPERATIONS CARDS (SETUP & TEARDOWN) -->
+                    <div x-show="calendarMode === 'operations'" class="max-h-[60vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
                         <template x-if="selectedDayModal?.operations?.length === 0">
                             <div class="py-12 text-center space-y-2">
                                 <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                 </div>
                                 <p class="text-xs font-semibold text-slate-700">No field operations scheduled</p>
-                                <p class="text-[11px] text-slate-400">There are no tent setup (H-2) or teardown (H+1) tasks on this date.</p>
+                                <p class="text-[11px] text-slate-400">There are no setup, teardown, or survey tasks on this date.</p>
                             </div>
                         </template>
 
                         <template x-for="op in (selectedDayModal?.operations || [])" :key="op.id">
                             <div class="pt-3 first:pt-0">
-                                <div class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EAF0EE] hover:border-brand-300 hover:shadow-card transition space-y-3 group">
-                                    <!-- Top Row: Code, Event Date & Pill Badge -->
+                                <div class="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#EAF0EE] hover:border-brand-300 hover:shadow-card transition space-y-2.5 group">
+                                    <!-- Top Row: Code, Date & Pill Badge -->
                                     <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + op.booking.code"></span>
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600"
-                                                  x-text="'Event: ' + op.booking.date_short"></span>
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="text-xs font-bold font-mono text-[#0284C7] shrink-0" x-text="'#' + op.booking.code"></span>
+                                            <span class="text-slate-300 shrink-0">&bull;</span>
+                                            <span class="text-[11px] font-semibold text-slate-600 truncate"
+                                                  x-text="op.booking.date_short"></span>
                                         </div>
                                         <span :class="op.badgeClass"
-                                              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+                                              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0">
                                             <span class="w-1.5 h-1.5 rounded-full" :class="op.badgeDot"></span>
                                             <span x-text="op.statusLabel"></span>
                                         </span>
                                     </div>
 
                                     <!-- Middle Row: Customer Info & Service -->
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="flex items-center gap-3 min-w-0">
+                                    <div class="flex items-start justify-between gap-2.5">
+                                        <div class="flex items-center gap-2.5 min-w-0">
                                             <img :src="op.booking.avatar" :alt="op.booking.name"
-                                                 class="w-10 h-10 rounded-xl object-cover shrink-0">
+                                                 class="w-9 h-9 rounded-xl object-cover shrink-0">
                                             <div class="min-w-0">
                                                 <p class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="op.booking.name"></p>
-                                                <p class="text-[11px] text-slate-500 truncate" x-text="op.booking.phone"></p>
+                                                <p class="text-[11px] text-slate-500 font-mono truncate" x-text="op.booking.phone"></p>
                                             </div>
                                         </div>
                                         <div class="text-right shrink-0">
-                                            <p class="text-xs font-bold text-brand-700" x-text="op.booking.service"></p>
-                                            <p class="text-[11px] text-slate-500" x-text="op.booking.grand_total_formatted"></p>
+                                            <p class="text-xs font-bold text-brand-700 truncate max-w-[130px] sm:max-w-none" x-text="op.booking.service"></p>
+                                            <p class="text-[11px] text-slate-500 font-mono" x-text="op.booking.grand_total_formatted"></p>
                                         </div>
                                     </div>
 
                                     <!-- Location & Landmark -->
-                                    <div class="text-[11.5px] text-slate-600 flex items-start gap-1.5">
+                                    <div class="text-[11px] sm:text-xs text-slate-600 flex items-start gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                         <span class="line-clamp-2" x-text="op.booking.venue_address + (op.booking.address_landmark && op.booking.address_landmark !== '-' ? ' (Landmark: ' + op.booking.address_landmark + ')' : '')"></span>
                                     </div>
 
                                     <!-- SOP Instruction -->
-                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600 flex items-start gap-1.5">
+                                    <div class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600 flex items-start gap-1.5">
                                         <span class="font-bold text-slate-700 shrink-0">SOP:</span>
                                         <span x-text="op.instruction"></span>
                                     </div>
 
                                     <!-- Bottom Row: WhatsApp & Detail Buttons -->
-                                    <div class="pt-2.5 border-t border-[#EDF2F0] flex items-center justify-between gap-2.5 text-xs">
-                                        <span class="text-[11px] text-slate-400" x-text="op.booking.duration_days + ' Days Event'"></span>
+                                    <div class="pt-2 border-t border-[#EDF2F0] flex items-center justify-between gap-2 text-xs">
+                                        <span class="text-[11px] text-slate-400 font-medium" x-text="op.booking.duration_days + ' Days Event'"></span>
                                         <div class="flex items-center gap-2 ml-auto">
                                             <template x-if="op.booking.whatsapp_url">
                                                 <a :href="op.booking.whatsapp_url" target="_blank"
-                                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition cursor-pointer">
+                                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition cursor-pointer">
                                                     <span>WhatsApp</span>
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                                 </a>
                                             </template>
                                             <button type="button"
                                                     @click="closeDayModal(); openDetail(op.booking)"
-                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
                                                 <span>View Details</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
@@ -3558,6 +3595,39 @@
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Event Time</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.event_time || '-'"></p>
                         </div>
+
+                        <!-- Site Survey (If Requested) -->
+                        <template x-if="activeDetail?.survey_requested">
+                            <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-2 sm:col-span-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Site Survey</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                          :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-800 border border-indigo-200'"
+                                          x-text="activeDetail?.survey_status === 'completed' ? 'Survey Done' : 'Scheduled'">
+                                    </span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
+                                    <p class="font-semibold text-slate-800" x-text="`${activeDetail?.survey_date_formatted || '-'} · ${activeDetail?.survey_time_slot_label || '-'}`"></p>
+                                    <div class="flex items-center gap-2">
+                                        <form :action="activeDetail?.survey_status_url" method="POST" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="survey_status" :value="activeDetail?.survey_status === 'completed' ? 'scheduled' : 'completed'">
+                                            <button type="submit"
+                                                    class="px-2.5 py-1 rounded-lg border text-[11px] font-medium transition cursor-pointer"
+                                                    :class="activeDetail?.survey_status === 'completed' ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700' : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'">
+                                                <span x-text="activeDetail?.survey_status === 'completed' ? 'Reopen' : 'Mark Done'"></span>
+                                            </button>
+                                        </form>
+                                        <a :href="'https://wa.me/' + (activeDetail?.phone ? activeDetail.phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : '') + '?text=' + encodeURIComponent('Halo Kak ' + (activeDetail?.name || '') + ', salam dari tim survey NK Barokah Tenda. Mengenai rencana survey lokasi venue pada ' + (activeDetail?.survey_date_formatted || '') + '...')"
+                                           target="_blank"
+                                           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-medium transition">
+                                            <span>WhatsApp</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
 
                         <!-- Parents' Names -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">

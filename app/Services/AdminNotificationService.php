@@ -99,7 +99,65 @@ class AdminNotificationService
         $actionRequired = $verifications->concat($dueSettlements);
 
         // 2. KATEGORI: JADWAL OPERASIONAL LAPANGAN (FIELD OPERATIONS)
-        // 2a. Pemasangan / Loading Tenda H-2 & Hari H Acara
+        // 2a. Request Survey Lokasi Lapangan (Status: requested/scheduled, survey_date dalam 7 hari)
+        $sevenDaysAhead = $today->copy()->addDays(7)->toDateString();
+        $surveys = Booking::where('survey_requested', true)
+            ->whereIn('survey_status', ['requested', 'scheduled'])
+            ->whereNotNull('survey_date')
+            ->whereDate('survey_date', '<=', $sevenDaysAhead)
+            ->orderBy('survey_date', 'asc')
+            ->take(5)
+            ->get()
+            ->map(function ($b) use ($today) {
+                $surveyDate = Carbon::parse($b->survey_date)->startOfDay();
+                $todayStart = $today->copy()->startOfDay();
+                $diff = (int) $todayStart->diffInDays($surveyDate, false);
+                $timeSlot = match($b->survey_time_slot) {
+                    'morning'   => 'Morning (09:00 - 12:00)',
+                    'afternoon' => 'Afternoon (13:00 - 17:00)',
+                    default     => 'Flexible Time',
+                };
+
+                if ($diff === 0) {
+                    $badgeText = 'SITE SURVEY (TODAY)';
+                    $desc = "Venue survey scheduled TODAY · {$timeSlot}";
+                } elseif ($diff === 1) {
+                    $badgeText = 'SITE SURVEY (TOMORROW)';
+                    $desc = "Venue survey scheduled Tomorrow · {$timeSlot}";
+                } elseif ($diff < 0) {
+                    $badgeText = 'SURVEY DUE';
+                    $desc = "Scheduled survey date passed (" . abs($diff) . "d ago) · Confirm outcome";
+                } else {
+                    $badgeText = "SITE SURVEY (IN {$diff}D)";
+                    $desc = "Venue survey scheduled in {$diff} days · {$timeSlot}";
+                }
+
+                $waMsg = urlencode(
+                    "Halo Kak {$b->customer_name}, salam hangat dari tim survey NK Barokah Tenda! 📍📐\n\n" .
+                    "Mengenai jadwal survey venue pernikahan Anda pada hari *{$b->survey_date->format('l, d M Y')}* ({$timeSlot}), mohon koordinasi titik temu atau ancer-ancer lokasinya. Terima kasih! 🙏"
+                );
+                $waUrl = "https://wa.me/{$b->formatted_phone}?text={$waMsg}";
+
+                return [
+                    'id'            => $b->id . '-survey',
+                    'type'          => 'survey',
+                    'category'      => 'field_operations',
+                    'badge_text'    => $badgeText,
+                    'badge_class'   => 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+                    'dot_color'     => 'bg-indigo-600',
+                    'invoice'       => $b->invoice_number,
+                    'customer_name' => $b->customer_name,
+                    'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
+                    'desc'          => $desc,
+                    'meta'          => "Venue: " . ($b->venue_address ?: 'Slawi') . ($b->survey_notes ? " · Note: {$b->survey_notes}" : ''),
+                    'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
+                    'action_label'  => 'Chat Client (WA)',
+                    'action_type'   => 'whatsapp',
+                    'action_url'    => $waUrl,
+                ];
+            });
+
+        // 2b. Pemasangan / Loading Tenda H-2 & Hari H Acara
         $twoDaysLimit = $today->copy()->addDays(2)->toDateString();
         $fieldOperations = Booking::where('status', 'confirmed')
             ->whereDate('event_date', '<=', $twoDaysLimit)
@@ -161,15 +219,17 @@ class AdminNotificationService
                 ];
             });
 
+        $allFieldItems = $surveys->concat($fieldOperations);
+
         $urgentCount = $actionRequired->count();
-        $fieldCount = $fieldOperations->count();
+        $fieldCount = $allFieldItems->count();
 
         return [
             'urgent_count'     => $urgentCount,
             'field_count'      => $fieldCount,
             'total_count'      => $urgentCount + $fieldCount,
             'action_required'  => $actionRequired,
-            'field_operations' => $fieldOperations,
+            'field_operations' => $allFieldItems,
         ];
     }
 }

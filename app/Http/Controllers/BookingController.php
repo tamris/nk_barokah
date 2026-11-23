@@ -156,6 +156,11 @@ class BookingController extends Controller
                 'vendor_decor'          => $validated['vendor_decor'] ?? null,
                 'vendor_photo_video'    => $validated['vendor_photo_video'] ?? null,
                 'vendor_mc_wo'          => $validated['vendor_mc_wo'] ?? null,
+                'survey_requested'      => $request->boolean('survey_requested'),
+                'survey_date'           => $request->boolean('survey_requested') ? ($validated['survey_date'] ?? null) : null,
+                'survey_time_slot'      => $request->boolean('survey_requested') ? ($validated['survey_time_slot'] ?? 'flexible') : null,
+                'survey_notes'          => $request->boolean('survey_requested') ? ($validated['survey_notes'] ?? null) : null,
+                'survey_status'         => $request->boolean('survey_requested') ? 'requested' : 'none',
             ]);
 
             // Simpan Detail Relasi Add-ons
@@ -177,19 +182,32 @@ class BookingController extends Controller
         $booking = Booking::with('addons')->where('invoice_number', $invoiceNumber)->firstOrFail();
         $adminWhatsapp = Setting::get('admin_whatsapp', '6282255969313');
 
+        $surveyPart = "";
+        if ($booking->survey_requested && $booking->survey_date) {
+            $slot = match($booking->survey_time_slot) {
+                'morning'   => 'Pagi (09:00 - 12:00)',
+                'afternoon' => 'Siang-Sore (13:00 - 17:00)',
+                'flexible'  => 'Fleksibel',
+                default     => $booking->survey_time_slot ?: 'Fleksibel',
+            };
+            $surveyPart = "- Request Survey: " . \Carbon\Carbon::parse($booking->survey_date)->isoFormat('dddd, D MMMM Y') . " ({$slot})\n";
+        }
+
         // Pre-filled WhatsApp message
         $waMessage = urlencode(
-            "Halo Admin NK Barokah Wedding Organizer, saya sudah melakukan reservasi dengan rincian:\n" .
-            "- No. Invoice: {$booking->invoice_number}\n" .
+            "Halo Admin NK Barokah Wedding Organizer, saya sudah mengajukan reservasi:\n" .
+            "- No. Invoice: #{$booking->invoice_number}\n" .
             "- Nama: {$booking->customer_name}\n" .
             "- Tanggal Acara: " . $booking->formatted_event_date . "\n" .
-            "- Pembayaran: " . strtoupper($booking->payment_type) . " (Rp " . number_format($booking->amount_paid, 0, ',', '.') . ")\n\n" .
-            "Mohon diverifikasi pembayaran saya. Terima kasih!"
+            $surveyPart .
+            "- Paket: {$booking->package_name}\n" .
+            "- Pembayaran: " . ($booking->payment_type === 'lunas' ? 'LUNAS (100%)' : 'UANG MUKA (DP)') . " (Rp " . number_format($booking->amount_paid, 0, ',', '.') . ")\n\n" .
+            "Mohon bantuannya untuk verifikasi bukti transfer. Terima kasih!"
         );
 
         $whatsappUrl = "https://wa.me/{$adminWhatsapp}?text={$waMessage}";
 
-        return view('booking.success', compact('booking', 'whatsappUrl'));
+        return view('booking.success', compact('booking', 'whatsappUrl', 'adminWhatsapp'));
     }
 
     public function downloadReceipt(string $invoiceNumber)

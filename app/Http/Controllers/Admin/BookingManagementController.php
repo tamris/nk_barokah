@@ -198,6 +198,19 @@ class BookingManagementController extends Controller
                 'transport_fee_formatted' => 'Rp ' . number_format((float) ($b->transport_fee ?? 0), 0, ',', '.'),
                 'transport_url'           => route('admin.bookings.transport', $b->id),
                 'maps_route_url'          => 'https://www.google.com/maps/dir/?api=1&origin=' . urlencode(Setting::get('warehouse_address', 'NK Barokah Tenda Slawi Kulon')) . '&destination=' . urlencode($b->venue_address ?? ''),
+                'survey_requested'        => (bool) $b->survey_requested,
+                'survey_date'             => $b->survey_date ? $b->survey_date->format('Y-m-d') : null,
+                'survey_date_formatted'   => $b->survey_date ? $b->survey_date->format('D, M d, Y') : null,
+                'survey_time_slot'        => $b->survey_time_slot,
+                'survey_time_slot_label'  => match($b->survey_time_slot) {
+                    'morning'   => 'Morning (09:00 - 12:00)',
+                    'afternoon' => 'Afternoon (13:00 - 17:00)',
+                    'flexible'  => 'Flexible Time',
+                    default     => $b->survey_time_slot ?: 'Flexible',
+                },
+                'survey_notes'            => $b->survey_notes,
+                'survey_status'           => $b->survey_status ?? 'none',
+                'survey_status_url'       => route('admin.bookings.survey_status', $b->id),
                 'vendor_mua'              => $b->vendor_mua ?: '-',
                 'vendor_decor'            => $b->vendor_decor ?: '-',
                 'vendor_photo_video'      => $b->vendor_photo_video ?: '-',
@@ -645,5 +658,36 @@ class BookingManagementController extends Controller
         Setting::set('google_calendar_id', trim($validated['google_calendar_id'] ?? ''));
 
         return back()->with('success', 'ID Google Sheets & Google Calendar berhasil diperbarui!');
+    }
+
+    public function updateSurveyStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'survey_status' => ['required', 'string', 'in:none,requested,scheduled,completed'],
+            'survey_date'   => ['nullable', 'date'],
+            'survey_notes'  => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $booking = Booking::findOrFail($id);
+        $booking->survey_status = $validated['survey_status'];
+        if ($request->has('survey_date')) {
+            $booking->survey_date = $validated['survey_date'];
+        }
+        if ($request->has('survey_notes')) {
+            $booking->survey_notes = $validated['survey_notes'];
+        }
+        $booking->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status survey lokasi berhasil diperbarui.',
+                'survey_status' => $booking->survey_status,
+                'survey_date' => $booking->survey_date ? $booking->survey_date->format('Y-m-d') : null,
+            ]);
+        }
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', 'Status survey lokasi berhasil diperbarui.');
     }
 }

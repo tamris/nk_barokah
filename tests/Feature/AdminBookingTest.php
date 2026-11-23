@@ -903,6 +903,45 @@ class AdminBookingTest extends TestCase
         $addResponse->assertRedirect();
         $addResponse->assertSessionHas('error');
     }
+
+    public function test_admin_can_update_survey_status_to_completed(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202611-SURVEY',
+            'customer_name'      => 'Survey Test Customer',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 10000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 10000000,
+            'amount_paid'        => 3000000,
+            'remaining_balance'  => 7000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+            'survey_requested'   => true,
+            'survey_date'        => now()->addDays(5)->format('Y-m-d'),
+            'survey_time_slot'   => 'morning',
+            'survey_status'      => 'requested',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.survey_status', $booking->id), [
+            'survey_status' => 'completed',
+            'survey_notes'  => 'Hasil ukur: area halaman 8x12m, kabel PLN aman.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals('completed', $booking->survey_status);
+        $this->assertEquals('Hasil ukur: area halaman 8x12m, kabel PLN aman.', $booking->survey_notes);
+    }
 }
 
 

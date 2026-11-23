@@ -46,19 +46,21 @@
         }
     </script>
     <style>
-        .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-        .pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
+        .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+        .pt-safe { padding-top: max(1.25rem, env(safe-area-inset-top)); }
+        * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="min-h-full bg-slate-50 text-slate-900 font-sans antialiased flex items-center justify-center p-4 sm:p-6 pb-safe pt-safe">
 
-    <div class="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-card p-6 sm:p-8 text-center space-y-6">
+    <!-- Single Elegant Centered Card -->
+    <div class="max-w-md w-full bg-white rounded-[28px] border border-slate-200/90 shadow-card p-6 sm:p-8 text-center space-y-6">
 
         <!-- Brand Logo -->
-        <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-12 w-auto object-contain mx-auto">
+        <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-11 w-auto object-contain mx-auto">
 
-        <!-- Minimal Checkmark Icon -->
-        <div class="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-200/60 text-brand-600 flex items-center justify-center mx-auto">
+        <!-- Minimal Soft Checkmark Icon -->
+        <div class="w-14 h-14 rounded-full bg-brand-50 border border-brand-200/70 text-brand-600 flex items-center justify-center mx-auto shadow-2xs">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
 
@@ -69,7 +71,7 @@
                 <span>#{{ $booking->invoice_number }}</span>
             </div>
 
-            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
                 Reservasi Berhasil Diajukan
             </h1>
 
@@ -81,12 +83,28 @@
             </p>
         </div>
 
-        <!-- Summary Breakdown Card -->
-        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left text-xs space-y-2.5">
+        <!-- Summary Breakdown Card (Clean & Tidy) -->
+        <div class="bg-[#F8FAFA] border border-[#EFF4F2] rounded-2xl p-4 text-left text-xs space-y-2.5">
             <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
                 <span class="text-slate-400 uppercase tracking-wider text-[10px] font-semibold">Paket Pernikahan</span>
                 <span class="font-bold text-slate-900">{{ $booking->package_name }}</span>
             </div>
+
+            @if($booking->survey_requested && $booking->survey_date)
+                @php
+                    $slotText = match($booking->survey_time_slot) {
+                        'morning'   => 'Pagi (09-12)',
+                        'afternoon' => 'Siang (13-17)',
+                        default     => 'Fleksibel',
+                    };
+                @endphp
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Survey Lokasi:</span>
+                    <span class="font-semibold text-brand-800">
+                        {{ \Carbon\Carbon::parse($booking->survey_date)->isoFormat('D MMM Y') }} ({{ $slotText }})
+                    </span>
+                </div>
+            @endif
 
             <div class="flex justify-between items-center text-slate-600">
                 <span>Tipe Pembayaran:</span>

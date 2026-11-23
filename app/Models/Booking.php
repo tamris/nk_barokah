@@ -26,6 +26,8 @@ class Booking extends Model
         'amount_paid'       => 'decimal:2',
         'remaining_balance' => 'decimal:2',
         'synced_to_sheets'  => 'boolean',
+        'survey_requested'  => 'boolean',
+        'survey_date'       => 'date',
     ];
 
     protected $appends = [
@@ -83,6 +85,21 @@ class Booking extends Model
         $remainingFormatted = 'Rp ' . number_format($this->remaining_balance, 0, ',', '.');
         $receiptUrl = route('booking.receipt', $this->invoice_number);
 
+        $surveyInfo = '';
+        if ($this->survey_requested && $this->survey_date) {
+            $slotLabel = match($this->survey_time_slot) {
+                'morning'   => 'Pagi (09:00 - 12:00)',
+                'afternoon' => 'Siang-Sore (13:00 - 17:00)',
+                'flexible'  => 'Fleksibel',
+                default     => $this->survey_time_slot ?: 'Fleksibel',
+            };
+            $surveyDateStr = \Carbon\Carbon::parse($this->survey_date)->isoFormat('dddd, D MMMM Y');
+            $surveyInfo = "• Request Survey Lokasi: *{$surveyDateStr}* ({$slotLabel})\n";
+            if ($this->survey_notes) {
+                $surveyInfo .= "• Catatan Survey: _{$this->survey_notes}_\n";
+            }
+        }
+
         // Kasus 1: Acara Selesai (Completed)
         if ($this->status === 'completed') {
             return "Halo Kak *{$this->customer_name}*, salam hangat dari *NK Barokah Wedding Organizer*! 💍✨\n\n" .
@@ -102,6 +119,7 @@ class Booking extends Model
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
                 "• Paket Pilihan: *{$this->package_name}*\n" .
                 "• Tanggal Acara: *{$dateFormatted}*\n" .
+                $surveyInfo .
                 "• Total Nilai Paket: *{$grandTotalFormatted}*\n" .
                 "• Total Terbayar: *{$paidFormatted}*\n" .
                 "• Sisa Tagihan: *Rp 0 (LUNAS 100%)*\n\n" .
@@ -119,6 +137,7 @@ class Booking extends Model
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
                 "• Paket Pilihan: *{$this->package_name}*\n" .
                 "• Tanggal Acara: *{$dateFormatted}*\n" .
+                $surveyInfo .
                 "• Total Nilai Paket: *{$grandTotalFormatted}*\n" .
                 "• Pembayaran DP Diterima: *{$paidFormatted}*\n" .
                 "• Sisa Tagihan Pelunasan: *{$remainingFormatted}*\n\n" .
@@ -135,6 +154,7 @@ class Booking extends Model
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
                 "• Paket Pilihan: *{$this->package_name}*\n" .
                 "• Tanggal Acara: *{$dateFormatted}*\n" .
+                $surveyInfo .
                 "• Nominal Transfer: *{$paidFormatted}* (" . strtoupper($this->payment_type) . ")\n\n" .
                 "Saat ini bukti transfer sedang dalam proses verifikasi mutasi oleh tim keuangan kami. Kami akan segera mengabari Anda setelah pembayaran terverifikasi sah. Terima kasih atas kesabarannya! 🙏";
         }

@@ -169,4 +169,42 @@ class AdminNotificationTest extends TestCase
         $response->assertSee('Action Required');
         $response->assertSee('Field Schedule');
     }
+
+    public function test_notification_service_identifies_upcoming_site_surveys(): void
+    {
+        $package = Package::first();
+
+        Booking::create([
+            'invoice_number'     => 'NKB/11/SURVEY1',
+            'customer_name'      => 'Survey Candidate Pair',
+            'customer_phone'     => '081234567800',
+            'event_date'         => Carbon::today()->addDays(20)->toDateString(),
+            'duration_days'      => 2,
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => $package->base_price,
+            'addon_total_price'  => 0,
+            'grand_total'        => $package->base_price,
+            'amount_paid'        => 2000000,
+            'remaining_balance'  => $package->base_price - 2000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/test.jpg',
+            'status'             => 'confirmed',
+            'survey_requested'   => true,
+            'survey_date'        => Carbon::today()->addDays(1)->toDateString(),
+            'survey_time_slot'   => 'morning',
+            'survey_status'      => 'requested',
+            'venue_address'      => 'Slawi Kulon RT 02/01',
+        ]);
+
+        $service = new AdminNotificationService();
+        $notifications = $service->getNotifications();
+
+        $surveyItems = $notifications['field_operations']->where('type', 'survey');
+        $target = $surveyItems->firstWhere('invoice', 'NKB/11/SURVEY1');
+
+        $this->assertNotNull($target);
+        $this->assertSame('SITE SURVEY (TOMORROW)', $target['badge_text']);
+        $this->assertStringContainsString('Morning', $target['desc']);
+    }
 }
