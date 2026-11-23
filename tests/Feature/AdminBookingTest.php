@@ -280,7 +280,7 @@ class AdminBookingTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('2027-01-01');
         $response->assertSee('2027-01-02');
-        $response->assertSee('1 - 2 Jan');
+        $response->assertSee('1 - 2 Jan 2027');
         $response->assertSee('Muchamad Rizqi Pratama');
 
         $showResponse = $this->actingAs($admin)->get(route('admin.bookings.show', $booking->id));

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Reservasi Pernikahan | NK Barokah</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -109,9 +112,7 @@
         <div class="max-w-2xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
             <!-- Brand Identity -->
             <a href="{{ url('/') }}" class="flex items-center gap-2.5">
-                <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-extrabold text-xs sm:text-sm tracking-tight shadow-sm">
-                    N
-                </span>
+                <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-8 sm:h-9 w-auto object-contain">
                 <div class="leading-none">
                     <span class="block text-xs sm:text-sm font-bold tracking-tight text-slate-900">NK Barokah</span>
                     <span class="block text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">Wedding Organizer</span>

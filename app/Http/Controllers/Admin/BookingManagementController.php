@@ -41,9 +41,9 @@ class BookingManagementController extends Controller
                 if ($eventDate->year !== $eventEndDate->year) {
                     $dateShortFormatted = $eventDate->format('j M Y') . ' - ' . $eventEndDate->format('j M Y');
                 } elseif ($eventDate->month === $eventEndDate->month) {
-                    $dateShortFormatted = $eventDate->format('j') . ' - ' . $eventEndDate->format('j M');
+                    $dateShortFormatted = $eventDate->format('j') . ' - ' . $eventEndDate->format('j M Y');
                 } else {
-                    $dateShortFormatted = $eventDate->format('j M') . ' - ' . $eventEndDate->format('j M');
+                    $dateShortFormatted = $eventDate->format('j M') . ' - ' . $eventEndDate->format('j M Y');
                 }
             } else {
                 $dateFormatted = $eventDate->format('l, M d, Y');

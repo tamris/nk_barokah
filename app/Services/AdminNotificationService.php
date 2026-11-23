@@ -30,23 +30,24 @@ class AdminNotificationService
             ->take(8)
             ->get()
             ->map(function ($b) {
-                $paymentTypeUpper = strtoupper($b->payment_type ?? 'DP');
+                $paymentType = strtoupper($b->payment_type ?? 'DP');
+                $paymentTypeLabel = $paymentType === 'LUNAS' ? 'FULL PAYMENT' : $paymentType;
                 $amountFmt = 'Rp ' . number_format($b->amount_paid, 0, ',', '.');
 
                 return [
                     'id'            => $b->id,
                     'type'          => 'verification',
                     'category'      => 'action_required',
-                    'badge_text'    => 'VERIFIKASI ' . $paymentTypeUpper,
+                    'badge_text'    => 'VERIFY ' . $paymentTypeLabel,
                     'badge_class'   => 'bg-amber-50 text-amber-700 border-amber-200/80',
                     'dot_color'     => 'bg-amber-500',
                     'invoice'       => $b->invoice_number,
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
-                    'desc'          => "Transfer {$paymentTypeUpper} sebesar {$amountFmt}",
-                    'meta'          => "Acara: {$b->formatted_event_date} · {$b->created_at->diffForHumans()}",
+                    'desc'          => "{$paymentTypeLabel} transfer of {$amountFmt}",
+                    'meta'          => "Event: {$b->formatted_event_date} · {$b->created_at->diffForHumans()}",
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Periksa Bukti',
+                    'action_label'  => 'Review Proof',
                     'action_type'   => 'link',
                     'action_url'    => route('admin.bookings.index', ['booking_id' => $b->id]),
                 ];
@@ -64,7 +65,7 @@ class AdminNotificationService
             ->map(function ($b) use ($today) {
                 $eventDate = Carbon::parse($b->event_date);
                 $diffDays = (int) $today->diffInDays($eventDate, false);
-                $daysText = $diffDays === 0 ? 'Hari ini' : ($diffDays === 1 ? 'Besok' : "{$diffDays} hari lagi");
+                $daysText = $diffDays === 0 ? 'Today' : ($diffDays === 1 ? 'Tomorrow' : "{$diffDays} days left");
                 $remainingFmt = 'Rp ' . number_format($b->remaining_balance, 0, ',', '.');
 
                 $waMsg = urlencode(
@@ -79,16 +80,16 @@ class AdminNotificationService
                     'id'            => $b->id,
                     'type'          => 'settlement',
                     'category'      => 'action_required',
-                    'badge_text'    => 'PELUNASAN H-7',
+                    'badge_text'    => 'DUE SETTLEMENT (H-7)',
                     'badge_class'   => 'bg-rose-50 text-rose-700 border-rose-200/80',
                     'dot_color'     => 'bg-rose-500',
                     'invoice'       => $b->invoice_number,
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
-                    'desc'          => "Sisa tagihan: {$remainingFmt}",
-                    'meta'          => "Jadwal: {$b->formatted_event_date} ({$daysText})",
+                    'desc'          => "Remaining balance: {$remainingFmt}",
+                    'meta'          => "Schedule: {$b->formatted_event_date} ({$daysText})",
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Ingatkan WA',
+                    'action_label'  => 'Remind via WA',
                     'action_type'   => 'whatsapp',
                     'action_url'    => $waUrl,
                 ];
@@ -113,22 +114,32 @@ class AdminNotificationService
             ->take(8)
             ->get()
             ->map(function ($b) use ($today) {
-                $startDate = Carbon::parse($b->event_date);
-                $isToday = $startDate->isSameDay($today);
-                $diffDays = (int) $today->diffInDays($startDate, false);
+                $startDate = Carbon::parse($b->event_date)->startOfDay();
+                $endDate = ($b->event_end_date ? Carbon::parse($b->event_end_date) : $startDate)->endOfDay();
+                $todayStart = $today->copy()->startOfDay();
+                $isOngoing = $todayStart->between($startDate, $endDate);
+                $duration = (int) ($b->duration_days ?: 1);
 
-                if ($isToday) {
-                    $badgeText = 'HARI H ACARA';
+                if ($isOngoing) {
+                    $badgeText = 'EVENT DAY (TODAY)';
                     $badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
                     $dotColor = 'bg-emerald-600';
-                    $desc = "Acara sedang berlangsung hari ini!";
-                    $meta = "Paket: {$b->package_name} · Kontak: {$b->customer_phone}";
+                    if ($duration > 1) {
+                        $dayNumber = min($duration, (int) $startDate->diffInDays($todayStart) + 1);
+                        $desc = "Event is ongoing today (Day {$dayNumber} of {$duration})!";
+                    } else {
+                        $desc = "Event is ongoing today!";
+                    }
+                    $meta = "Package: {$b->package_name} · Contact: {$b->customer_phone}";
                 } else {
-                    $badgeText = 'LOADING TENDA (H-2)';
+                    $diffDays = (int) $todayStart->diffInDays($startDate, false);
+                    $badgeText = $diffDays === 2 ? 'TENT LOADING (H-2)' : ($diffDays === 1 ? 'TENT LOADING (H-1)' : "TENT LOADING (H-{$diffDays})");
                     $badgeClass = 'bg-teal-50 text-teal-800 border-teal-200/80';
                     $dotColor = 'bg-teal-600';
-                    $desc = "Waktu loading & pemasangan tenda ({$diffDays} hari menuju hari H)";
-                    $meta = "Paket: {$b->package_name} · Acara: {$b->formatted_event_date}";
+                    $desc = $diffDays === 1 
+                        ? "Tent loading & setup schedule (Tomorrow · 1 day until event)"
+                        : "Tent loading & setup schedule ({$diffDays} days until event)";
+                    $meta = "Package: {$b->package_name} · Event: {$b->formatted_event_date}";
                 }
 
                 return [
@@ -144,7 +155,7 @@ class AdminNotificationService
                     'desc'          => $desc,
                     'meta'          => $meta,
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Detail Kru',
+                    'action_label'  => 'Crew Details',
                     'action_type'   => 'link',
                     'action_url'    => route('admin.bookings.index', ['booking_id' => $b->id]),
                 ];

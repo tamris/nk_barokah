@@ -84,7 +84,7 @@ class AdminNotificationTest extends TestCase
         $target = $settlementItems->firstWhere('invoice', 'NKB/11/91');
 
         $this->assertNotNull($target);
-        $this->assertSame('PELUNASAN H-7', $target['badge_text']);
+        $this->assertSame('DUE SETTLEMENT (H-7)', $target['badge_text']);
         $this->assertStringContainsString('wa.me', $target['action_url']);
     }
 
@@ -119,7 +119,43 @@ class AdminNotificationTest extends TestCase
         $target = $fieldItems->firstWhere('invoice', 'NKB/11/92');
 
         $this->assertNotNull($target);
-        $this->assertSame('LOADING TENDA (H-2)', $target['badge_text']);
+        $this->assertSame('TENT LOADING (H-2)', $target['badge_text']);
+    }
+
+    public function test_notification_service_identifies_ongoing_multiday_event_as_event_day(): void
+    {
+        $package = Package::first();
+
+        // Buat booking confirmed 2 hari yang sedang berlangsung hari ini (hari ke-2 dari 2 hari acara)
+        Booking::create([
+            'invoice_number'        => 'NKB/11/93',
+            'customer_name'         => 'Bagas & Maya',
+            'customer_phone'        => '081234567893',
+            'event_date'            => Carbon::yesterday()->toDateString(),
+            'event_end_date'        => Carbon::today()->toDateString(),
+            'duration_days'         => 2,
+            'package_id'            => $package->id,
+            'package_name'          => $package->name,
+            'package_price'         => $package->base_price,
+            'additional_day_charge' => 0,
+            'addon_total_price'     => 0,
+            'grand_total'           => 12000000,
+            'amount_paid'           => 12000000,
+            'remaining_balance'     => 0,
+            'payment_type'          => 'lunas',
+            'payment_proof_path'    => 'proofs/test.jpg',
+            'status'                => 'confirmed',
+        ]);
+
+        $service = new AdminNotificationService();
+        $notifications = $service->getNotifications();
+
+        $fieldItems = $notifications['field_operations']->where('type', 'field');
+        $target = $fieldItems->firstWhere('invoice', 'NKB/11/93');
+
+        $this->assertNotNull($target);
+        $this->assertSame('EVENT DAY (TODAY)', $target['badge_text']);
+        $this->assertStringContainsString('Event is ongoing today (Day 2 of 2)!', $target['desc']);
     }
 
     public function test_authenticated_admin_layout_renders_notification_center(): void

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>@yield('title', 'Dasbor') | NK Barokah Wedding Organizer</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,12 +165,7 @@
                 <a href="{{ route('admin.bookings.index') }}"
                    @if($isDashboardPage) @click.prevent="$store.nav.setTab('dashboard')" @endif
                    class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-sm group-hover:bg-brand-700 transition">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 18V7a2 2 0 0 1 3.4-1.4l7.2 7.2A2 2 0 0 0 19 11.4V6"/>
-                            <path d="M5 13v5a2 2 0 0 0 3.4 1.4l1.6-1.6"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-8 sm:h-9 w-auto object-contain transition group-hover:scale-105">
                     <span class="text-[17px] font-bold tracking-tight text-slate-900">NK Barokah</span>
                 </a>
             </div>
@@ -226,7 +224,7 @@
                 @if($isDashboardPage)
                     <button type="button"
                             @click="$store.nav.setTab('settings')"
-                            title="Pengaturan & Konfigurasi"
+                            title="Settings & Configuration"
                             :class="$store.nav.tab === 'settings'
                                 ? 'bg-brand-600 text-white shadow-pill font-semibold'
                                 : 'bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700'"
@@ -238,7 +236,7 @@
                     </button>
                 @else
                     <a href="{{ route('admin.bookings.index') }}"
-                       title="Pengaturan & Konfigurasi"
+                       title="Settings & Configuration"
                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -417,7 +415,7 @@
                 <!-- Avatar Owner -->
                 <button type="button"
                         @click="profileModalOpen = true"
-                        title="Profil Owner"
+                        title="Owner Profile"
                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center ring-2 ring-brand-100 hover:ring-brand-200 transition overflow-hidden shrink-0">
                     <img src="https://ui-avatars.com/api/?name={{ urlencode($ownerName) }}&background=045D56&color=ffffff&bold=true&size=80"
                          alt="{{ $ownerName }}"
@@ -467,7 +465,7 @@
         <div x-data="{
                 show: {{ (session('success') || session('error')) ? 'true' : 'false' }},
                 type: '{{ session('error') ? 'error' : 'success' }}',
-                title: '{{ session('error') ? 'Terjadi Kesalahan' : 'Aksi Berhasil' }}',
+                title: '{{ session('error') ? 'Error' : 'Success' }}',
                 message: {{ Js::from(session('success') ?? session('error') ?? '') }},
                 progress: 100,
                 duration: 4500,
@@ -485,7 +483,7 @@
                 trigger(msg, t = 'success', customTitle = null) {
                     this.message = msg;
                     this.type = t;
-                    this.title = customTitle || (t === 'error' ? 'Terjadi Kesalahan' : 'Aksi Berhasil');
+                    this.title = customTitle || (t === 'error' ? 'Error' : 'Success');
                     this.show = true;
                     this.remaining = this.duration;
                     this.progress = 100;

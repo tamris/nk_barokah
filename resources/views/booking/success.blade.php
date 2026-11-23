@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Reservasi Berhasil Diajukan | NK Barokah</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,6 +53,9 @@
 <body class="min-h-full bg-slate-50 text-slate-900 font-sans antialiased flex items-center justify-center p-4 sm:p-6 pb-safe pt-safe">
 
     <div class="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-card p-6 sm:p-8 text-center space-y-6">
+
+        <!-- Brand Logo -->
+        <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-12 w-auto object-contain mx-auto">
 
         <!-- Minimal Checkmark Icon -->
         <div class="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-200/60 text-brand-600 flex items-center justify-center mx-auto">

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Masuk Portal Owner | NK Barokah Wedding Organizer</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -41,14 +44,9 @@
 
     <div class="max-w-md w-full space-y-6">
 
-        <!-- Header & Logo Mark Deep Emerald Teal -->
+        <!-- Header & Logo Mark -->
         <div class="text-center space-y-2.5">
-            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-pill mx-auto">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 18V7a2 2 0 0 1 3.4-1.4l7.2 7.2A2 2 0 0 0 19 11.4V6"/>
-                    <path d="M5 13v5a2 2 0 0 0 3.4 1.4l1.6-1.6"/>
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-16 w-auto object-contain mx-auto mb-2">
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">NK Barokah</h1>
             <p class="text-xs text-slate-400 font-medium">Wedding Organizer Owner Management Portal</p>
         </div>
