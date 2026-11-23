@@ -255,6 +255,7 @@ class BookingManagementController extends Controller
             'price'           => (float) $p->base_price,
             'price_formatted' => 'Rp ' . number_format((float) $p->base_price, 0, ',', '.'),
             'description'     => $p->description ?: 'Complete Wedding Organizer package by NK Barokah.',
+            'raw_description' => (string) ($p->description ?? ''),
             'is_active'       => (bool) $p->is_active,
             'booked_count'    => (int) $p->bookings_count,
             'toggle_url'      => route('admin.packages.toggle', $p->id),

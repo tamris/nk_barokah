@@ -244,6 +244,16 @@ class AdminBookingTest extends TestCase
         $this->assertNotNull($package);
         $this->assertTrue($package->is_active);
 
+        // Update package
+        $updateResp = $this->actingAs($admin)->put(route('admin.packages.update', $package->id), [
+            'name'        => 'Diamond Royal Package (Updated)',
+            'base_price'  => 105000000,
+            'description' => 'Paket Sultan Bintang 5 Plus',
+        ]);
+        $updateResp->assertSessionHas('success');
+        $this->assertEquals('Diamond Royal Package (Updated)', $package->fresh()->name);
+        $this->assertEquals(105000000, (float) $package->fresh()->base_price);
+
         // Toggle to inactive
         $this->actingAs($admin)->patch(route('admin.packages.toggle', $package->id));
         $this->assertFalse($package->fresh()->is_active);
@@ -263,6 +273,17 @@ class AdminBookingTest extends TestCase
         $addon = Addon::where('name', 'Panggung Hiburan Live Music')->first();
         $this->assertNotNull($addon);
         $this->assertTrue($addon->is_active);
+
+        // Update addon
+        $updateResp = $this->actingAs($admin)->put(route('admin.addons.update', $addon->id), [
+            'name'       => 'Panggung Hiburan Live Music (VIP)',
+            'unit'       => 'panggung',
+            'unit_price' => 6500000,
+        ]);
+        $updateResp->assertSessionHas('success');
+        $this->assertEquals('Panggung Hiburan Live Music (VIP)', $addon->fresh()->name);
+        $this->assertEquals('panggung', $addon->fresh()->unit);
+        $this->assertEquals(6500000, (float) $addon->fresh()->unit_price);
 
         // Toggle to inactive
         $this->actingAs($admin)->patch(route('admin.addons.toggle', $addon->id));

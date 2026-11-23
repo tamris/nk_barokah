@@ -67,8 +67,114 @@
         clientPage: 1,
         clientPerPage: 10,
 
-        serviceSubTab: 'packages',
+        serviceSubTab: new URLSearchParams(window.location.search).get('subtab') || 'packages',
         serviceSearch: '',
+
+        packageModal: {
+            open: false,
+            isEdit: false,
+            id: null,
+            name: '',
+            base_price: '',
+            display_price: '',
+            description: '',
+            action: '{{ route('admin.packages.store') }}'
+        },
+        openPackageModal(pkg = null) {
+            if (pkg) {
+                const price = pkg.price ? Math.round(Number(pkg.price)) : 0;
+                this.packageModal = {
+                    open: true,
+                    isEdit: true,
+                    id: pkg.id,
+                    name: pkg.name || '',
+                    base_price: price || '',
+                    display_price: price > 0 ? new Intl.NumberFormat('id-ID').format(price) : '',
+                    description: (pkg.raw_description !== undefined && pkg.raw_description !== null && pkg.raw_description !== '') ? pkg.raw_description : (pkg.description || ''),
+                    action: '/admin/packages/' + pkg.id
+                };
+            } else {
+                this.packageModal = {
+                    open: true,
+                    isEdit: false,
+                    id: null,
+                    name: '',
+                    base_price: '',
+                    display_price: '',
+                    description: '',
+                    action: '{{ route('admin.packages.store') }}'
+                };
+            }
+        },
+        formatPackagePriceInput(e) {
+            const clean = e.target.value.replace(/\D/g, '');
+            if (!clean) {
+                this.packageModal.base_price = '';
+                this.packageModal.display_price = '';
+                e.target.value = '';
+                return;
+            }
+            const num = parseInt(clean, 10);
+            this.packageModal.base_price = num;
+            this.packageModal.display_price = new Intl.NumberFormat('id-ID').format(num);
+            e.target.value = this.packageModal.display_price;
+        },
+        closePackageModal() {
+            this.packageModal.open = false;
+        },
+
+        addonModal: {
+            open: false,
+            isEdit: false,
+            id: null,
+            name: '',
+            unit: 'unit',
+            unit_price: '',
+            display_price: '',
+            action: '{{ route('admin.addons.store') }}'
+        },
+        openAddonModal(addon = null) {
+            if (addon) {
+                const price = addon.price ? Math.round(Number(addon.price)) : 0;
+                this.addonModal = {
+                    open: true,
+                    isEdit: true,
+                    id: addon.id,
+                    name: addon.name || '',
+                    unit: addon.unit || 'unit',
+                    unit_price: price || '',
+                    display_price: price > 0 ? new Intl.NumberFormat('id-ID').format(price) : '',
+                    action: '/admin/addons/' + addon.id
+                };
+            } else {
+                this.addonModal = {
+                    open: true,
+                    isEdit: false,
+                    id: null,
+                    name: '',
+                    unit: 'unit',
+                    unit_price: '',
+                    display_price: '',
+                    action: '{{ route('admin.addons.store') }}'
+                };
+            }
+        },
+        formatAddonPriceInput(e) {
+            const clean = e.target.value.replace(/\D/g, '');
+            if (!clean) {
+                this.addonModal.unit_price = '';
+                this.addonModal.display_price = '';
+                e.target.value = '';
+                return;
+            }
+            const num = parseInt(clean, 10);
+            this.addonModal.unit_price = num;
+            this.addonModal.display_price = new Intl.NumberFormat('id-ID').format(num);
+            e.target.value = this.addonModal.display_price;
+        },
+        closeAddonModal() {
+            this.addonModal.open = false;
+        },
 
         invoiceSearch: '',
         invoiceFilter: 'all',
@@ -2210,7 +2316,7 @@
 
             <a href="{{ route('booking.create') }}" target="_blank"
                class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
-                <span>+ Add Client</span>
+                <span>Add Client</span>
             </a>
         </div>
 
@@ -2447,10 +2553,12 @@
                 </div>
             </div>
 
-            <a href="{{ route('admin.masters.index') }}"
-               class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
-                <span>Manage Master Data</span>
-            </a>
+            <button type="button"
+                    @click="serviceSubTab === 'packages' ? openPackageModal() : openAddonModal()"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0 cursor-pointer active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
+                <span x-text="serviceSubTab === 'packages' ? 'Add New Package' : 'Add New Add-on'"></span>
+            </button>
         </div>
 
         <div x-show="serviceSubTab === 'packages'" class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -2479,10 +2587,11 @@
                         <p class="text-xs text-slate-500 leading-relaxed pt-2 border-t border-[#EFF4F2]" x-text="pkg.description"></p>
                     </div>
 
-                    <a href="{{ route('admin.masters.index') }}"
-                       class="w-full py-2.5 rounded-full border border-[#E5ECE9] hover:bg-[#F6F8F7] text-xs font-semibold text-slate-700 text-center transition">
+                    <button type="button"
+                            @click="openPackageModal(pkg)"
+                            class="w-full py-2.5 rounded-full border border-[#E5ECE9] hover:bg-[#F6F8F7] hover:border-brand-300 hover:text-brand-700 text-xs font-semibold text-slate-700 text-center transition cursor-pointer active:scale-[0.99]">
                         Edit Package
-                    </a>
+                    </button>
                 </div>
             </template>
         </div>
@@ -2510,7 +2619,11 @@
                             <span class="text-base font-extrabold text-slate-900" x-text="addon.price_formatted"></span>
                             <span class="text-[11px] text-slate-400" x-text="' / ' + addon.unit"></span>
                         </div>
-                        <a href="{{ route('admin.masters.index') }}" class="text-[11px] font-semibold text-brand-600 hover:underline">Edit ›</a>
+                        <button type="button"
+                                @click="openAddonModal(addon)"
+                                class="text-[11px] font-semibold text-brand-600 hover:underline cursor-pointer">
+                            Edit ›
+                        </button>
                     </div>
                 </div>
             </template>
@@ -3062,13 +3175,35 @@
                                     <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">km</span>
                                 </div>
                             </div>
-                            <div class="space-y-1.5">
+                            <div class="space-y-1.5" x-data="{
+                                rawTierFee: {{ (int) ($settings['transport_fee_per_tier'] ?? 300000) }},
+                                displayTierFee: '{{ number_format((int) ($settings['transport_fee_per_tier'] ?? 300000), 0, ',', '.') }}',
+                                formatTierFee(e) {
+                                    const clean = e.target.value.replace(/\D/g, '');
+                                    if (!clean) {
+                                        this.rawTierFee = 0;
+                                        this.displayTierFee = '';
+                                        e.target.value = '';
+                                        return;
+                                    }
+                                    const num = parseInt(clean, 10);
+                                    this.rawTierFee = num;
+                                    this.displayTierFee = new Intl.NumberFormat('id-ID').format(num);
+                                    e.target.value = this.displayTierFee;
+                                }
+                            }">
                                 <label class="block text-xs font-bold text-slate-700">Fee per Distance Tier</label>
                                 <div class="relative">
-                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none">Rp</span>
-                                    <input type="number" min="0" step="10000" name="transport_fee_per_tier" required
-                                           value="{{ $settings['transport_fee_per_tier'] ?? 300000 }}"
-                                           class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600">
+                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none select-none">Rp</span>
+                                    <input type="text"
+                                           inputmode="numeric"
+                                           :value="displayTierFee"
+                                           value="{{ number_format((int) ($settings['transport_fee_per_tier'] ?? 300000), 0, ',', '.') }}"
+                                           @input="formatTierFee($event)"
+                                           @blur="if (rawTierFee) { displayTierFee = new Intl.NumberFormat('id-ID').format(rawTierFee); $el.value = displayTierFee; }"
+                                           placeholder="300.000"
+                                           class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 transition">
+                                    <input type="hidden" name="transport_fee_per_tier" :value="rawTierFee" value="{{ (int) ($settings['transport_fee_per_tier'] ?? 300000) }}">
                                 </div>
                             </div>
                         </div>
@@ -4418,6 +4553,200 @@
                         class="flex-1 py-2.5 px-4 rounded-full font-bold text-xs transition shadow-sm cursor-pointer active:scale-95">
                     <span x-text="confirmModal.btnText"></span>
                 </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- MODAL: ADD / EDIT WEDDING PACKAGE                                  -->
+    <!-- ================================================================== -->
+    <div x-show="packageModal.open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+         @keydown.escape.window="closePackageModal()"
+         x-cloak>
+        <div class="relative bg-white rounded-[28px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#EDF2F0] space-y-5 transform transition-all"
+             @click.away="closePackageModal()"
+             x-transition:enter="transition ease-out duration-200 transform"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150 transform"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-2">
+
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between gap-3 pb-4 border-b border-[#EFF4F2]">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-brand-50 border border-brand-100 text-brand-700 flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
+                            x-text="packageModal.isEdit ? 'Edit Wedding Package' : 'Create New Package'"></h3>
+                        <p class="text-xs text-slate-500 mt-0.5"
+                           x-text="packageModal.isEdit ? 'Update package specifications and pricing' : 'Add a new package to the official service catalog'"></p>
+                    </div>
+                </div>
+                <button type="button" @click="closePackageModal()"
+                        class="w-8 h-8 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form :action="packageModal.action" method="POST" class="space-y-4">
+                @csrf
+                <template x-if="packageModal.isEdit">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Package Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" x-model="packageModal.name" required
+                           placeholder="e.g. Tenda Set, Paket 1, Diamond Royal"
+                           class="w-full px-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Base Price (IDR) <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none pointer-events-none">Rp</span>
+                        <input type="text"
+                               inputmode="numeric"
+                               :value="packageModal.display_price"
+                               @input="formatPackagePriceInput($event)"
+                               @blur="if (packageModal.base_price) { packageModal.display_price = new Intl.NumberFormat('id-ID').format(packageModal.base_price); $el.value = packageModal.display_price; }"
+                               required
+                               placeholder="7.000.000"
+                               class="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-semibold font-mono focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">
+                        <input type="hidden" name="base_price" :value="packageModal.base_price">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Standard rate charged for the base duration of this package.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Description & Inclusions</label>
+                    <textarea name="description" x-model="packageModal.description" rows="4"
+                              placeholder="Describe tent sizes, chairs, tables, decorations, lighting, stage, etc."
+                              class="w-full px-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition resize-none"></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displayed to clients and staff during booking review.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EFF4F2]">
+                    <button type="button" @click="closePackageModal()"
+                            class="px-5 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 font-semibold text-xs hover:bg-slate-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-pill active:scale-95 cursor-pointer">
+                        <span x-text="packageModal.isEdit ? 'Save Changes' : 'Create Package'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- MODAL: ADD / EDIT ADD-ON FACILITY                                  -->
+    <!-- ================================================================== -->
+    <div x-show="addonModal.open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+         @keydown.escape.window="closeAddonModal()"
+         x-cloak>
+        <div class="relative bg-white rounded-[28px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#EDF2F0] space-y-5 transform transition-all"
+             @click.away="closeAddonModal()"
+             x-transition:enter="transition ease-out duration-200 transform"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150 transform"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-2">
+
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between gap-3 pb-4 border-b border-[#EFF4F2]">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-brand-50 border border-brand-100 text-brand-700 flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
+                            x-text="addonModal.isEdit ? 'Edit Add-on Facility' : 'Create New Add-on'"></h3>
+                        <p class="text-xs text-slate-500 mt-0.5"
+                           x-text="addonModal.isEdit ? 'Update add-on name, unit, and rental rate' : 'Introduce a new extra facility or equipment for events'"></p>
+                    </div>
+                </div>
+                <button type="button" @click="closeAddonModal()"
+                        class="w-8 h-8 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form :action="addonModal.action" method="POST" class="space-y-4">
+                @csrf
+                <template x-if="addonModal.isEdit">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Add-on Item Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" x-model="addonModal.name" required
+                           placeholder="e.g. Kursi Futura + Cover, Panggung Pelaminan"
+                           class="w-full px-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Unit Measurement <span class="text-rose-500">*</span></label>
+                        <input type="text" name="unit" x-model="addonModal.unit" required
+                               placeholder="e.g. unit, set, pcs, meter"
+                               class="w-full px-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">
+                        <p class="text-[10px] text-slate-400 mt-1">E.g., "pcs", "set", "unit", "meter".</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Unit Price (IDR) <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none pointer-events-none">Rp</span>
+                            <input type="text"
+                                   inputmode="numeric"
+                                   :value="addonModal.display_price"
+                                   @input="formatAddonPriceInput($event)"
+                                   @blur="if (addonModal.unit_price) { addonModal.display_price = new Intl.NumberFormat('id-ID').format(addonModal.unit_price); $el.value = addonModal.display_price; }"
+                                   required
+                                   placeholder="15.000"
+                                   class="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-semibold font-mono focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">
+                            <input type="hidden" name="unit_price" :value="addonModal.unit_price">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Cost per individual unit.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EFF4F2]">
+                    <button type="button" @click="closeAddonModal()"
+                            class="px-5 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 font-semibold text-xs hover:bg-slate-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-pill active:scale-95 cursor-pointer">
+                        <span x-text="addonModal.isEdit ? 'Save Changes' : 'Create Add-on'"></span>
+                    </button>
+                </div>
             </form>
         </div>
     </div>
