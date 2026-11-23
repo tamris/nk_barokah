@@ -19,6 +19,7 @@ class Booking extends Model
         'addon_total_price'     => 'decimal:2',
         'discount_amount'       => 'decimal:2',
         'discount_percent'      => 'decimal:2',
+        'owner_discount'        => 'decimal:2',
         'delivery_distance_km'  => 'decimal:2',
         'transport_fee'         => 'decimal:2',
         'grand_total'       => 'decimal:2',
@@ -155,6 +156,47 @@ class Booking extends Model
     public function getWhatsAppUrlAttribute(): string
     {
         return "https://wa.me/{$this->formatted_phone}?text=" . urlencode($this->whatsapp_message);
+    }
+
+    /**
+     * Hitung ulang seluruh total biaya reservasi (addon, durasi, transport, diskon, sisa bayar).
+     */
+    public function recalculateTotals(): void
+    {
+        $this->load('addons');
+        $addonTotal = (float) $this->addons->sum('subtotal');
+        $basePrice = (float) $this->package_price;
+        $extraCharge = (float) ($this->additional_day_charge ?? 0);
+        $transportFee = (float) ($this->transport_fee ?? 0);
+
+        $subtotal = $basePrice + $addonTotal + $extraCharge + $transportFee;
+
+        // Hitung ulang diskon vendor rekanan jika ada persentase
+        $vendorDiscount = (float) ($this->discount_amount ?? 0);
+        if ((float) ($this->discount_percent ?? 0) > 0) {
+            $vendorDiscount = min($subtotal, round(($this->discount_percent / 100) * $subtotal));
+        } else {
+            $vendorDiscount = min($vendorDiscount, $subtotal);
+        }
+
+        // Special Owner Discount (potongan harga langsung nominal rupiah dari owner)
+        $ownerDiscount = (float) ($this->owner_discount ?? 0);
+        $ownerDiscount = min($ownerDiscount, max(0, $subtotal - $vendorDiscount));
+
+        $totalDiscount = $vendorDiscount + $ownerDiscount;
+        $grandTotal = max(0, $subtotal - $totalDiscount);
+
+        $amountPaid = (float) $this->amount_paid;
+        $remainingBalance = max(0, $grandTotal - $amountPaid);
+
+        $this->update([
+            'addon_total_price' => $addonTotal,
+            'discount_amount'   => $vendorDiscount,
+            'owner_discount'    => $ownerDiscount,
+            'grand_total'       => $grandTotal,
+            'amount_paid'       => $amountPaid,
+            'remaining_balance' => $remainingBalance,
+        ]);
     }
 }
 

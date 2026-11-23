@@ -280,6 +280,7 @@ class AdminBookingTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('2027-01-01');
         $response->assertSee('2027-01-02');
+        $response->assertSee('1 - 2 Jan');
         $response->assertSee('Muchamad Rizqi Pratama');
 
         $showResponse = $this->actingAs($admin)->get(route('admin.bookings.show', $booking->id));
@@ -586,6 +587,91 @@ class AdminBookingTest extends TestCase
         $this->assertEquals(0, (float) $booking->discount_amount);
     }
 
+    public function test_admin_can_update_owner_discount_on_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-OWNER-DISC',
+            'customer_name'        => 'Owner Discount Customer',
+            'customer_phone'       => '081234567899',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 0,
+            'transport_fee'        => 300000,
+            'discount_percent'     => 10, // 10% of 5.300.000 = 530.000
+            'discount_amount'      => 530000,
+            'owner_discount'       => 0,
+            'grand_total'          => 4770000,
+            'amount_paid'          => 2000000,
+            'remaining_balance'    => 2770000,
+            'payment_type'         => 'dp',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'pending_verification',
+        ]);
+
+        // Admin adds special owner discount of Rp 270.000
+        $response = $this->actingAs($admin)->post(route('admin.bookings.owner_discount', $booking->id), [
+            'owner_discount' => '270.000',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(270000, (float) $booking->owner_discount);
+        // Subtotal = 5.300.000
+        // Vendor discount = 530.000
+        // Owner discount = 270.000
+        // Total discount = 800.000
+        // Grand total = 5.300.000 - 800.000 = 4.500.000
+        $this->assertEquals(4500000, (float) $booking->grand_total);
+        // Remaining = 4.500.000 - 2.000.000 = 2.500.000
+        $this->assertEquals(2500000, (float) $booking->remaining_balance);
+
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_admin_cannot_update_owner_discount_on_paid_booking(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-OWNER-PAID',
+            'customer_name'        => 'Paid Customer Owner Disc',
+            'customer_phone'       => '081234567898',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 0,
+            'transport_fee'        => 0,
+            'owner_discount'       => 0,
+            'grand_total'          => 5000000,
+            'amount_paid'          => 5000000,
+            'remaining_balance'    => 0,
+            'payment_type'         => 'lunas',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.owner_discount', $booking->id), [
+            'owner_discount' => '200.000',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+
+        $booking->refresh();
+        $this->assertEquals(0, (float) $booking->owner_discount);
+    }
+
     public function test_vendor_discount_calculation_includes_transport_fee(): void
     {
         Queue::fake();
@@ -626,6 +712,196 @@ class AdminBookingTest extends TestCase
         $this->assertEquals(1030000, (float) $booking->discount_amount);
         $this->assertEquals(9270000, (float) $booking->grand_total);
         $this->assertEquals(6270000, (float) $booking->remaining_balance);
+    }
+
+    public function test_admin_can_add_catalog_addon_to_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+        $addon = Addon::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-ADDON-CAT',
+            'customer_name'        => 'Addon Catalog Test',
+            'customer_phone'       => '081234567893',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 0,
+            'grand_total'          => 5000000,
+            'amount_paid'          => 2000000,
+            'remaining_balance'    => 3000000,
+            'payment_type'         => 'dp',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.addons.store', $booking->id), [
+            'addon_id'   => $addon->id,
+            'addon_name' => $addon->name,
+            'quantity'   => 2,
+            'unit_price' => $addon->unit_price,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $expectedAddonSubtotal = 2 * (float) $addon->unit_price;
+        $booking->refresh();
+        $this->assertEquals($expectedAddonSubtotal, (float) $booking->addon_total_price);
+        $this->assertEquals(5000000 + $expectedAddonSubtotal, (float) $booking->grand_total);
+        $this->assertEquals(3000000 + $expectedAddonSubtotal, (float) $booking->remaining_balance);
+
+        $this->assertDatabaseHas('booking_addons', [
+            'booking_id' => $booking->id,
+            'addon_id'   => $addon->id,
+            'quantity'   => 2,
+        ]);
+
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_admin_can_add_custom_field_addon_to_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-ADDON-CUST',
+            'customer_name'        => 'Custom Addon Customer',
+            'customer_phone'       => '081234567894',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 0,
+            'grand_total'          => 5000000,
+            'amount_paid'          => 5000000,
+            'remaining_balance'    => 0,
+            'payment_type'         => 'lunas',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+        ]);
+
+        // Client on-site requests: "Tambahan Panjang Tenda 3x6m" @ 600.000
+        $response = $this->actingAs($admin)->post(route('admin.bookings.addons.store', $booking->id), [
+            'addon_name' => 'Tambahan Panjang Tenda 3x6m',
+            'quantity'   => 1,
+            'unit_price' => '600.000',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(600000, (float) $booking->addon_total_price);
+        $this->assertEquals(5600000, (float) $booking->grand_total);
+        // Note: remaining_balance increases because grand_total exceeds previously paid amount
+        $this->assertEquals(600000, (float) $booking->remaining_balance);
+
+        $this->assertDatabaseHas('booking_addons', [
+            'booking_id' => $booking->id,
+            'addon_name' => 'Tambahan Panjang Tenda 3x6m',
+            'addon_id'   => null,
+            'subtotal'   => 600000,
+        ]);
+    }
+
+    public function test_admin_can_delete_addon_from_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-DEL-ADDON',
+            'customer_name'        => 'Delete Addon Customer',
+            'customer_phone'       => '081234567895',
+            'event_date'           => now()->addMonths(2)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 500000,
+            'grand_total'          => 5500000,
+            'amount_paid'          => 2000000,
+            'remaining_balance'    => 3500000,
+            'payment_type'         => 'dp',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'confirmed',
+        ]);
+
+        $addon = $booking->addons()->create([
+            'addon_name' => 'Salah Input Kursi',
+            'quantity'   => 5,
+            'unit_price' => 100000,
+            'subtotal'   => 500000,
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.bookings.addons.delete', [$booking->id, $addon->id]));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals(0, (float) $booking->addon_total_price);
+        $this->assertEquals(5000000, (float) $booking->grand_total);
+        $this->assertEquals(3000000, (float) $booking->remaining_balance);
+
+        $this->assertDatabaseMissing('booking_addons', [
+            'id' => $addon->id,
+        ]);
+    }
+
+    public function test_admin_cannot_delete_or_add_addon_on_completed_booking(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'       => 'INV-202611-COMP-ADDON',
+            'customer_name'        => 'Completed Booking Addon Customer',
+            'customer_phone'       => '081234567896',
+            'event_date'           => now()->subMonths(1)->format('Y-m-d'),
+            'package_id'           => $package->id,
+            'package_name'         => $package->name,
+            'package_price'        => 5000000,
+            'addon_total_price'    => 200000,
+            'grand_total'          => 5200000,
+            'amount_paid'          => 5200000,
+            'remaining_balance'    => 0,
+            'payment_type'         => 'lunas',
+            'payment_proof_path'   => 'proofs/dummy.jpg',
+            'status'               => 'completed',
+        ]);
+
+        $addon = $booking->addons()->create([
+            'addon_name' => 'Existing Addon',
+            'quantity'   => 2,
+            'unit_price' => 100000,
+            'subtotal'   => 200000,
+        ]);
+
+        // 1. Try to delete addon on completed booking
+        $deleteResponse = $this->actingAs($admin)->delete(route('admin.bookings.addons.delete', [$booking->id, $addon->id]));
+        $deleteResponse->assertRedirect();
+        $deleteResponse->assertSessionHas('error');
+
+        $this->assertDatabaseHas('booking_addons', ['id' => $addon->id]);
+
+        // 2. Try to add addon on completed booking
+        $addResponse = $this->actingAs($admin)->post(route('admin.bookings.addons.store', $booking->id), [
+            'addon_name' => 'New Addon Attempt',
+            'quantity'   => 1,
+            'unit_price' => 150000,
+        ]);
+        $addResponse->assertRedirect();
+        $addResponse->assertSessionHas('error');
     }
 }
 

@@ -41,7 +41,7 @@ class BookingTest extends TestCase
 
         $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
 
-        $eventDate = now()->addMonth()->format('Y-m-d');
+        $eventDate = now()->addYears(2)->format('Y-m-d');
 
         $response = $this->post(route('booking.store'), [
             'customer_name'  => 'Budi & Ani',
@@ -80,7 +80,7 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonth()->format('Y-m-d');
+        $eventDate = now()->addYears(2)->format('Y-m-d');
         $dpNominal = 1000000;
 
         $response = $this->post(route('booking.store'), [
@@ -280,7 +280,7 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(7)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addDays(10)->format('Y-m-d');
 
         $response = $this->post(route('booking.store'), [
             'customer_name'       => 'Doni & Maya',

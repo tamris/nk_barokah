@@ -10,6 +10,7 @@ use App\Models\Setting;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class BookingManagementController extends Controller
 {
@@ -36,8 +37,14 @@ class BookingManagementController extends Controller
             $durationDays = max(1, (int) ($b->duration_days ?: ($eventDate->diffInDays($eventEndDate) + 1)));
 
             if ($durationDays > 1 && !$eventDate->isSameDay($eventEndDate)) {
-                $dateFormatted = $eventDate->format('D, M d, Y') . ' – ' . $eventEndDate->format('D, M d, Y') . " ({$durationDays} Hari)";
-                $dateShortFormatted = $eventDate->format('M d') . ' – ' . $eventEndDate->format('M d, Y');
+                $dateFormatted = $eventDate->format('D, M d, Y') . ' – ' . $eventEndDate->format('D, M d, Y');
+                if ($eventDate->year !== $eventEndDate->year) {
+                    $dateShortFormatted = $eventDate->format('j M Y') . ' - ' . $eventEndDate->format('j M Y');
+                } elseif ($eventDate->month === $eventEndDate->month) {
+                    $dateShortFormatted = $eventDate->format('j') . ' - ' . $eventEndDate->format('j M');
+                } else {
+                    $dateShortFormatted = $eventDate->format('j M') . ' - ' . $eventEndDate->format('j M');
+                }
             } else {
                 $dateFormatted = $eventDate->format('l, M d, Y');
                 $dateShortFormatted = $eventDate->format('M d, Y');
@@ -54,7 +61,7 @@ class BookingManagementController extends Controller
 
             if ($b->status === 'rejected') {
                 $invoiceStatus = 'Cancelled';
-            } elseif ($b->status === 'completed' || $b->remaining_balance <= 0 || strtolower((string) $b->payment_type) === 'lunas') {
+            } elseif ($b->status === 'completed' || (float) $b->remaining_balance <= 0) {
                 $invoiceStatus = 'Paid';
             } elseif ($b->status === 'pending_verification') {
                 $invoiceStatus = 'Draft';
@@ -129,6 +136,7 @@ class BookingManagementController extends Controller
                 'package_price'           => (float) $b->package_price,
                 'package_price_formatted' => 'Rp ' . number_format((float) $b->package_price, 0, ',', '.'),
                 'addons'                  => $b->addons->map(fn ($a) => [
+                    'id'                 => $a->id,
                     'name'               => $a->addon_name,
                     'quantity'           => (int) $a->quantity,
                     'unit_price'         => 'Rp ' . number_format((float) $a->unit_price, 0, ',', '.'),
@@ -182,6 +190,9 @@ class BookingManagementController extends Controller
                 'discount_amount'         => $discountAmount,
                 'discount_percent'        => $discountPercent,
                 'discount_amount_formatted' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
+                'owner_discount'          => (float) ($b->owner_discount ?? 0),
+                'owner_discount_formatted' => 'Rp ' . number_format((float) ($b->owner_discount ?? 0), 0, ',', '.'),
+                'owner_discount_url'      => route('admin.bookings.owner_discount', $b->id),
                 'delivery_distance_km'    => (float) ($b->delivery_distance_km ?? 0),
                 'transport_fee'           => (float) ($b->transport_fee ?? 0),
                 'transport_fee_formatted' => 'Rp ' . number_format((float) ($b->transport_fee ?? 0), 0, ',', '.'),
@@ -403,48 +414,60 @@ class BookingManagementController extends Controller
 
         if ($request->filled('discount_percent')) {
             $percent = max(0, min(100, (float) $validated['discount_percent']));
-            $rawDiscount = round(($percent / 100) * $subtotal);
         } elseif ($request->filled('discount_amount')) {
             $rawDiscount = (float) ($validated['discount_amount'] ?? 0);
             $percent = $subtotal > 0 ? round(($rawDiscount / $subtotal) * 100, 2) : 0;
         } else {
-            $rawDiscount = 0;
             $percent = 0;
         }
 
-        $discount = min($rawDiscount, $subtotal);
-        $newGrandTotal = max(0, $subtotal - $discount);
+        $booking->discount_percent   = $percent;
+        $booking->vendor_name        = $validated['vendor_name'] ?? $booking->vendor_name;
+        $booking->venue_address      = $validated['venue_address'] ?? $booking->venue_address;
+        $booking->address_landmark   = $validated['address_landmark'] ?? $booking->address_landmark;
+        $booking->event_time         = $validated['event_time'] ?? $booking->event_time;
+        $booking->parents_name       = $validated['parents_name'] ?? $booking->parents_name;
+        $booking->instagram_account  = $validated['instagram_account'] ?? $booking->instagram_account;
+        $booking->vendor_mua         = $validated['vendor_mua'] ?? $booking->vendor_mua;
+        $booking->vendor_decor       = $validated['vendor_decor'] ?? $booking->vendor_decor;
+        $booking->vendor_photo_video = $validated['vendor_photo_video'] ?? $booking->vendor_photo_video;
+        $booking->vendor_mc_wo       = $validated['vendor_mc_wo'] ?? $booking->vendor_mc_wo;
+        $booking->save();
 
-        if (strtolower((string) $booking->payment_type) === 'lunas' || $booking->status === 'completed') {
-            $newAmountPaid = $newGrandTotal;
-            $newRemaining = 0;
-        } else {
-            $newAmountPaid = (float) $booking->amount_paid;
-            $newRemaining = max(0, $newGrandTotal - $newAmountPaid);
-        }
-
-        $booking->update([
-            'discount_percent'  => $percent,
-            'discount_amount'   => $discount,
-            'grand_total'       => $newGrandTotal,
-            'amount_paid'       => $newAmountPaid,
-            'remaining_balance' => $newRemaining,
-            'vendor_name'       => $validated['vendor_name'] ?? $booking->vendor_name,
-            'venue_address'     => $validated['venue_address'] ?? $booking->venue_address,
-            'address_landmark'  => $validated['address_landmark'] ?? $booking->address_landmark,
-            'event_time'        => $validated['event_time'] ?? $booking->event_time,
-            'parents_name'      => $validated['parents_name'] ?? $booking->parents_name,
-            'instagram_account' => $validated['instagram_account'] ?? $booking->instagram_account,
-            'vendor_mua'        => $validated['vendor_mua'] ?? $booking->vendor_mua,
-            'vendor_decor'      => $validated['vendor_decor'] ?? $booking->vendor_decor,
-            'vendor_photo_video'=> $validated['vendor_photo_video'] ?? $booking->vendor_photo_video,
-            'vendor_mc_wo'      => $validated['vendor_mc_wo'] ?? $booking->vendor_mc_wo,
-        ]);
+        $booking->recalculateTotals();
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
             ->with('success', "Diskon vendor ({$percent}%) & tagihan pesanan #{$booking->invoice_number} berhasil diperbarui!");
+    }
+
+    public function updateOwnerDiscount(Request $request, $id)
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($booking->remaining_balance <= 0 && $booking->status !== 'pending_verification') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', "Potongan harga khusus owner tidak dapat diubah karena invoice pesanan #{$booking->invoice_number} sudah berstatus LUNAS (Paid).");
+        }
+
+        $rawDiscount = $request->input('owner_discount');
+        if (is_string($rawDiscount)) {
+            $cleaned = preg_replace('/[^\d]/', '', $rawDiscount);
+            $rawDiscount = $cleaned !== '' ? (float) $cleaned : 0;
+        } else {
+            $rawDiscount = (float) ($rawDiscount ?? 0);
+        }
+
+        $booking->owner_discount = max(0, $rawDiscount);
+        $booking->save();
+        $booking->recalculateTotals();
+
+        SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        $formatted = 'Rp ' . number_format((float) $booking->owner_discount, 0, ',', '.');
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Potongan harga spesial owner ({$formatted}) untuk pesanan #{$booking->invoice_number} berhasil diperbarui!");
     }
 
     public function updateTransport(Request $request, $id)
@@ -470,34 +493,83 @@ class BookingManagementController extends Controller
             $transportFee = Setting::calculateTransportFee($distance);
         }
 
-        $packagePrice = (float) $booking->package_price;
-        $addonTotal = (float) $booking->addon_total_price;
-        $additionalDayCharge = (float) $booking->additional_day_charge;
-        $discountAmount = (float) ($booking->discount_amount ?? 0);
-
-        $subtotal = $packagePrice + $addonTotal + $additionalDayCharge + $transportFee;
-        $newGrandTotal = max(0, $subtotal - $discountAmount);
-
-        if (strtolower((string) $booking->payment_type) === 'lunas' || $booking->status === 'completed') {
-            $newAmountPaid = $newGrandTotal;
-            $newRemaining = 0;
-        } else {
-            $newAmountPaid = (float) $booking->amount_paid;
-            $newRemaining = max(0, $newGrandTotal - $newAmountPaid);
-        }
-
-        $booking->update([
-            'delivery_distance_km' => $distance,
-            'transport_fee'        => $transportFee,
-            'grand_total'          => $newGrandTotal,
-            'amount_paid'          => $newAmountPaid,
-            'remaining_balance'    => $newRemaining,
-        ]);
+        $booking->delivery_distance_km = $distance;
+        $booking->transport_fee = $transportFee;
+        $booking->save();
+        $booking->recalculateTotals();
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
             ->with('success', "Biaya transport pengiriman tenda pesanan #{$booking->invoice_number} berhasil diperbarui!");
+    }
+
+    public function storeAddon(Request $request, $id): RedirectResponse
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($booking->status === 'completed') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', "Item tidak dapat ditambahkan karena acara pesanan #{$booking->invoice_number} sudah berstatus SELESAI (Completed).");
+        }
+
+        if ($request->has('unit_price')) {
+            $rawPrice = (string) $request->input('unit_price');
+            if (preg_match('/^\d+\.\d{2}$/', $rawPrice)) {
+                $cleanPrice = (float) $rawPrice;
+            } else {
+                $cleanPrice = (float) preg_replace('/[^\d]/', '', $rawPrice);
+            }
+            $request->merge(['unit_price' => $cleanPrice]);
+        }
+
+        $validated = $request->validate([
+            'addon_id'   => ['nullable', 'exists:addons,id'],
+            'addon_name' => ['required', 'string', 'max:150'],
+            'quantity'   => ['required', 'integer', 'min:1', 'max:9999'],
+            'unit_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $quantity = (int) $validated['quantity'];
+        $unitPrice = (float) $validated['unit_price'];
+        $subtotal = round($quantity * $unitPrice);
+
+        $booking->addons()->create([
+            'addon_id'   => !empty($validated['addon_id']) ? $validated['addon_id'] : null,
+            'addon_name' => $validated['addon_name'],
+            'unit_price' => $unitPrice,
+            'quantity'   => $quantity,
+            'subtotal'   => $subtotal,
+        ]);
+
+        $booking->recalculateTotals();
+
+        SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Item tambahan '{$validated['addon_name']}' ({$quantity}x) berhasil ditambahkan ke reservasi #{$booking->invoice_number}.");
+    }
+
+    public function deleteAddon(Request $request, $id, $addonId): RedirectResponse
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($booking->status === 'completed') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', "Item tidak dapat dihapus karena acara pesanan #{$booking->invoice_number} sudah berstatus SELESAI (Completed).");
+        }
+
+        $addon = $booking->addons()->findOrFail($addonId);
+        $name = $addon->addon_name;
+
+        $addon->delete();
+
+        $booking->recalculateTotals();
+
+        SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Item '{$name}' berhasil dihapus dari reservasi #{$booking->invoice_number}. Tagihan telah diperbarui.");
     }
 
     public function syncAllGoogle()

@@ -886,7 +886,7 @@
                             </div>
                             <div>
                                 <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Rincian Vendor Acara Lainnya <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
-                                <p class="text-[11px] text-slate-400">Bisa diisi jika sudah ada, atau dilewati jika belum ditentukan.</p>
+                                <!-- <p class="text-[11px] text-slate-400">Bisa diisi jika sudah ada, atau dilewati jika belum ditentukan.</p> -->
                             </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': vendorsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>

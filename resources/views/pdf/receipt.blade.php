@@ -517,6 +517,14 @@
                             <td class="summary-val font-mono" style="color: #045D56; font-weight: 800;">-Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</td>
                         </tr>
                         @endif
+                        @if(($booking->owner_discount ?? 0) > 0)
+                        <tr style="background: #FFFDF5;">
+                            <td class="summary-label" style="color: #92400E; font-weight: 700;">
+                                Potongan Khusus Owner:
+                            </td>
+                            <td class="summary-val font-mono" style="color: #92400E; font-weight: 800;">-Rp {{ number_format($booking->owner_discount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
                         <tr class="summary-grand">
                             <td class="summary-label">Grand Total Biaya:</td>
                             <td class="summary-val font-mono">Rp {{ number_format($booking->grand_total, 0, ',', '.') }}</td>
