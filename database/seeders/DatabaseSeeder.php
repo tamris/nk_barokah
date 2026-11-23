@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name'     => 'Owner NK Barokah',
                 'password' => Hash::make('password'),
+                'pin'      => '123456',
             ]
         );
 

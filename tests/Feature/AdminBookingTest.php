@@ -40,6 +40,26 @@ class AdminBookingTest extends TestCase
         $this->assertAuthenticated();
     }
 
+    public function test_admin_can_login_with_six_digit_pin(): void
+    {
+        $response = $this->post(route('admin.login.post'), [
+            'pin' => '123456',
+        ]);
+
+        $response->assertRedirect(route('admin.bookings.index'));
+        $this->assertAuthenticated();
+    }
+
+    public function test_admin_cannot_login_with_invalid_pin(): void
+    {
+        $response = $this->post(route('admin.login.post'), [
+            'pin' => '999999',
+        ]);
+
+        $response->assertSessionHasErrors(['pin']);
+        $this->assertGuest();
+    }
+
     public function test_admin_cannot_login_with_invalid_credentials(): void
     {
         $response = $this->post(route('admin.login.post'), [
@@ -315,14 +335,14 @@ class AdminBookingTest extends TestCase
         // 1. Assert settings elements are present in the admin bookings page
         $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
         $response->assertStatus(200);
-        $response->assertSee('Aturan & Kebijakan Acara', false);
-        $response->assertSee('Durasi Standar Paket');
-        $response->assertSee('Charge Hari Tambahan');
-        $response->assertSee('Rekening Resmi Pembayaran');
-        $response->assertSee('Integrasi Google Cloud');
+        $response->assertSee('Operational Rules & Event Policies', false);
+        $response->assertSee('Standard Package Duration');
+        $response->assertSee('Extra Day Charge Rate');
+        $response->assertSee('Official Payment Bank Accounts');
+        $response->assertSee('Google Cloud Integration');
         $response->assertSee('Google Spreadsheet ID');
         $response->assertSee('Google Calendar ID');
-        $response->assertSee('Mulai Sinkronisasi Sekarang');
+        $response->assertSee('Sync All Records Now');
         $response->assertDontSee('Service Account Credentials');
         $response->assertDontSee('storage/app/google/service-account.json');
 
@@ -941,6 +961,22 @@ class AdminBookingTest extends TestCase
         $booking->refresh();
         $this->assertEquals('completed', $booking->survey_status);
         $this->assertEquals('Hasil ukur: area halaman 8x12m, kabel PLN aman.', $booking->survey_notes);
+    }
+
+    public function test_admin_can_update_pin_in_settings(): void
+    {
+        $admin = User::first();
+
+        $response = $this->actingAs($admin)->post(route('admin.settings.update_pin'), [
+            'pin'              => '654321',
+            'pin_confirmation' => '654321',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $admin->refresh();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('654321', $admin->pin));
     }
 }
 

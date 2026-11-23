@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>@yield('title', 'Dasbor') | NK Barokah Wedding Organizer</title>
+    <title>@yield('title', 'Dashboard') | NK Barokah Wedding Organizer</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -637,18 +637,18 @@
                 <h3 class="text-sm font-bold text-slate-900">{{ $ownerName }}</h3>
                 <p class="text-xs text-slate-400">{{ $ownerEmail }}</p>
                 <span class="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700">
-                    Pemilik NK Barokah
+                    NK Barokah Owner
                 </span>
             </div>
             <div class="pt-3 border-t border-slate-100 space-y-2">
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full py-2.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition">
-                        Keluar dari Akun
+                    <button type="submit" class="w-full py-2.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition cursor-pointer">
+                        Sign Out
                     </button>
                 </form>
-                <button type="button" @click="profileModalOpen = false" class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-700">
-                    Tutup
+                <button type="button" @click="profileModalOpen = false" class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-700 cursor-pointer">
+                    Close
                 </button>
             </div>
         </div>

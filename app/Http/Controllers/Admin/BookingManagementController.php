@@ -11,6 +11,7 @@ use App\Jobs\SyncBookingToGoogleServicesJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class BookingManagementController extends Controller
 {
@@ -595,7 +596,7 @@ class BookingManagementController extends Controller
             SyncBookingToGoogleServicesJob::dispatch($b);
         }
 
-        return back()->with('success', "Proses sinkronisasi seluruh reservasi ({$bookings->count()} data) ke Google Sheets & Google Calendar telah berhasil dijadwalkan!");
+        return back()->with('success', "Database synchronization for {$bookings->count()} bookings has been queued successfully!");
     }
 
     public function updateBusinessRules(Request $request)
@@ -628,7 +629,7 @@ class BookingManagementController extends Controller
             Setting::set($key, $value);
         }
 
-        return back()->with('success', 'Aturan operasional & kebijakan acara berhasil diperbarui!');
+        return back()->with('success', 'Operational rules & event policies updated successfully!');
     }
 
     public function updateBankAccounts(Request $request)
@@ -644,7 +645,7 @@ class BookingManagementController extends Controller
             Setting::set($key, $value);
         }
 
-        return back()->with('success', 'Data rekening resmi transfer bank berhasil diperbarui!');
+        return back()->with('success', 'Official payment bank accounts updated successfully!');
     }
 
     public function updateGoogleSettings(Request $request)
@@ -657,7 +658,26 @@ class BookingManagementController extends Controller
         Setting::set('google_sheet_id', trim($validated['google_sheet_id'] ?? ''));
         Setting::set('google_calendar_id', trim($validated['google_calendar_id'] ?? ''));
 
-        return back()->with('success', 'ID Google Sheets & Google Calendar berhasil diperbarui!');
+        return back()->with('success', 'Google Sheets and Google Calendar IDs updated successfully!');
+    }
+
+    public function updateOwnerPin(Request $request)
+    {
+        $request->validate([
+            'pin' => ['required', 'string', 'digits:6', 'confirmed'],
+        ], [
+            'pin.required'  => 'The 6-digit PIN is required.',
+            'pin.digits'    => 'The PIN must be exactly 6 digits.',
+            'pin.confirmed' => 'The PIN confirmation does not match.',
+        ]);
+
+        $user = Auth::user();
+        if ($user) {
+            $user->pin = $request->pin;
+            $user->save();
+        }
+
+        return back()->with('success', 'Owner access PIN has been successfully updated!');
     }
 
     public function updateSurveyStatus(Request $request, $id)
