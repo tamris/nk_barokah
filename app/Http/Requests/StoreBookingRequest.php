@@ -96,50 +96,74 @@ class StoreBookingRequest extends FormRequest
             ],
             'survey_time_slot'   => ['nullable', 'required_if:survey_requested,true,1', 'string', 'in:morning,afternoon,flexible'],
             'survey_notes'       => ['nullable', 'string', 'max:500'],
+            'tent_color_theme'   => ['nullable', 'string', 'max:100'],
+            'custom_tent_size'   => ['nullable', 'string', 'max:150'],
+            'operational_notes'  => ['nullable', 'string', 'max:1000'],
+            'job_source'         => ['nullable', 'string', 'max:100'],
+            'setup_date'         => ['nullable', 'date'],
         ];
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
-            if ($this->payment_type === 'dp') {
-                $minDpConfig = (float) Setting::get('min_dp_amount', 1000000);
-                $nominalDp = (float) $this->nominal_dp;
+            $package = Package::find($this->package_id);
+            if (!$package) {
+                return;
+            }
 
-                // Hitung estimasi grand total server-side untuk memvalidasi batas atas & bawah DP
-                $package = Package::find($this->package_id);
-                if (!$package) {
-                    return;
-                }
-
-                $addonTotal = 0;
-                if (!empty($this->addons)) {
-                    foreach ($this->addons as $item) {
-                        $qty = (int) ($item['qty'] ?? 0);
-                        if ($qty > 0) {
-                            $addon = Addon::find($item['id'] ?? null);
-                            if ($addon) {
-                                $addonTotal += ($addon->unit_price * $qty);
-                            }
+            // Hitung total dan jumlah addon yang dipilih
+            $selectedAddonsCount = 0;
+            $addonTotal = 0;
+            if (!empty($this->addons) && is_array($this->addons)) {
+                foreach ($this->addons as $item) {
+                    $qty = (int) ($item['qty'] ?? 0);
+                    if ($qty > 0) {
+                        $selectedAddonsCount++;
+                        $addon = Addon::find($item['id'] ?? null);
+                        if ($addon) {
+                            $addonTotal += ($addon->unit_price * $qty);
                         }
                     }
                 }
+            }
 
-                $startDate = \Carbon\Carbon::parse($this->event_date);
-                $endDate = $this->filled('event_end_date') ? \Carbon\Carbon::parse($this->event_end_date) : $startDate;
-                $durationDays = max(1, (int) ($startDate->diffInDays($endDate) + 1));
-                $standardDays = (int) Setting::get('standard_package_max_days', 2);
-                $extraDays = max(0, $durationDays - $standardDays);
-                $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
-                $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
+            // Validasi paket Custom / Sewa Alat Saja (Tanpa Tenda): Wajib memilih minimal 1 perlengkapan
+            $isCustom = ((float) $package->base_price == 0)
+                || str_contains(strtolower($package->name), 'custom')
+                || str_contains(strtolower($package->name), 'sewa alat')
+                || str_contains(strtolower($package->name), 'tanpa tenda')
+                || str_contains(strtolower($package->slug ?? ''), 'custom')
+                || str_contains(strtolower($package->slug ?? ''), 'tanpa-tenda');
 
-                $deliveryDistance = (float) $this->input('delivery_distance_km', 0);
-                $transportFee = Setting::calculateTransportFee($deliveryDistance);
+            if ($isCustom && $selectedAddonsCount === 0) {
+                $validator->errors()->add('addons', 'Untuk paket Custom / Sewa Alat Saja, Anda wajib memilih minimal 1 jenis perlengkapan yang disewa.');
+            }
 
-                $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge + $transportFee;
+            $startDate = \Carbon\Carbon::parse($this->event_date);
+            $endDate = $this->filled('event_end_date') ? \Carbon\Carbon::parse($this->event_end_date) : $startDate;
+            $durationDays = max(1, (int) ($startDate->diffInDays($endDate) + 1));
+            $standardDays = (int) Setting::get('standard_package_max_days', 2);
+            $extraDays = max(0, $durationDays - $standardDays);
+            $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
+            $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
 
-                if ($nominalDp < $minDpConfig) {
-                    $validator->errors()->add('nominal_dp', 'Nominal DP minimal adalah Rp ' . number_format($minDpConfig, 0, ',', '.') . '.');
+            $deliveryDistance = (float) $this->input('delivery_distance_km', 0);
+            $transportFee = Setting::calculateTransportFee($deliveryDistance);
+
+            $grandTotal = (float) $package->base_price + $addonTotal + $additionalDayCharge + $transportFee;
+
+            if ($grandTotal <= 0) {
+                $validator->errors()->add('package_id', 'Total nilai sewa reservasi tidak boleh Rp 0. Silakan pilih perlengkapan sewa yang dibutuhkan.');
+            }
+
+            if ($this->payment_type === 'dp') {
+                $minDpConfig = (float) Setting::get('min_dp_amount', 1000000);
+                $nominalDp = (float) $this->nominal_dp;
+                $effectiveMinDp = min($minDpConfig, $grandTotal);
+
+                if ($nominalDp < $effectiveMinDp) {
+                    $validator->errors()->add('nominal_dp', 'Nominal DP minimal adalah Rp ' . number_format($effectiveMinDp, 0, ',', '.') . '.');
                 }
 
                 if ($nominalDp > $grandTotal) {

@@ -216,6 +216,15 @@ class BookingManagementController extends Controller
                 'vendor_decor'            => $b->vendor_decor ?: '-',
                 'vendor_photo_video'      => $b->vendor_photo_video ?: '-',
                 'vendor_mc_wo'            => $b->vendor_mc_wo ?: '-',
+                'tent_color_theme'        => $b->tent_color_theme ?: 'Standard / Natural',
+                'custom_tent_size'        => $b->custom_tent_size ?: '',
+                'operational_notes'       => $b->operational_notes ?: '',
+                'job_source'              => $b->job_source ?: ($b->vendor_name ?: 'Direct Client'),
+                'setup_date_iso'          => $b->effective_setup_date->format('Y-m-d'),
+                'setup_date_formatted'    => $b->formatted_setup_date,
+                'is_custom_setup_date'    => !empty($b->setup_date),
+                'spk_url'                 => route('admin.bookings.spk', $b->id),
+                'operations_url'          => route('admin.bookings.operations', $b->id),
                 'avatar'                  => 'https://ui-avatars.com/api/?name=' . urlencode($b->customer_name) . '&background=E6F4F1&color=045D56&bold=true&size=128',
             ];
         })->values();
@@ -710,5 +719,31 @@ class BookingManagementController extends Controller
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
             ->with('success', 'Status survey lokasi berhasil diperbarui.');
+    }
+
+    public function updateOperations(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        $validated = $request->validate([
+            'tent_color_theme'  => ['nullable', 'string', 'max:100'],
+            'custom_tent_size'  => ['nullable', 'string', 'max:150'],
+            'operational_notes' => ['nullable', 'string', 'max:1000'],
+            'job_source'        => ['nullable', 'string', 'max:100'],
+            'setup_date'        => ['nullable', 'date'],
+        ]);
+
+        $booking->update($validated);
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', "Operational details & crew SPK for #{$booking->invoice_number} updated successfully.");
+    }
+
+    public function showSpk($id)
+    {
+        $booking = Booking::with(['package', 'addons'])->findOrFail($id);
+        $settings = Setting::getAll();
+
+        return view('admin.bookings.spk', compact('booking', 'settings'));
     }
 }

@@ -453,5 +453,102 @@ class BookingTest extends TestCase
         $response->assertSee('Konfirmasi via WhatsApp');
         $response->assertSee(route('booking.receipt', $booking->invoice_number));
     }
+
+    public function test_customer_can_create_booking_with_tent_color_and_operational_notes(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
+        $eventDate = now()->addYears(2)->addDays(20)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'     => 'Fajar & Nina',
+            'customer_phone'    => '081299998888',
+            'venue_address'     => 'Desa Danasari RT 02 / RW 01',
+            'event_date'        => $eventDate,
+            'package_id'        => $package->id,
+            'payment_type'      => 'dp',
+            'nominal_dp'        => 1000000,
+            'payment_proof'     => $file,
+            'tent_color_theme'  => 'Putih + Sage Green',
+            'custom_tent_size'  => 'Modul 6x16m',
+            'operational_notes' => 'Akses jalan kampung muatan pickup.',
+            'vendor_name'       => 'Job Nadia',
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals('Putih + Sage Green', $booking->tent_color_theme);
+        $this->assertEquals('Modul 6x16m', $booking->custom_tent_size);
+        $this->assertEquals('Akses jalan kampung muatan pickup.', $booking->operational_notes);
+        $this->assertEquals('Job Nadia', $booking->job_source);
+    }
+
+    public function test_custom_package_fails_validation_if_no_addons_selected(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+        $this->assertNotNull($customPackage);
+
+        $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
+        $eventDate = now()->addYears(2)->addDays(25)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'  => 'Agus & Maya',
+            'customer_phone' => '081288887777',
+            'venue_address'  => 'Gedung Korpri Slawi',
+            'event_date'     => $eventDate,
+            'package_id'     => $customPackage->id,
+            'addons'         => [],
+            'payment_type'   => 'lunas',
+            'payment_proof'  => $file,
+        ]);
+
+        $response->assertSessionHasErrors('addons');
+    }
+
+    public function test_custom_package_succeeds_when_at_least_one_addon_selected(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+        $addon = Addon::first();
+        $this->assertNotNull($customPackage);
+        $this->assertNotNull($addon);
+
+        $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
+        $eventDate = now()->addYears(2)->addDays(26)->format('Y-m-d');
+
+        $qty = 20;
+        $totalPrice = $addon->unit_price * $qty;
+
+        $response = $this->post(route('booking.store'), [
+            'customer_name'  => 'Doni & Laras',
+            'customer_phone' => '081277776666',
+            'venue_address'  => 'Hotel Shangrila Tegal',
+            'event_date'     => $eventDate,
+            'package_id'     => $customPackage->id,
+            'addons'         => [
+                ['id' => $addon->id, 'qty' => $qty],
+            ],
+            'payment_type'   => 'lunas',
+            'payment_proof'  => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals($totalPrice, $booking->grand_total);
+        $this->assertCount(1, $booking->addons);
+        $this->assertEquals($qty, $booking->addons->first()->quantity);
+    }
 }
 

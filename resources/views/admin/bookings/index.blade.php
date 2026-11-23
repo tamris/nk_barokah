@@ -393,7 +393,13 @@
         get filteredBookings() {
             const q = (this.bookingSearch || this.$store.nav.search || '').toLowerCase();
             return this.allBookings.filter(item => {
-                const matchSearch = !q || item.name.toLowerCase().includes(q) || item.code.toLowerCase().includes(q) || item.service.toLowerCase().includes(q);
+                const matchSearch = !q 
+                    || item.name.toLowerCase().includes(q) 
+                    || item.code.toLowerCase().includes(q) 
+                    || item.service.toLowerCase().includes(q)
+                    || (item.job_source && item.job_source.toLowerCase().includes(q))
+                    || (item.tent_color_theme && item.tent_color_theme.toLowerCase().includes(q))
+                    || (item.venue_address && item.venue_address.toLowerCase().includes(q));
                 const matchStatus = this.bookingFilter === 'all' || item.bookingStatus === this.bookingFilter;
                 const matchService = this.bookingServiceFilter === 'all' || item.service === this.bookingServiceFilter;
                 return matchSearch && matchStatus && matchService;
@@ -550,7 +556,7 @@
                     if (b.raw_status === 'rejected') return;
                     const start = b.event_date_iso;
                     const end = b.event_end_date_iso || start;
-                    const setupDate = this.addDaysToIso(start, -2);
+                    const setupDate = b.setup_date_iso || this.addDaysToIso(start, -2);
                     const teardownDate = this.addDaysToIso(end, 1);
 
                     // 1. Setup / Loading H-2
@@ -563,7 +569,7 @@
                             badgeDot: 'bg-blue-600',
                             chipClass: 'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800',
                             chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Setup)',
-                            chipSubtitle: 'Setup: ' + b.service,
+                            chipSubtitle: 'Setup: ' + b.service + (b.tent_color_theme && b.tent_color_theme !== 'Standard / Natural' ? ' · ' + b.tent_color_theme : ''),
                             instruction: 'Fleet loading and tent installation at venue.',
                             booking: b
                         });
@@ -638,7 +644,7 @@
                 if (b.raw_status === 'rejected') return;
                 const start = b.event_date_iso;
                 const end = b.event_end_date_iso || start;
-                const setupDate = this.addDaysToIso(start, -2);
+                const setupDate = b.setup_date_iso || this.addDaysToIso(start, -2);
                 const teardownDate = this.addDaysToIso(end, 1);
 
                 if (setupDate >= monthStart && setupDate <= monthEnd) {
@@ -1014,7 +1020,12 @@
                             <div class="flex items-center gap-3 min-w-0">
                                 <img :src="item.avatar" :alt="item.name" class="w-10 h-10 rounded-xl object-cover shrink-0">
                                 <div class="min-w-0">
-                                    <p class="text-[13px] font-bold text-slate-900 truncate" x-text="item.name"></p>
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[13px] font-bold text-slate-900 truncate" x-text="item.name"></p>
+                                        <template x-if="item.job_source && item.job_source !== 'Direct Client'">
+                                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0" x-text="item.job_source"></span>
+                                        </template>
+                                    </div>
                                     <p class="text-[11px] font-medium text-slate-500 mt-0.5" x-text="item.date_short + ' · #' + item.code"></p>
                                 </div>
                             </div>
@@ -1085,7 +1096,12 @@
                             <div class="flex items-center gap-3 min-w-0">
                                 <img :src="item.avatar" :alt="item.name" class="w-10 h-10 rounded-xl object-cover shrink-0">
                                 <div class="min-w-0">
-                                    <p class="text-[13px] font-bold text-slate-900 truncate" x-text="item.name"></p>
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[13px] font-bold text-slate-900 truncate" x-text="item.name"></p>
+                                        <template x-if="item.job_source && item.job_source !== 'Direct Client'">
+                                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0" x-text="item.job_source"></span>
+                                        </template>
+                                    </div>
                                     <p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate" x-text="item.date_short + ' · ' + item.relative_date"></p>
                                 </div>
                             </div>
@@ -1405,7 +1421,20 @@
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         <div class="flex items-center gap-3">
                                             <img :src="b.avatar" :alt="b.name" class="w-8 h-8 rounded-lg object-cover shrink-0">
-                                            <span class="text-[13px] font-medium text-slate-800" x-text="b.name"></span>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[13px] font-semibold text-slate-800" x-text="b.name"></span>
+                                                    <template x-if="b.job_source && b.job_source !== 'Direct Client'">
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" x-text="b.job_source"></span>
+                                                    </template>
+                                                </div>
+                                                <template x-if="b.tent_color_theme">
+                                                    <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-brand-500 inline-block"></span>
+                                                        <span x-text="b.tent_color_theme"></span>
+                                                    </p>
+                                                </template>
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
@@ -1538,9 +1567,17 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <img :src="b.avatar" :alt="b.name" class="w-10 h-10 rounded-xl object-cover">
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-900 truncate" x-text="b.name"></p>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <p class="text-sm font-bold text-slate-900 truncate" x-text="b.name"></p>
+                                <template x-if="b.job_source && b.job_source !== 'Direct Client'">
+                                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200" x-text="b.job_source"></span>
+                                </template>
+                            </div>
                             <p class="text-xs text-slate-500 truncate" x-text="b.service"></p>
+                            <template x-if="b.tent_color_theme">
+                                <p class="text-[10px] text-brand-700 font-medium truncate mt-0.5" x-text="'Tema: ' + b.tent_color_theme"></p>
+                            </template>
                         </div>
                     </div>
                     <div class="pt-2.5 border-t border-[#F1F5F4] flex items-center justify-between">
@@ -3821,6 +3858,140 @@
                     </div>
                 </div>
 
+                <!-- Field Operations & Crew SPK Management -->
+                <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4"
+                     x-data="{
+                         editingOperations: false,
+                         tentColor: '',
+                         tentSize: '',
+                         opNotes: '',
+                         jobSource: '',
+                         setupDate: '',
+                         initOperations() {
+                             this.tentColor = activeDetail?.tent_color_theme || '';
+                             this.tentSize = activeDetail?.custom_tent_size || '';
+                             this.opNotes = activeDetail?.operational_notes || '';
+                             this.jobSource = activeDetail?.job_source || '';
+                             this.setupDate = activeDetail?.setup_date_iso || '';
+                             this.editingOperations = false;
+                         }
+                     }"
+                     x-init="$watch('activeDetail', () => initOperations())">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#EFF4F2]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900">Field Operations & Crew SPK</h3>
+                                <p class="text-[11px] text-slate-400">Loading schedule, tent specifications, and field crew instructions</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <a :href="activeDetail?.spk_url || '#'" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-xs font-bold transition shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zM7 9V5a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
+                                <span>Print SPK</span>
+                            </a>
+                            <button type="button" @click="editingOperations = !editingOperations"
+                                    class="text-xs font-semibold text-brand-600 hover:text-brand-700 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
+                                <span x-text="editingOperations ? 'Close' : 'Edit Details'"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display Mode Grid -->
+                    <div x-show="!editingOperations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <!-- Tent Color Theme -->
+                        <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tent Color Theme</span>
+                            <div class="pt-0.5">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-tight bg-rose-50 text-rose-700 border border-rose-200"
+                                      x-text="activeDetail?.tent_color_theme || 'Standard / Natural'"></span>
+                            </div>
+                        </div>
+
+                        <!-- Tent Dimensions / Size -->
+                        <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Custom Tent Size / Modul</span>
+                            <p class="font-bold text-slate-800 text-xs truncate" x-text="activeDetail?.custom_tent_size || '-'"></p>
+                        </div>
+
+                        <!-- Setup Schedule (H-2) -->
+                        <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tent Setup (H-2)</span>
+                            <p class="font-bold text-emerald-800 text-xs" x-text="activeDetail?.setup_date_formatted || '-'"></p>
+                        </div>
+
+                        <!-- Job Source / Partner -->
+                        <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Job Source / Partner</span>
+                            <p class="font-bold text-indigo-700 text-xs truncate" x-text="activeDetail?.job_source || 'Direct Client'"></p>
+                        </div>
+
+                        <!-- Operational Notes -->
+                        <div class="sm:col-span-2 lg:col-span-4 p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-1">
+                            <span class="text-[10px] uppercase font-black text-amber-900 tracking-wider flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                Crew & Logistics Instructions
+                            </span>
+                            <p class="text-xs font-bold text-amber-950 leading-relaxed whitespace-pre-line"
+                               x-text="activeDetail?.operational_notes || 'No special crew instructions recorded.'"></p>
+                        </div>
+                    </div>
+
+                    <!-- Inline Edit Form -->
+                    <div x-show="editingOperations" x-cloak class="p-4 rounded-2xl bg-[#FAFBFB] border border-slate-200 space-y-3.5">
+                        <form :action="activeDetail?.operations_url" method="POST" class="space-y-3 text-xs">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-700">Tent Color Theme</label>
+                                    <input type="text" name="tent_color_theme" x-model="tentColor"
+                                           placeholder="e.g. Putih + Pink, Hitam + Putih"
+                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-700">Custom Tent Size / Layout</label>
+                                    <input type="text" name="custom_tent_size" x-model="tentSize"
+                                           placeholder="e.g. 6x16 + 7x7 + 3,5x5"
+                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-700">Job Source / Partner</label>
+                                    <input type="text" name="job_source" x-model="jobSource"
+                                           placeholder="e.g. Job Nadia, Job Riza, Uly Wedding"
+                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="font-bold text-slate-700">Setup Date (Override H-2)</label>
+                                    <input type="date" name="setup_date" x-model="setupDate"
+                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="font-bold text-slate-700">Special Crew & Operational Notes</label>
+                                <textarea name="operational_notes" x-model="opNotes" rows="2"
+                                          placeholder="e.g. TIM LAYOS BAWA GENSET, Tenda 4x10 nutup jalan setengah, cover dinding dalam rumah"
+                                          class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600 resize-none"></textarea>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
+                                <button type="button" @click="editingOperations = false"
+                                        class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium cursor-pointer transition">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold transition shadow-2xs cursor-pointer active:scale-95">
+                                    Save Operations Info
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Vendor Partners & Discount Management -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4"
                      x-data="{
@@ -4461,6 +4632,12 @@
                             Mark Event Complete
                         </button>
                     </template>
+
+                    <a :href="activeDetail?.spk_url || '#'" target="_blank"
+                       class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold text-center transition shadow-2xs">
+                        <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zM7 9V5a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
+                        <span>Print Crew SPK / Surat Jalan</span>
+                    </a>
 
                     <a :href="activeDetail?.receipt_url || '#'" target="_blank"
                        class="block w-full py-2.5 px-4 rounded-full border border-[#E5ECE9] hover:bg-[#F6F8F7] text-slate-700 text-xs font-semibold text-center transition">

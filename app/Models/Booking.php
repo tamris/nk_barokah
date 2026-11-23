@@ -28,14 +28,35 @@ class Booking extends Model
         'synced_to_sheets'  => 'boolean',
         'survey_requested'  => 'boolean',
         'survey_date'       => 'date',
+        'setup_date'        => 'date',
     ];
 
     protected $appends = [
         'formatted_phone',
         'formatted_event_date',
+        'formatted_setup_date',
         'whatsapp_message',
         'whatsapp_url',
     ];
+
+    /**
+     * Tanggal efektif pemasangan tenda (H-2 otomatis bila belum diset spesifik).
+     */
+    public function getEffectiveSetupDateAttribute(): \Carbon\Carbon
+    {
+        if ($this->setup_date) {
+            return \Carbon\Carbon::parse($this->setup_date);
+        }
+        return \Carbon\Carbon::parse($this->event_date)->subDays(2);
+    }
+
+    /**
+     * Format tanggal pemasangan / loading H-2 yang mudah dibaca tim lapangan.
+     */
+    public function getFormattedSetupDateAttribute(): string
+    {
+        return $this->effective_setup_date->isoFormat('dddd, D MMMM Y');
+    }
 
     public function package(): BelongsTo
     {

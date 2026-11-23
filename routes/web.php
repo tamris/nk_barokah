@@ -43,6 +43,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/owner-discount', [BookingManagementController::class, 'updateOwnerDiscount'])->name('bookings.owner_discount');
         Route::post('/bookings/{id}/transport', [BookingManagementController::class, 'updateTransport'])->name('bookings.transport');
         Route::post('/bookings/{id}/survey-status', [BookingManagementController::class, 'updateSurveyStatus'])->name('bookings.survey_status');
+        Route::post('/bookings/{id}/operations', [BookingManagementController::class, 'updateOperations'])->name('bookings.operations');
+        Route::get('/bookings/{id}/spk', [BookingManagementController::class, 'showSpk'])->name('bookings.spk');
         Route::post('/bookings/{id}/addons', [BookingManagementController::class, 'storeAddon'])->name('bookings.addons.store');
         Route::delete('/bookings/{id}/addons/{addon_id}', [BookingManagementController::class, 'deleteAddon'])->name('bookings.addons.delete');
 

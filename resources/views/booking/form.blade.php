@@ -436,142 +436,195 @@
                 </div>
 
                 <!-- Package Cards -->
-                <div class="space-y-3">
+                <div class="space-y-2.5 sm:space-y-3">
                     <template x-for="pkg in packages" :key="pkg.id">
-                        <label class="block p-4 sm:p-5 rounded-2xl border transition select-none cursor-pointer relative active:scale-[0.99]"
+                        <label @click="onPackageSelect(pkg.id)"
+                               class="block p-3.5 sm:p-4 rounded-2xl border transition select-none cursor-pointer relative active:scale-[0.99]"
                                :class="selectedPackageId == pkg.id 
                                    ? 'bg-white border-brand-600 ring-2 ring-brand-600/10 shadow-card' 
-                                   : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-subtle'">
+                                   : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'">
                             
-                            <input type="radio" name="package_id" :value="pkg.id" x-model="selectedPackageId" class="sr-only">
+                            <input type="radio" name="package_id" :value="pkg.id" x-model="selectedPackageId" @change="onPackageSelect(pkg.id)" class="sr-only">
 
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="space-y-1.5 flex-1 min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition"
-                                             :class="selectedPackageId == pkg.id ? 'border-brand-600 bg-brand-600' : 'border-slate-300 bg-white'">
-                                            <span class="w-2 h-2 rounded-full bg-white" x-show="selectedPackageId == pkg.id"></span>
-                                        </div>
-                                        <h3 class="font-bold text-sm sm:text-base text-slate-900 tracking-tight truncate" x-text="pkg.name"></h3>
+                            <!-- Top Row: Radio, Title + Badges, and Price -->
+                            <div class="flex items-center justify-between gap-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition"
+                                         :class="selectedPackageId == pkg.id ? 'border-brand-600 bg-brand-600' : 'border-slate-300 bg-white'">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white" x-show="selectedPackageId == pkg.id"></span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                                        <h3 class="font-bold text-[13px] sm:text-sm text-slate-900 tracking-tight" x-text="pkg.name"></h3>
                                         <template x-if="pkg.slug === 'paket-1' || pkg.slug === 'tenda-decor-6m'">
-                                            <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold tracking-wide uppercase border border-brand-200/60 shrink-0">
+                                            <span class="px-1.5 py-0.2 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold tracking-wide uppercase border border-brand-200/60 shrink-0">
                                                 Favorit
                                             </span>
                                         </template>
+                                        <template x-if="pkg.base_price == 0 || (pkg.slug && pkg.slug.includes('tanpa-tenda')) || (pkg.slug && pkg.slug.includes('custom'))">
+                                            <span class="px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-800 text-[9px] font-bold tracking-wide uppercase border border-amber-200 shrink-0">
+                                                Sewa Satuan
+                                            </span>
+                                        </template>
                                     </div>
-                                    <p class="text-xs text-slate-500 leading-relaxed pl-7" x-text="pkg.description"></p>
                                 </div>
 
-                                <div class="text-right shrink-0 pt-0.5">
-                                    <span class="text-xs sm:text-base font-bold font-mono text-slate-900 tracking-tight"
+                                <div class="text-right shrink-0">
+                                    <span class="text-xs sm:text-sm font-extrabold font-mono text-slate-900 tracking-tight"
                                           x-text="formatRupiah(pkg.base_price)"></span>
                                 </div>
+                            </div>
+
+                            <!-- Bottom Row: Description text justified, compact, full-width -->
+                            <div class="mt-2 pt-2 border-t border-slate-100">
+                                <p class="text-xs text-slate-600 leading-snug text-justify" x-text="pkg.description"></p>
                             </div>
                         </label>
                     </template>
                 </div>
 
-                <!-- Add-ons Selection -->
-                <div x-show="addons.length > 0" class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
-                    <div class="pb-3 border-b border-slate-100">
-                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Perlengkapan Tambahan (Opsional)</h4>
-                        <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Pilih perlengkapan tambahan sesuai kebutuhan venue Anda</p>
-                    </div>
-
-                    <!-- Category Filter Tabs for 20 Add-ons -->
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-                        <button type="button" @click="activeAddonCategory = 'all'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'all' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Semua
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'kursi_meja'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'kursi_meja' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Kursi & Meja
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'kipas'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'kipas' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Kipas & Blower
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'panggung'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'panggung' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Panggung & Lantai
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'sound'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'sound' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Sound & Genset
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'prasmanan'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'prasmanan' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Prasmanan
-                        </button>
-                        <button type="button" @click="activeAddonCategory = 'tenda'"
-                                class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
-                                :class="activeAddonCategory === 'tenda' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
-                            Tenda & Lampu
-                        </button>
-                    </div>
-
-                    <div class="space-y-2">
-                        <template x-for="(addon, idx) in addons" :key="addon.id">
-                            <div x-show="activeAddonCategory === 'all' || getAddonCategory(addon.name) === activeAddonCategory"
-                                 class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3 text-xs"
-                                 :class="addon.selectedQty > 0 
-                                     ? 'bg-brand-50/40 border-brand-200/80 shadow-xs' 
-                                     : 'bg-slate-50/40 hover:bg-slate-50/80 border-slate-200/60'">
-                                
-                                <div class="min-w-0 flex-1 space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <p class="font-bold text-slate-800 tracking-tight truncate text-xs sm:text-sm" x-text="addon.name"></p>
-                                        <span x-show="addon.selectedQty > 0" x-cloak
-                                              class="px-1.5 py-0.5 rounded-md bg-brand-600 text-white font-mono font-bold text-[10px] shrink-0">
-                                            <span x-text="`${addon.selectedQty}x`"></span>
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-[11px]">
-                                        <span class="text-slate-500 font-mono font-medium"
-                                               x-text="`${formatRupiah(addon.unit_price)} / ${addon.unit}`"></span>
-                                        <template x-if="addon.selectedQty > 0">
-                                            <span class="text-brand-700 font-mono font-bold">
-                                                • Subtotal: <span x-text="formatRupiah(addon.selectedQty * addon.unit_price)"></span>
-                                            </span>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-1 shrink-0 bg-white rounded-xl border border-slate-200 p-1 shadow-subtle">
-                                    <input type="hidden" :name="`addons[${idx}][id]`" :value="addon.id">
-                                    
-                                    <button type="button"
-                                            @click="addon.selectedQty = Math.max(0, (parseInt(addon.selectedQty) || 0) - 1)"
-                                            :disabled="!addon.selectedQty || addon.selectedQty <= 0"
-                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition"
-                                            :class="!addon.selectedQty || addon.selectedQty <= 0 
-                                                ? 'text-slate-300 cursor-not-allowed bg-transparent' 
-                                                : 'text-slate-700 hover:bg-slate-100 active:scale-95 cursor-pointer bg-slate-50'">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
-                                    </button>
-
-                                    <input type="number" :name="`addons[${idx}][qty]`" min="0" max="1000"
-                                           x-model.number="addon.selectedQty"
-                                           class="w-8 sm:w-10 text-center bg-transparent font-mono font-extrabold text-xs sm:text-sm text-slate-900 focus:outline-none" placeholder="0">
-
-                                    <button type="button"
-                                            @click="addon.selectedQty = (parseInt(addon.selectedQty) || 0) + 1"
-                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition active:scale-95 cursor-pointer"
-                                            :class="addon.selectedQty > 0 
-                                                ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-xs' 
-                                                : 'bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700'">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    </button>
-                                </div>
+                <!-- Add-ons Selection (Dropdown / Accordion) -->
+                <div id="addonsSection" x-show="addons.length > 0" 
+                     class="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden transition-all duration-300">
+                    
+                    <!-- Accordion Trigger Header (Clean, Clickable) -->
+                    <button type="button" 
+                            @click="toggleAddonsAccordion()"
+                            class="w-full p-3.5 sm:p-4 flex items-center justify-between text-left cursor-pointer select-none hover:bg-slate-50/70 transition"
+                            :class="isAddonsOpen ? 'border-b border-slate-100 bg-[#FAFDFC]' : ''">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition"
+                                 :class="activeAddons.length > 0 
+                                     ? 'bg-brand-50 text-brand-700 border-brand-200/60' 
+                                     : (isCustomPackage ? 'bg-amber-50 text-amber-700 border-amber-200/60' : 'bg-slate-100 text-slate-600 border-slate-200')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                             </div>
-                        </template>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight"
+                                        x-text="isCustomPackage ? 'Pilih Perlengkapan Sewa' : 'Perlengkapan Tambahan'"></h4>
+                                    
+                                    <template x-if="activeAddons.length > 0">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                            <span x-text="`${activeAddons.length} item dipilih`"></span>
+                                        </span>
+                                    </template>
+                                    <template x-if="activeAddons.length === 0 && isCustomPackage">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+                                            Wajib diisi
+                                        </span>
+                                    </template>
+                                    <template x-if="activeAddons.length === 0 && !isCustomPackage">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                            Opsional
+                                        </span>
+                                    </template>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-0.5 truncate"
+                                   x-text="isCustomPackage 
+                                       ? (activeAddons.length > 0 ? 'Item sewa telah dipilih, ketuk untuk ubah' : 'Pilih jenis dan jumlah unit alat pesta di bawah') 
+                                       : (activeAddons.length > 0 ? `${activeAddons.length} item tambahan dipilih, ketuk untuk ubah` : 'Kursi, meja, blower, panggung, sound, dll (ketuk untuk buka)')"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center shrink-0 pl-2">
+                            <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 transition"
+                                 :class="isAddonsOpen ? 'bg-brand-50 text-brand-700' : ''">
+                                <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="{ 'rotate-180': isAddonsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Expandable Add-ons Content (Drops down smoothly) -->
+                    <div x-show="isAddonsOpen" x-cloak 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="p-3.5 sm:p-5 space-y-3 border-t border-slate-100">
+
+                        <!-- Category Filter Tabs for 20 Add-ons -->
+                        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                            <button type="button" @click="activeAddonCategory = 'all'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'all' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Semua
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'kursi_meja'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'kursi_meja' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Kursi & Meja
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'kipas'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'kipas' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Kipas & Blower
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'panggung'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'panggung' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Panggung & Lantai
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'sound'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'sound' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Sound & Genset
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'prasmanan'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'prasmanan' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Prasmanan
+                            </button>
+                            <button type="button" @click="activeAddonCategory = 'tenda'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap cursor-pointer active:scale-95"
+                                    :class="activeAddonCategory === 'tenda' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'">
+                                Tenda & Lampu
+                            </button>
+                        </div>
+
+                        <!-- 2-Column Responsive Compact Grid for Add-ons -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <template x-for="(addon, idx) in addons" :key="addon.id">
+                                <div x-show="activeAddonCategory === 'all' || getAddonCategory(addon.name) === activeAddonCategory"
+                                     class="py-2 px-3 rounded-xl border transition flex items-center justify-between gap-2.5 text-xs select-none"
+                                     :class="addon.selectedQty > 0 
+                                         ? 'bg-brand-50/50 border-brand-300 ring-1 ring-brand-400/20 shadow-2xs' 
+                                         : 'bg-[#F9FBFA] hover:bg-slate-100/70 border-slate-200/70'">
+                                    
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-bold text-slate-800 tracking-tight truncate text-xs" x-text="addon.name"></p>
+                                        <div class="flex items-center gap-1.5 text-[11px] mt-0.5">
+                                            <span class="text-slate-500 font-mono font-medium"
+                                                  x-text="`${formatRupiah(addon.unit_price)} / ${addon.unit}`"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1 shrink-0 bg-white rounded-lg border border-slate-200 p-0.5 shadow-2xs">
+                                        <input type="hidden" :name="`addons[${idx}][id]`" :value="addon.id">
+                                        
+                                        <button type="button"
+                                                @click="addon.selectedQty = Math.max(0, (parseInt(addon.selectedQty) || 0) - 1)"
+                                                :disabled="!addon.selectedQty || addon.selectedQty <= 0"
+                                                class="w-6 h-6 rounded flex items-center justify-center transition"
+                                                :class="!addon.selectedQty || addon.selectedQty <= 0 
+                                                    ? 'text-slate-300 cursor-not-allowed bg-transparent' 
+                                                    : 'text-slate-700 hover:bg-slate-100 active:scale-90 cursor-pointer bg-slate-50'">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                                        </button>
+
+                                        <input type="number" :name="`addons[${idx}][qty]`" min="0" max="1000"
+                                               x-model.number="addon.selectedQty"
+                                               class="w-8 text-center bg-transparent font-mono font-extrabold text-xs text-slate-900 focus:outline-none p-0" placeholder="0">
+
+                                        <button type="button"
+                                                @click="addon.selectedQty = (parseInt(addon.selectedQty) || 0) + 1"
+                                                class="w-6 h-6 rounded flex items-center justify-center transition active:scale-90 cursor-pointer text-slate-700 hover:bg-brand-50 hover:text-brand-700 bg-slate-50">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
@@ -951,6 +1004,66 @@
                     </div>
                 </div>
 
+                <!-- TEMA WARNA TENDA (OPSIONAL) - HANYA UNTUK PAKET TENDA -->
+                <div x-show="!isCustomPackage" x-cloak
+                     class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-xs shrink-0 border border-brand-200/70">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Tema Warna Tenda <span class="text-slate-400 font-normal text-xs">(Opsional)</span></h4>
+                            <p class="text-[11px] text-slate-500">Pilih palet warna kain plafon tenda atau ketik kombinasi custom.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Cepat Tema Warna Tenda -->
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap gap-1.5">
+                            <template x-for="item in [
+                                { name: 'Putih + Mocca', dot: 'bg-[#C4A482]' },
+                                { name: 'Putih + Pink', dot: 'bg-[#F4A7B9]' },
+                                { name: 'Putih + Sage Green', dot: 'bg-[#8FBC8F]' },
+                                { name: 'Putih + Biru Navy', dot: 'bg-[#1E3A8A]' },
+                                { name: 'Full Putih', dot: 'bg-white border border-slate-300' },
+                                { name: 'Kuning / Adat', dot: 'bg-[#EAB308]' },
+                                { name: 'Full Hitam', dot: 'bg-[#18181B]' }
+                            ]" :key="item.name">
+                                <button type="button"
+                                        @click="tentColorTheme = (tentColorTheme === item.name ? '' : item.name)"
+                                        :class="tentColorTheme === item.name 
+                                            ? 'bg-brand-600 text-white font-bold border-brand-600 shadow-2xs' 
+                                            : 'bg-slate-50/80 hover:bg-slate-100 text-slate-700 border-slate-200/90 font-medium'"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border transition cursor-pointer active:scale-95">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs" :class="item.dot"></span>
+                                    <span x-text="item.name"></span>
+                                </button>
+                            </template>
+                        </div>
+
+                        <!-- Manual/Custom Color input -->
+                        <div class="relative pt-0.5">
+                            <input type="text" name="tent_color_theme" x-model="tentColorTheme"
+                                   placeholder="Atau ketik kombinasi warna lain (cth: Putih + Lilac, Putih + Terakota)"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition bg-[#F9FBFA] focus:bg-white">
+                            <button type="button" x-show="tentColorTheme" @click="tentColorTheme = ''" 
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs p-1 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modifikasi / Custom Ukuran Tenda (Opsional) -->
+                    <div class="pt-2 border-t border-slate-100 space-y-1">
+                        <label class="block text-[11px] font-semibold text-slate-700 tracking-tight">
+                            Permintaan Khusus Dimensi Tenda <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input type="text" name="custom_tent_size" x-model="customTentSize"
+                               placeholder="Cth: Sambung lorong 6x16m + modul VIP 7x7m"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition bg-[#F9FBFA] focus:bg-white">
+                    </div>
+                </div>
+
                 <!-- DESKTOP & TABLET INLINE ACTION FOOTER (CARD CONTAINER) -->
                 <div class="hidden md:flex items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card">
                     <button type="button" @click="goToStep(2)"
@@ -1053,6 +1166,27 @@
                             </div>
                         </template>
 
+                        <!-- Ringkasan Warna & Dimensi Tenda -->
+                        <template x-if="tentColorTheme || customTentSize">
+                            <div class="flex items-start justify-between gap-3 text-slate-700 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+                                <div class="flex items-start gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-brand-700 flex items-center justify-center shrink-0 border border-brand-200/60 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-semibold text-slate-800 leading-tight">Konfigurasi Tenda</div>
+                                        <template x-if="tentColorTheme">
+                                            <div class="text-[11px] text-brand-700 font-bold leading-tight mt-0.5" x-text="'Tema: ' + tentColorTheme"></div>
+                                        </template>
+                                        <template x-if="customTentSize">
+                                            <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 truncate" x-text="'Dimensi: ' + customTentSize"></div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-brand-700 bg-emerald-50 border border-brand-200/60 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Tercatat</span>
+                            </div>
+                        </template>
+
                         <div class="pt-3 border-t border-slate-200/90 flex justify-between items-center">
                             <div>
                                 <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Total Tagihan</span>
@@ -1092,7 +1226,7 @@
                     <div x-show="paymentType === 'dp'" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5" x-cloak>
                         <div class="flex items-center justify-between text-xs">
                             <label class="font-semibold text-slate-700">Nominal Transfer DP</label>
-                            <span class="text-slate-500 text-[11px]">Min: <span class="font-mono font-bold text-slate-800" x-text="formatRupiah(minDpAmount)"></span></span>
+                            <span class="text-slate-500 text-[11px]">Min: <span class="font-mono font-bold text-slate-800" x-text="formatRupiah(effectiveMinDp)"></span></span>
                         </div>
                         <div class="relative flex items-center">
                             <span class="absolute left-4 text-xs font-bold text-slate-400 select-none">Rp</span>
@@ -1106,10 +1240,10 @@
 
                         <!-- Quick DP Preset Pills -->
                         <div class="flex items-center gap-2 pt-0.5">
-                            <button type="button" @click="setNominalDp(minDpAmount)"
+                            <button type="button" @click="setNominalDp(effectiveMinDp)"
                                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
-                                     :class="nominalDp === minDpAmount ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
-                                <span x-text="`Min DP (${formatRupiah(minDpAmount)})`">Min DP (Rp 1.000.000)</span>
+                                     :class="nominalDp === effectiveMinDp ? 'bg-brand-50 border-brand-300 text-brand-800 font-bold ring-1 ring-brand-500/20' : 'bg-white/60'">
+                                <span x-text="`Min DP (${formatRupiah(effectiveMinDp)})`">Min DP (Rp 1.000.000)</span>
                             </button>
                             <button type="button" @click="setNominalDp(Math.round(grandTotal * 0.5))"
                                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition border border-slate-200 hover:bg-white text-slate-600 active:scale-95 cursor-pointer"
@@ -1434,6 +1568,9 @@
             surveyDate: '{{ old("survey_date", "") }}',
             surveyTimeSlot: '{{ old("survey_time_slot", "morning") }}',
             surveyNotes: '{{ old("survey_notes", "") }}',
+            tentColorTheme: '{{ old("tent_color_theme", "") }}',
+            customTentSize: '{{ old("custom_tent_size", "") }}',
+            operationalNotes: '{{ old("operational_notes", "") }}',
             get minSurveyDate() {
                 const d = new Date();
                 d.setDate(d.getDate() + 1);
@@ -1845,6 +1982,47 @@
                 return this.currentPackage ? parseFloat(this.currentPackage.base_price) : 0;
             },
 
+            get isCustomPackage() {
+                if (!this.currentPackage) return false;
+                const name = (this.currentPackage.name || '').toLowerCase();
+                const slug = (this.currentPackage.slug || '').toLowerCase();
+                return this.currentPackagePrice === 0 
+                    || name.includes('custom') 
+                    || name.includes('sewa alat') 
+                    || name.includes('tanpa tenda') 
+                    || slug.includes('custom') 
+                    || slug.includes('tanpa-tenda');
+            },
+
+            get effectiveMinDp() {
+                if (this.grandTotal <= 0) return this.minDpAmount;
+                return Math.min(this.minDpAmount, this.grandTotal);
+            },
+
+            addonsManualOpen: null,
+
+            get isAddonsOpen() {
+                // Paket Custom SELALU turun / terbuka otomatis!
+                if (this.isCustomPackage) return true;
+                // Jika user sempat klik toggle manual, ikuti preferensi user
+                if (this.addonsManualOpen !== null) return this.addonsManualOpen;
+                // Jika user sudah memilih item perlengkapan > 0, biarkan terbuka
+                return this.activeAddons.length > 0;
+            },
+
+            toggleAddonsAccordion() {
+                this.addonsManualOpen = !this.isAddonsOpen;
+            },
+
+            onPackageSelect(pkgId) {
+                this.selectedPackageId = pkgId;
+                if (this.isCustomPackage) {
+                    this.addonsManualOpen = true;
+                } else if (this.activeAddons.length === 0) {
+                    this.addonsManualOpen = false;
+                }
+            },
+
             get activeAddons() {
                 return this.addons.filter(a => parseInt(a.selectedQty) > 0);
             },
@@ -1967,6 +2145,15 @@
                         this.formErrors.step2 = 'Silakan pilih paket pernikahan terlebih dahulu untuk melanjutkan.';
                         return;
                     }
+                    if (this.isCustomPackage && this.activeAddons.length === 0) {
+                        this.addonsManualOpen = true;
+                        this.formErrors.step2 = 'Untuk paket Custom / Sewa Alat Saja, Anda wajib memilih minimal 1 jenis perlengkapan yang disewa pada daftar di bawah.';
+                        const el = document.getElementById('addonsSection');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return;
+                    }
                     this.formErrors.step2 = null;
                 }
 
@@ -2036,9 +2223,17 @@
             submitBookingForm() {
                 const form = document.getElementById('reservationForm');
 
+                if (this.isCustomPackage && this.activeAddons.length === 0) {
+                    this.goToStep(2);
+                    this.addonsManualOpen = true;
+                    this.formErrors.step2 = 'Untuk paket Custom / Sewa Alat Saja, Anda wajib memilih minimal 1 jenis perlengkapan yang disewa.';
+                    return;
+                }
+
                 if (this.paymentType === 'dp') {
-                    if (!this.nominalDp || this.nominalDp < this.minDpAmount) {
-                        this.formErrors.step4 = 'Nominal DP minimal adalah ' + this.formatRupiah(this.minDpAmount) + '.';
+                    const effectiveMinDp = this.effectiveMinDp;
+                    if (!this.nominalDp || this.nominalDp < effectiveMinDp) {
+                        this.formErrors.step4 = 'Nominal DP minimal adalah ' + this.formatRupiah(effectiveMinDp) + '.';
                         this.$nextTick(() => {
                             document.getElementById('nominalDpInput')?.focus();
                         });

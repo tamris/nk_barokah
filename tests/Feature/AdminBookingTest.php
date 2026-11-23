@@ -999,6 +999,118 @@ class AdminBookingTest extends TestCase
         $admin->refresh();
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('654321', $admin->pin));
     }
+
+    public function test_admin_can_update_booking_field_operations(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202611-OPSTEST',
+            'customer_name'      => 'Reza & Dian',
+            'customer_phone'     => '081234567890',
+            'event_date'         => '2026-11-08',
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 7000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 7000000,
+            'amount_paid'        => 1000000,
+            'remaining_balance'  => 6000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.operations', $booking->id), [
+            'tent_color_theme'  => 'Putih + Pink',
+            'custom_tent_size'  => '6x16 + 7x7 (Modul L)',
+            'job_source'        => 'Job Nadia',
+            'setup_date'        => '2026-11-06',
+            'operational_notes' => 'Akses jalan 4m aman untuk pickup muatan.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals('Putih + Pink', $booking->tent_color_theme);
+        $this->assertEquals('6x16 + 7x7 (Modul L)', $booking->custom_tent_size);
+        $this->assertEquals('Job Nadia', $booking->job_source);
+        $this->assertEquals('2026-11-06', $booking->setup_date->format('Y-m-d'));
+        $this->assertEquals('Akses jalan 4m aman untuk pickup muatan.', $booking->operational_notes);
+        $this->assertEquals('2026-11-06', $booking->effective_setup_date->format('Y-m-d'));
+    }
+
+    public function test_booking_defaults_effective_setup_date_to_h_minus_2(): void
+    {
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202611-HMIN2',
+            'customer_name'      => 'Budi & Ani',
+            'customer_phone'     => '081234567891',
+            'event_date'         => '2026-11-08',
+            'setup_date'         => null,
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 4500000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 4500000,
+            'amount_paid'        => 1000000,
+            'remaining_balance'  => 3500000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $this->assertEquals('2026-11-06', $booking->effective_setup_date->format('Y-m-d'));
+    }
+
+    public function test_admin_can_view_spk_surat_jalan(): void
+    {
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202611-SPKTEST',
+            'customer_name'      => 'Bambang & Citra',
+            'customer_phone'     => '081234567892',
+            'event_date'         => '2026-11-15',
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 7000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 7000000,
+            'amount_paid'        => 1000000,
+            'remaining_balance'  => 6000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+            'tent_color_theme'   => 'Putih + Mocca',
+            'custom_tent_size'   => '6x16',
+            'job_source'         => 'Job Riza',
+            'operational_notes'  => 'Muatan berangkat pagi jam 07:00.',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.bookings.spk', $booking->id));
+
+        $response->assertOk();
+        $response->assertSee('SURAT PERINTAH KERJA (SPK)');
+        $response->assertSee('Bambang');
+        $response->assertSee('Citra');
+        $response->assertSee('Putih + Mocca');
+        $response->assertSee('Job Riza');
+        $response->assertSee('Muatan berangkat pagi jam 07:00.');
+    }
+
+    public function test_custom_sewa_alat_package_exists_in_database(): void
+    {
+        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+
+        $this->assertNotNull($customPackage, 'Custom / Sewa Alat Saja (Tanpa Tenda) package should exist.');
+        $this->assertEquals(0, (int)$customPackage->base_price);
+    }
 }
 
 
