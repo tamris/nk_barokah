@@ -37,8 +37,19 @@
         calMonth: {{ $initialCalMonth }},
         calendarView: 'Monthly View',
         calendarViewOpen: false,
+        calendarMode: 'events',
+        calendarModeOpen: false,
         selectedDayModal: null,
         maxEventsPerDay: {{ (int) ($settings['max_events_per_day'] ?? 1) }},
+        addDaysToIso(isoStr, numDays) {
+            if (!isoStr) return '';
+            const parts = isoStr.split('-').map(Number);
+            const dt = new Date(parts[0], parts[1] - 1, parts[2] + numDays);
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        },
         openDayModal(cell) {
             if (!cell || cell.blank) return;
             this.selectedDayModal = cell;
@@ -427,6 +438,48 @@
                 });
                 const nonRejectedCount = events.filter(e => e.raw_status !== 'rejected').length;
 
+                // Field Operations: Tent Setup (H-2) and Teardown (H+1)
+                const operations = [];
+                this.allBookings.forEach(b => {
+                    if (b.raw_status === 'rejected') return;
+                    const start = b.event_date_iso;
+                    const end = b.event_end_date_iso || start;
+                    const setupDate = this.addDaysToIso(start, -2);
+                    const teardownDate = this.addDaysToIso(end, 1);
+
+                    // 1. Setup / Loading H-2
+                    if (iso === setupDate) {
+                        operations.push({
+                            id: b.id + '-setup',
+                            type: 'setup',
+                            statusLabel: 'Setup (H-2)',
+                            badgeClass: 'bg-[#EAF3FF] text-blue-700',
+                            badgeDot: 'bg-blue-600',
+                            chipClass: 'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (H-2)',
+                            chipSubtitle: 'Setup: ' + b.service,
+                            instruction: 'Fleet loading and tent installation at venue (H-2 before event).',
+                            booking: b
+                        });
+                    }
+
+                    // 2. Teardown / Return H+1
+                    if (iso === teardownDate) {
+                        operations.push({
+                            id: b.id + '-teardown',
+                            type: 'teardown',
+                            statusLabel: 'Teardown (H+1)',
+                            badgeClass: 'bg-[#FEF3C7] text-amber-800',
+                            badgeDot: 'bg-amber-500',
+                            chipClass: 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-900',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (H+1)',
+                            chipSubtitle: 'Teardown: ' + b.service,
+                            instruction: 'Tent dismantling and returning all equipment to NK Barokah warehouse.',
+                            booking: b
+                        });
+                    }
+                });
+
                 cells.push({
                     blank: false,
                     key: 'd-' + d,
@@ -435,6 +488,7 @@
                     dateFull: dateFull,
                     isToday: iso === todayIso,
                     events,
+                    operations,
                     nonRejectedCount,
                     hasConflict: nonRejectedCount > this.maxEventsPerDay
                 });
@@ -450,6 +504,51 @@
                 const end = ev.event_end_date_iso || start;
                 return (start <= monthEnd && end >= monthStart);
             }).sort((a, b) => a.event_date_iso.localeCompare(b.event_date_iso));
+        },
+        get monthOperations() {
+            const monthStart = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-01`;
+            const lastDay = new Date(this.calYear, this.calMonth, 0).getDate();
+            const monthEnd = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            const ops = [];
+
+            this.allBookings.forEach(b => {
+                if (b.raw_status === 'rejected') return;
+                const start = b.event_date_iso;
+                const end = b.event_end_date_iso || start;
+                const setupDate = this.addDaysToIso(start, -2);
+                const teardownDate = this.addDaysToIso(end, 1);
+
+                if (setupDate >= monthStart && setupDate <= monthEnd) {
+                    ops.push({
+                        key: b.id + '-setup',
+                        date_iso: setupDate,
+                        day: parseInt(setupDate.split('-')[2], 10),
+                        month: parseInt(setupDate.split('-')[1], 10),
+                        type: 'setup',
+                        statusLabel: 'Setup (H-2)',
+                        badgeClass: 'bg-[#EAF3FF] text-blue-700',
+                        badgeDot: 'bg-blue-600',
+                        instruction: 'Fleet loading and tent installation at venue (H-2 before event).',
+                        booking: b
+                    });
+                }
+                if (teardownDate >= monthStart && teardownDate <= monthEnd) {
+                    ops.push({
+                        key: b.id + '-teardown',
+                        date_iso: teardownDate,
+                        day: parseInt(teardownDate.split('-')[2], 10),
+                        month: parseInt(teardownDate.split('-')[1], 10),
+                        type: 'teardown',
+                        statusLabel: 'Teardown (H+1)',
+                        badgeClass: 'bg-[#FEF3C7] text-amber-800',
+                        badgeDot: 'bg-amber-500',
+                        instruction: 'Tent dismantling and returning all equipment to NK Barokah warehouse.',
+                        booking: b
+                    });
+                }
+            });
+
+            return ops.sort((a, b) => a.date_iso.localeCompare(b.date_iso));
         },
         prevCalMonth() {
             if (this.calMonth === 1) { this.calMonth = 12; this.calYear--; }
@@ -1355,54 +1454,93 @@
          x-cloak>
 
         <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#EFF4F2] flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
-            <!-- Row 1 di Mobile / Left Section di Desktop -->
-            <div class="flex items-center justify-between gap-2 w-full lg:w-auto lg:justify-start lg:gap-4">
-                <!-- Kiri: Navigator Bulan -->
-                <div class="flex items-center gap-1.5 sm:gap-2.5">
-                    <button type="button" @click="prevCalMonth()"
-                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
-                            title="Bulan sebelumnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
+            <!-- Sisi Kiri di Desktop: Month Navigator + Controls (Mode & View Dropdown, Today) -->
+            <div class="flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+                <!-- Row 1 di Mobile: Navigator Bulan + Today Button (mobile) -->
+                <div class="flex items-center justify-between gap-2 w-full lg:w-auto lg:gap-3">
+                    <!-- Navigator Bulan -->
+                    <div class="flex items-center gap-1.5 sm:gap-2.5">
+                        <button type="button" @click="prevCalMonth()"
+                                class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
+                                title="Previous Month">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
 
-                    <!-- Mini Date Sheet (hanya tampil di sm ke atas agar di HP tidak sesak) -->
-                    <div class="hidden sm:block w-11 rounded-xl border border-[#E5ECE9] overflow-hidden text-center shadow-2xs shrink-0">
-                        <div class="bg-[#F4F7F6] text-[9px] font-bold uppercase tracking-wider text-slate-500 py-0.5"
-                             x-text="monthShort[calMonth - 1]"></div>
-                        <div class="bg-white text-xs font-extrabold text-slate-900 py-1 leading-none"
-                             x-text="(calYear === currentRealYear && calMonth === currentRealMonth) ? currentRealDay : '01'"></div>
+                        <!-- Mini Date Sheet (hanya tampil di sm ke atas agar di HP tidak sesak) -->
+                        <div class="hidden sm:block w-11 rounded-xl border border-[#E5ECE9] overflow-hidden text-center shadow-2xs shrink-0">
+                            <div class="bg-[#F4F7F6] text-[9px] font-bold uppercase tracking-wider text-slate-500 py-0.5"
+                                 x-text="monthShort[calMonth - 1]"></div>
+                            <div class="bg-white text-xs font-extrabold text-slate-900 py-1 leading-none"
+                                 x-text="(calYear === currentRealYear && calMonth === currentRealMonth) ? currentRealDay : '01'"></div>
+                        </div>
+
+                        <div class="min-w-0">
+                            <h2 class="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight whitespace-nowrap" x-text="calHeaderLabel"></h2>
+                            <p class="hidden sm:block text-[11px] font-medium text-slate-400 mt-0.5 whitespace-nowrap" x-text="calRangeLabel"></p>
+                        </div>
+
+                        <button type="button" @click="nextCalMonth()"
+                                class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
+                                title="Next Month">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
                     </div>
 
-                    <div class="min-w-0">
-                        <h2 class="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight whitespace-nowrap" x-text="calHeaderLabel"></h2>
-                        <p class="hidden sm:block text-[11px] font-medium text-slate-400 mt-0.5 whitespace-nowrap" x-text="calRangeLabel"></p>
-                    </div>
-
-                    <button type="button" @click="nextCalMonth()"
-                            class="w-8 h-8 rounded-full hover:bg-[#F4F7F6] active:scale-90 text-slate-500 flex items-center justify-center transition cursor-pointer shrink-0"
-                            title="Bulan berikutnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
-
-                <!-- Kanan: Tombol Today + Switcher View (Monthly / Agenda) -->
-                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- Tombol Today (tampil di mobile di Row 1 sebelah kanan agar praktis) -->
                     <button type="button"
                             @click="goToTodayCalendar()"
                             :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs active:scale-95'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition shrink-0">
+                            class="lg:hidden px-3 py-1.5 rounded-xl border text-xs font-semibold transition shrink-0">
+                        Today
+                    </button>
+                </div>
+
+                <!-- Row 2 di Mobile (2 Kolom Grid) / Inline di Desktop (di sebelah Navigator Bulan) -->
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 w-full lg:w-auto shrink-0">
+                    <!-- Mode Switcher Dropdown (Event Schedule vs Field Operations) -->
+                    <div class="relative w-full sm:w-auto" @click.away="calendarModeOpen = false">
+                        <button type="button"
+                                @click="calendarModeOpen = !calendarModeOpen"
+                                class="w-full sm:w-auto inline-flex items-center justify-between gap-2 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs">
+                            <span class="truncate" x-text="calendarMode === 'events' ? 'Event Schedule' : 'Field Operations'"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="calendarModeOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
+                            <button type="button"
+                                    @click="calendarMode = 'events'; calendarModeOpen = false"
+                                    :class="calendarMode === 'events' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
+                                    class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
+                                <span>Event Schedule</span>
+                                <span x-show="calendarMode === 'events'" class="text-brand-600 font-bold">✓</span>
+                            </button>
+                            <button type="button"
+                                    @click="calendarMode = 'operations'; calendarModeOpen = false"
+                                    :class="calendarMode === 'operations' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
+                                    class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
+                                <span>Field Operations</span>
+                                <span x-show="calendarMode === 'operations'" class="text-brand-600 font-bold">✓</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Today (hanya tampil di desktop di sebelah view dropdown) -->
+                    <button type="button"
+                            @click="goToTodayCalendar()"
+                            :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs active:scale-95'"
+                            class="hidden lg:inline-flex px-3 py-2 rounded-xl border text-xs font-semibold transition shrink-0">
                         Today
                     </button>
 
-                    <div class="relative shrink-0" @click.away="calendarViewOpen = false">
+                    <!-- View Switcher Dropdown (Monthly View vs Agenda List) -->
+                    <div class="relative w-full sm:w-auto" @click.away="calendarViewOpen = false">
                         <button type="button"
                                 @click="calendarViewOpen = !calendarViewOpen"
-                                class="inline-flex items-center justify-between gap-1.5 sm:gap-3 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-slate-700 transition cursor-pointer">
+                                class="w-full sm:w-auto inline-flex items-center justify-between gap-2 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs">
                             <span x-text="calendarView === 'Monthly View' ? 'Monthly' : 'Agenda'" class="sm:hidden"></span>
-                            <span x-text="calendarView" class="hidden sm:inline"></span>
+                            <span x-text="calendarView" class="hidden sm:inline truncate"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div x-show="calendarViewOpen" class="absolute right-0 lg:left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
+                        <div x-show="calendarViewOpen" class="absolute right-0 sm:left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
                             <template x-for="v in ['Monthly View', 'Agenda List']" :key="v">
                                 <button type="button" @click="calendarView = v; calendarViewOpen = false"
                                         :class="calendarView === v ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
@@ -1416,26 +1554,42 @@
                 </div>
             </div>
 
-            <!-- Row 2 di Mobile: Strip Status Legend Rapi 4 Kolom (Di Desktop tetap sejajar di sisi kanan) -->
-            <div class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
-                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
-                    Inquiry
-                </span>
-                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
-                    Confirmed
-                </span>
-                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-500 shrink-0"></span>
-                    Complete
-                </span>
-                <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-rose-500 shrink-0"></span>
-                    Cancelled
-                </span>
+            <!-- Sisi Kanan di Desktop: Legend / Row 3 di Mobile -->
+            <div class="w-full lg:w-auto shrink-0">
+                <!-- Legend Dinamis (Acara vs Field Operations) -->
+                <div x-show="calendarMode === 'events'"
+                     class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
+                        Inquiry
+                    </span>
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
+                        Confirmed
+                    </span>
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-500 shrink-0"></span>
+                        Complete
+                    </span>
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-rose-500 shrink-0"></span>
+                        Cancelled
+                    </span>
+                </div>
+
+                <div x-show="calendarMode === 'operations'"
+                     class="grid grid-cols-2 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
+                        Setup (H-2)
+                    </span>
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-amber-500 shrink-0"></span>
+                        Teardown (H+1)
+                    </span>
+                </div>
             </div>
-        </div>
+    </div>
 
         <!-- MONTHLY VIEW GRID -->
         <div x-show="calendarView === 'Monthly View'" class="overflow-x-auto">
@@ -1457,7 +1611,7 @@
                                 'bg-[#F4F9F7] ring-1 ring-brand-300 ring-inset': !cell.blank && cell.isToday,
                                 'bg-white hover:bg-[#F8FBFA]': !cell.blank && !cell.isToday
                              }"
-                             :title="cell.blank ? '' : 'Click date to view all events (' + (cell.events ? cell.events.length : 0) + ' bookings)'"
+                             :title="cell.blank ? '' : (calendarMode === 'events' ? 'Click date to view ' + cell.events.length + ' bookings' : 'Click date to view ' + cell.operations.length + ' field operations')"
                              @click="if (!cell.blank) openDayModal(cell)"
                              class="min-h-[120px] p-2 border-r border-b border-[#EFF4F2] transition-colors flex flex-col gap-1.5 cursor-pointer select-none group relative">
                             <template x-if="!cell.blank">
@@ -1466,7 +1620,7 @@
                                         <div class="flex items-center gap-1.5">
                                             <span :class="cell.isToday
                                                     ? 'w-6 h-6 rounded-full bg-brand-600 text-white text-[11px] font-bold inline-flex items-center justify-center shadow-xs'
-                                                    : (cell.events.length > 0
+                                                    : ((calendarMode === 'events' ? cell.events.length : cell.operations.length) > 0
                                                         ? 'w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-bold inline-flex items-center justify-center group-hover:bg-brand-600 transition'
                                                         : 'text-xs font-bold text-slate-800')"
                                                   x-text="cell.day"></span>
@@ -1476,7 +1630,7 @@
                                                 </span>
                                             </template>
                                         </div>
-                                        <template x-if="cell.hasConflict">
+                                        <template x-if="cell.hasConflict && calendarMode === 'events'">
                                             <span title="Daily capacity limit exceeded!" class="text-orange-500">
                                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                                     <path d="M12 2L1 21h22L12 2zm0 4.5l7.5 13h-15l7.5-13zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"/>
@@ -1485,8 +1639,8 @@
                                         </template>
                                     </div>
 
-                                    <!-- Event chips (Up to 2 shown in cell) -->
-                                    <div class="space-y-1">
+                                    <!-- Mode: Event Schedule Chips -->
+                                    <div class="space-y-1" x-show="calendarMode === 'events'">
                                         <template x-for="ev in cell.events.slice(0, 2)" :key="ev.id">
                                             <button type="button"
                                                     @click.stop="openDetail(ev)"
@@ -1512,6 +1666,29 @@
                                             </button>
                                         </template>
                                     </div>
+
+                                    <!-- Mode: Field Operations Chips (Pasang H-2, Hari H, Bongkar H+1) -->
+                                    <div class="space-y-1" x-show="calendarMode === 'operations'">
+                                        <template x-for="op in cell.operations.slice(0, 2)" :key="op.id">
+                                            <button type="button"
+                                                    @click.stop="openDetail(op.booking)"
+                                                    :class="op.chipClass"
+                                                    class="w-full text-left px-2 py-1 rounded-lg transition cursor-pointer text-xs block group/chip">
+                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="op.chipTitle"></p>
+                                                <p class="text-[9.5px] opacity-80 leading-tight truncate mt-0.5" x-text="op.chipSubtitle"></p>
+                                            </button>
+                                        </template>
+
+                                        <!-- "+X more" Button if > 2 -->
+                                        <template x-if="cell.operations.length > 2">
+                                            <button type="button"
+                                                    @click.stop="openDayModal(cell)"
+                                                    class="w-full py-1 px-2 rounded-lg bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-slate-700 font-bold text-[10px] text-center transition flex items-center justify-center gap-1 border border-[#E2EAE7] cursor-pointer">
+                                                <span x-text="'+ ' + (cell.operations.length - 2) + ' more'"></span>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
+                                        </template>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -1522,76 +1699,137 @@
 
         <!-- AGENDA LIST VIEW -->
         <div x-show="calendarView === 'Agenda List'" class="p-4 sm:p-6 space-y-3 sm:space-y-4">
-            <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900 leading-snug">
-                        <span class="sm:hidden" x-text="'Agenda · ' + calHeaderLabel"></span>
-                        <span class="hidden sm:inline" x-text="'Monthly Booking Agenda · ' + calHeaderLabel"></span>
-                    </h3>
-                    <p class="text-[11px] text-slate-400 sm:hidden">All scheduled bookings</p>
+            <!-- Mode 1: Event Bookings Agenda -->
+            <div x-show="calendarMode === 'events'" class="space-y-3 sm:space-y-4">
+                <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                            <span class="sm:hidden" x-text="'Agenda · ' + calHeaderLabel"></span>
+                            <span class="hidden sm:inline" x-text="'Monthly Booking Agenda · ' + calHeaderLabel"></span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400 sm:hidden">All scheduled bookings</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
+                          x-text="monthBookings.length + ' Bookings'"></span>
                 </div>
-                <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
-                      x-text="monthBookings.length + ' Bookings'"></span>
+
+                <template x-if="monthBookings.length === 0">
+                    <div class="py-12 text-center text-xs text-slate-400">
+                        No bookings scheduled for this month.
+                    </div>
+                </template>
+
+                <div class="space-y-3" x-show="monthBookings.length > 0">
+                    <template x-for="ev in monthBookings" :key="'agenda-' + ev.id">
+                        <div @click="openDetail(ev)"
+                             class="p-3.5 sm:p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group">
+                            
+                            <!-- Bagian Atas / Kiri: Date Sheet + Info Reservasi -->
+                            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                                <!-- Date Sheet -->
+                                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs group-hover:border-brand-200 transition">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase leading-none" x-text="monthShort[ev.event_month - 1]"></span>
+                                    <span class="text-sm sm:text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="ev.event_day"></span>
+                                </div>
+
+                                <!-- Text Info -->
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                        <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="ev.name"></span>
+                                        <span x-show="ev.duration_days > 1" class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Days'"></span>
+                                    </div>
+                                    <p class="text-[11.5px] sm:text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
+                                </div>
+                            </div>
+
+                            <!-- Bagian Bawah di Mobile / Kanan di Desktop: Keuangan & Badge Status -->
+                            <div class="border-t border-[#F0F4F2] pt-2.5 sm:border-t-0 sm:pt-0 flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <div class="flex items-baseline sm:block sm:text-right gap-1.5">
+                                    <p class="text-xs sm:text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
+                                    <span class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.2 sm:px-0 sm:py-0 rounded sm:rounded-none inline-block"
+                                          :class="ev.remaining_balance <= 0 ? 'text-emerald-700 bg-emerald-50 sm:bg-transparent' : 'text-amber-700 bg-amber-50 sm:bg-transparent'"
+                                          x-text="ev.remaining_balance <= 0 ? 'Paid' : 'Due ' + ev.remaining_formatted"></span>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <span :class="{
+                                            'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
+                                            'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
+                                            'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
+                                            'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
+                                          }"
+                                          class="px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                                          x-text="ev.bookingStatus"></span>
+                                    <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
             </div>
 
-            <template x-if="monthBookings.length === 0">
-                <div class="py-12 text-center text-xs text-slate-400">
-                    No bookings scheduled for this month.
+            <!-- Mode 2: Field Operations Agenda -->
+            <div x-show="calendarMode === 'operations'" class="space-y-3 sm:space-y-4">
+                <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                            <span class="sm:hidden" x-text="'Operations · ' + calHeaderLabel"></span>
+                            <span class="hidden sm:inline" x-text="'Monthly Field Operations · ' + calHeaderLabel"></span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400">H-2 tent setup and H+1 teardown logistics schedule</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
+                          x-text="monthOperations.length + ' Tasks'"></span>
                 </div>
-            </template>
 
-            <div class="space-y-3" x-show="monthBookings.length > 0">
-                <template x-for="ev in monthBookings" :key="'agenda-' + ev.id">
-                    <div @click="openDetail(ev)"
-                         class="p-3.5 sm:p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 group">
-                        
-                        <!-- Bagian Atas / Kiri: Date Sheet + Info Reservasi -->
-                        <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
-                            <!-- Date Sheet -->
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs group-hover:border-brand-200 transition">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase leading-none" x-text="monthShort[ev.event_month - 1]"></span>
-                                <span class="text-sm sm:text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="ev.event_day"></span>
-                            </div>
+                <template x-if="monthOperations.length === 0">
+                    <div class="py-12 text-center text-xs text-slate-400">
+                        No field operations (setup or teardown) scheduled for this month.
+                    </div>
+                </template>
 
-                            <!-- Text Info -->
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                    <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
-                                    <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="ev.name"></span>
-                                    <span x-show="ev.duration_days > 1" class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Days'"></span>
+                <div class="space-y-3" x-show="monthOperations.length > 0">
+                    <template x-for="op in monthOperations" :key="op.key">
+                        <div @click="openDetail(op.booking)"
+                             class="p-3.5 sm:p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EDF2F0] hover:border-brand-300 hover:shadow-card transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer group">
+                            
+                            <!-- Date Sheet + Info Operasional -->
+                            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white border border-[#E5ECE9] flex flex-col items-center justify-center text-center shrink-0 shadow-2xs group-hover:border-brand-200 transition">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase leading-none" x-text="monthShort[op.month - 1]"></span>
+                                    <span class="text-sm sm:text-base font-extrabold text-slate-900 leading-none mt-0.5" x-text="op.day"></span>
                                 </div>
-                                <p class="text-[11.5px] sm:text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
-                            </div>
-                        </div>
 
-                        <!-- Bagian Bawah di Mobile / Kanan di Desktop: Keuangan & Badge Status -->
-                        <div class="border-t border-[#F0F4F2] pt-2.5 sm:border-t-0 sm:pt-0 flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                            <!-- Info Biaya & Pelunasan -->
-                            <div class="flex items-baseline sm:block sm:text-right gap-1.5">
-                                <p class="text-xs sm:text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
-                                <span class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.2 sm:px-0 sm:py-0 rounded sm:rounded-none inline-block"
-                                      :class="ev.remaining_balance <= 0 ? 'text-emerald-700 bg-emerald-50 sm:bg-transparent' : 'text-amber-700 bg-amber-50 sm:bg-transparent'"
-                                      x-text="ev.remaining_balance <= 0 ? 'Paid' : 'Due ' + ev.remaining_formatted"></span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + op.booking.code"></span>
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="op.booking.name"></span>
+                                    </div>
+                                    <p class="text-[11.5px] text-slate-500 truncate mt-0.5">
+                                        <span class="font-semibold text-slate-700" x-text="op.booking.service"></span>
+                                        <span class="text-slate-400">&bull;</span>
+                                        <span x-text="op.booking.venue_address"></span>
+                                    </p>
+                                </div>
                             </div>
 
-                            <!-- Status Badge -->
-                            <div class="flex items-center gap-2">
-                                <span :class="{
-                                        'bg-[#E6F6EF] text-emerald-700': ev.bookingStatus === 'Confirmed',
-                                        'bg-[#F3EAFF] text-purple-600': ev.bookingStatus === 'Complete',
-                                        'bg-[#EAF3FF] text-blue-600': ev.bookingStatus === 'Inquiry',
-                                        'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
-                                      }"
+                            <!-- Status Badge & Chevron -->
+                            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <span :class="op.badgeClass"
                                       class="px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                      x-text="ev.bookingStatus"></span>
+                                      x-text="op.statusLabel"></span>
                                 <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </div>
-                        </div>
 
-                    </div>
-                </template>
+                        </div>
+                    </template>
+                </div>
             </div>
         </div>
 
@@ -1623,7 +1861,7 @@
                      x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                      class="relative bg-white rounded-[28px] max-w-xl w-full p-5 sm:p-7 text-left shadow-2xl border border-[#EDF2F0] space-y-5 transform transition-all overflow-hidden">
 
-                    <!-- Header -->
+                    <!-- Header Modal -->
                     <div class="flex items-start justify-between gap-4 pb-4 border-b border-[#EFF4F2]">
                         <div class="flex items-center gap-3.5">
                             <div class="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-brand-700 flex flex-col items-center justify-center text-center shrink-0 shadow-2xs">
@@ -1637,7 +1875,10 @@
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Today</span>
                                     </template>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-0.5" x-text="(selectedDayModal?.events?.length || 0) + ' Scheduled Bookings'"></p>
+                                <p class="text-xs text-slate-500 mt-0.5"
+                                   x-text="calendarMode === 'operations' 
+                                       ? ((selectedDayModal?.operations?.length || 0) + ' Field Operations') 
+                                       : ((selectedDayModal?.events?.length || 0) + ' Scheduled Bookings')"></p>
                             </div>
                         </div>
                         <button type="button"
@@ -1647,8 +1888,8 @@
                         </button>
                     </div>
 
-                    <!-- Quota / Conflict Banner -->
-                    <template x-if="selectedDayModal && (selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length > maxEventsPerDay)">
+                    <!-- Quota / Conflict Banner (Hanya di mode Acara) -->
+                    <template x-if="calendarMode === 'events' && selectedDayModal && (selectedDayModal.events.filter(e => e.raw_status !== 'rejected').length > maxEventsPerDay)">
                         <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs">
                             <span class="text-base shrink-0 mt-0.5">⚠️</span>
                             <div>
@@ -1659,8 +1900,8 @@
                         </div>
                     </template>
 
-                    <!-- Bookings Cards Container -->
-                    <div class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
+                    <!-- MODE 1: BOOKING EVENTS CARDS -->
+                    <div x-show="calendarMode === 'events'" class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
                         <template x-if="selectedDayModal?.events?.length === 0">
                             <div class="py-12 text-center space-y-2">
                                 <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
@@ -1674,7 +1915,6 @@
                         <template x-for="(ev, idx) in (selectedDayModal?.events || [])" :key="ev.id">
                             <div class="pt-3 first:pt-0">
                                 <div class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EAF0EE] hover:border-brand-300 hover:shadow-card transition space-y-3 group">
-                                    <!-- Top Row: Code, Date & Status -->
                                     <div class="flex items-center justify-between gap-2">
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
@@ -1701,7 +1941,6 @@
                                         </span>
                                     </div>
 
-                                    <!-- Middle Row: Customer Info & Service -->
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="flex items-center gap-3 min-w-0">
                                             <img :src="ev.avatar" :alt="ev.name"
@@ -1717,7 +1956,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Bottom Row: Payment Summary & Action Buttons -->
                                     <div class="pt-2.5 border-t border-[#EDF2F0] flex flex-wrap items-center justify-between gap-2.5 text-xs">
                                         <div class="flex items-center gap-2">
                                             <span class="text-[11px] text-slate-400">Payment:</span>
@@ -1735,6 +1973,87 @@
                                             </template>
                                             <button type="button"
                                                     @click="closeDayModal(); openDetail(ev)"
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
+                                                <span>View Details</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- MODE 2: FIELD OPERATIONS CARDS (SETUP H-2 & TEARDOWN H+1) -->
+                    <div x-show="calendarMode === 'operations'" class="max-h-[55vh] overflow-y-auto space-y-3 pr-1 divide-y divide-[#F4F7F6]">
+                        <template x-if="selectedDayModal?.operations?.length === 0">
+                            <div class="py-12 text-center space-y-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-700">No field operations scheduled</p>
+                                <p class="text-[11px] text-slate-400">There are no tent setup (H-2) or teardown (H+1) tasks on this date.</p>
+                            </div>
+                        </template>
+
+                        <template x-for="op in (selectedDayModal?.operations || [])" :key="op.id">
+                            <div class="pt-3 first:pt-0">
+                                <div class="p-4 rounded-2xl bg-[#FAFDFC] hover:bg-white border border-[#EAF0EE] hover:border-brand-300 hover:shadow-card transition space-y-3 group">
+                                    <!-- Top Row: Code, Event Date & Pill Badge -->
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + op.booking.code"></span>
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600"
+                                                  x-text="'Event: ' + op.booking.date_short"></span>
+                                        </div>
+                                        <span :class="op.badgeClass"
+                                              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="op.badgeDot"></span>
+                                            <span x-text="op.statusLabel"></span>
+                                        </span>
+                                    </div>
+
+                                    <!-- Middle Row: Customer Info & Service -->
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <img :src="op.booking.avatar" :alt="op.booking.name"
+                                                 class="w-10 h-10 rounded-xl object-cover shrink-0">
+                                            <div class="min-w-0">
+                                                <p class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="op.booking.name"></p>
+                                                <p class="text-[11px] text-slate-500 truncate" x-text="op.booking.phone"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <p class="text-xs font-bold text-brand-700" x-text="op.booking.service"></p>
+                                            <p class="text-[11px] text-slate-500" x-text="op.booking.grand_total_formatted"></p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Location & Landmark -->
+                                    <div class="text-[11.5px] text-slate-600 flex items-start gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <span class="line-clamp-2" x-text="op.booking.venue_address + (op.booking.address_landmark && op.booking.address_landmark !== '-' ? ' (Landmark: ' + op.booking.address_landmark + ')' : '')"></span>
+                                    </div>
+
+                                    <!-- SOP Instruction -->
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600 flex items-start gap-1.5">
+                                        <span class="font-bold text-slate-700 shrink-0">SOP:</span>
+                                        <span x-text="op.instruction"></span>
+                                    </div>
+
+                                    <!-- Bottom Row: WhatsApp & Detail Buttons -->
+                                    <div class="pt-2.5 border-t border-[#EDF2F0] flex items-center justify-between gap-2.5 text-xs">
+                                        <span class="text-[11px] text-slate-400" x-text="op.booking.duration_days + ' Days Event'"></span>
+                                        <div class="flex items-center gap-2 ml-auto">
+                                            <template x-if="op.booking.whatsapp_url">
+                                                <a :href="op.booking.whatsapp_url" target="_blank"
+                                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition cursor-pointer">
+                                                    <span>WhatsApp</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                </a>
+                                            </template>
+                                            <button type="button"
+                                                    @click="closeDayModal(); openDetail(op.booking)"
                                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
                                                 <span>View Details</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
