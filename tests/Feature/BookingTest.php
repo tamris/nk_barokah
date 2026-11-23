@@ -108,7 +108,8 @@ class BookingTest extends TestCase
         Storage::fake('public');
 
         $package = Package::first();
-        $eventDate = now()->addMonths(2)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addDays(5)->format('Y-m-d');
+        $initialCount = Booking::count();
 
         // Existing booking on that date
         Booking::create([
@@ -141,7 +142,7 @@ class BookingTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['event_date']);
-        $this->assertEquals(101, Booking::count());
+        $this->assertEquals($initialCount + 1, Booking::count());
     }
 
     public function test_dp_validation_fails_if_dp_exceeds_grand_total_or_below_minimum(): void
@@ -151,7 +152,7 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(11)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addMonths(1)->format('Y-m-d');
 
         // Case 1: Below minimum (min is Rp 1.000.000)
         $responseBelow = $this->post(route('booking.store'), [
@@ -324,7 +325,7 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(11)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addMonths(1)->format('Y-m-d');
 
         // Distance 25 km:
         // <= 10 km free, remaining 15 km is 2 tiers of 10 km -> 2 * 300,000 = 600,000 transport fee
@@ -359,8 +360,8 @@ class BookingTest extends TestCase
 
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(8)->format('Y-m-d');
-        $surveyDate = now()->addMonths(6)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addMonths(2)->format('Y-m-d');
+        $surveyDate = now()->addYears(2)->addMonths(1)->format('Y-m-d');
 
         $response = $this->post(route('booking.store'), [
             'customer_name'     => 'Fajar & Nita',
@@ -392,8 +393,8 @@ class BookingTest extends TestCase
     {
         $package = Package::first();
         $file = UploadedFile::fake()->create('proof.png', 500, 'image/png');
-        $eventDate = now()->addMonths(4)->format('Y-m-d');
-        $surveyDateAfterEvent = now()->addMonths(4)->addDays(2)->format('Y-m-d');
+        $eventDate = now()->addYears(2)->addMonths(3)->format('Y-m-d');
+        $surveyDateAfterEvent = now()->addYears(2)->addMonths(3)->addDays(2)->format('Y-m-d');
 
         $response = $this->post(route('booking.store'), [
             'customer_name'     => 'Budi & Susi',

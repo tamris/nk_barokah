@@ -14,15 +14,20 @@ class BookingSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Reset data booking & booking_addons saja
+        // 1. Reset data bookings & booking_addons dan kembalikan Auto-Increment ke 1
         if (DB::getDriverName() === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-            BookingAddon::truncate();
-            Booking::truncate();
+            DB::table('booking_addons')->truncate();
+            DB::table('bookings')->truncate();
+            DB::statement('ALTER TABLE bookings AUTO_INCREMENT = 1;');
+            DB::statement('ALTER TABLE booking_addons AUTO_INCREMENT = 1;');
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         } else {
-            BookingAddon::query()->delete();
-            Booking::query()->delete();
+            DB::table('booking_addons')->delete();
+            DB::table('bookings')->delete();
+            if (DB::getDriverName() === 'sqlite') {
+                DB::statement("DELETE FROM sqlite_sequence WHERE name IN ('bookings', 'booking_addons')");
+            }
         }
 
         $packages = Package::all();
@@ -34,211 +39,432 @@ class BookingSeeder extends Seeder
             $addons = Addon::all();
         }
 
-        // 100 Data Reservasi Pasangan Pengantin Realistis Indonesia
-        // Wilayah: DIY (Sleman, Bantul, Kota Jogja, Kulon Progo, Gunungkidul) & Jateng (Klaten, Magelang)
+        // =====================================================================
+        // 55+ Alamat Asli Lokal di Wilayah Operasional NK Barokah
+        // (Kab. Tegal, Slawi, Adiwerna, Dukuhturi, Talang, Pangkah, Tarub, Kramat, Lebaksiu, Kota Tegal)
+        // Jarak dari Gudang NK Barokah (Slawi Kulon): 2 km - 28 km
+        // =====================================================================
         $venues = [
-            ['address' => 'Jl. Kaliurang KM 12, RT 03/RW 15, Sardonoharjo, Ngaglik, Sleman', 'landmark' => 'Dekat Masjid Al-Ikhlas, pagar hitam'],
-            ['address' => 'Jl. Palagan Tentara Pelajar KM 8.5, Sariharjo, Ngaglik, Sleman', 'landmark' => 'Gang barat Hotel Hyatt, depan pohon beringin'],
-            ['address' => 'Jl. Wates KM 5, Ambarketawang, Gamping, Sleman', 'landmark' => 'Samping Alfamart Ambarketawang'],
-            ['address' => 'Jl. Bantul KM 7, Pendowoharjo, Sewon, Bantul', 'landmark' => 'Depan gapura Dusun Cepit'],
-            ['address' => 'Jl. Imogiri Timur KM 11, Wukirsari, Imogiri, Bantul', 'landmark' => 'Dekat jembatan gantung Karangtalun'],
-            ['address' => 'Jl. Solo KM 14, Tamanmartani, Kalasan, Sleman', 'landmark' => 'Belakang RS Bhayangkara Kalasan'],
-            ['address' => 'Jl. Wonosari KM 8, Potorono, Banguntapan, Bantul', 'landmark' => 'Sebelah barat lapangan desa Potorono'],
-            ['address' => 'Jl. Magelang KM 11, Tridadi, Sleman', 'landmark' => 'Dekat kantor Pemkab Sleman'],
-            ['address' => 'Jl. Godean KM 7, Sidoaryo, Godean, Sleman', 'landmark' => 'Masuk gang selatan Polsek Godean'],
-            ['address' => 'Jl. Parangtritis KM 9, Timbulharjo, Sewon, Bantul', 'landmark' => 'Depan warung sate klathak Pak Pong'],
-            ['address' => 'Jl. Damai No. 45, Sinduharjo, Ngaglik, Sleman', 'landmark' => 'Pagar hijau tosca, seberang kafe kaktus'],
-            ['address' => 'Jl. Tajem KM 3, Maguwoharjo, Depok, Sleman', 'landmark' => 'Dekat kampus Sanata Dharma Paingan'],
-            ['address' => 'Jl. Bibis Raya, Bangunjiwo, Kasihan, Bantul', 'landmark' => 'Dekat SD Kasihan, gapura warna biru'],
-            ['address' => 'Jl. Affandi No. 28, Santren, Caturtunggal, Depok, Sleman', 'landmark' => 'Masuk gang samping resto bebek'],
-            ['address' => 'Jl. Raya Prambanan - Piyungan KM 4, Bokoharjo, Sleman', 'landmark' => 'Depan candi Banyunibo'],
-            ['address' => 'Jl. Veteran No. 12, Pandeyan, Umbulharjo, Kota Yogyakarta', 'landmark' => 'Dekat XT Square Jogja'],
-            ['address' => 'Jl. Sugeng Jeroni No. 55, Gedongkiwo, Mantrijeron, Kota Yogyakarta', 'landmark' => 'Depan mushola Nurul Huda'],
-            ['address' => 'Jl. Bugisan No. 34, Patangpuluhan, Wirobrajan, Kota Yogyakarta', 'landmark' => 'Gang sebelah barat SMKI Jogja'],
-            ['address' => 'Jl. Raya Solo - Yogya KM 20, Delanggu, Klaten', 'landmark' => 'Sebelah selatan pabrik gula Delanggu'],
-            ['address' => 'Jl. Pemuda No. 78, Tonggalan, Klaten Tengah, Klaten', 'landmark' => 'Dekat alun-alun Klaten'],
+            // Area Slawi (Pusat & Sekitarnya: Jarak 1 - 5 km)
+            ['address' => 'Jl. K.H. Ahmad Dahlan No. 18, Slawi Kulon, Kec. Slawi, Kab. Tegal', 'landmark' => 'Depan Masjid Al-Kautsar, gapura warna krem', 'dist' => 1.5],
+            ['address' => 'Jl. Dr. Soeselo No. 42, RT 02/RW 03, Slawi Wetan, Kec. Slawi, Kab. Tegal', 'landmark' => 'Dekat RSUD dr. Soeselo Slawi, masuk gang mangga', 'dist' => 2.8],
+            ['address' => 'Jl. Gajah Mada No. 88, Kalisapu, Kec. Slawi, Kab. Tegal', 'landmark' => 'Sebelah barat Kantor Kemenag Slawi', 'dist' => 3.2],
+            ['address' => 'Jl. Jenderal Sudirman No. 15, Procot, Kec. Slawi, Kab. Tegal', 'landmark' => 'Depan Monumen GBN Procot, pagar hitam', 'dist' => 3.0],
+            ['address' => 'Jl. Prof. Moh. Yamin No. 24, Kudaile, Kec. Slawi, Kab. Tegal', 'landmark' => 'Belakang Stadion Tri Sanja Slawi', 'dist' => 2.5],
+            ['address' => 'Jl. Cut Nyak Dien, Trayeman, Kec. Slawi, Kab. Tegal', 'landmark' => 'Samping barat Pasar Trayeman', 'dist' => 2.2],
+            ['address' => 'Jl. Agus Salim No. 09, Pakembaran, Kec. Slawi, Kab. Tegal', 'landmark' => 'Dekat SMK Negeri 1 Slawi', 'dist' => 4.0],
+            ['address' => 'Jl. Letjen Suprapto, Kagok, Kec. Slawi, Kab. Tegal', 'landmark' => 'Dekat Taman Rakyat Slawi Ayu (TRASA)', 'dist' => 2.0],
+            ['address' => 'Jl. Merpati No. 31, Dukuhwringin, Kec. Slawi, Kab. Tegal', 'landmark' => 'Masuk gang barat Puskesmas Slawi', 'dist' => 4.5],
+
+            // Area Adiwerna & Talang (Jarak 6 - 12 km)
+            ['address' => 'Jl. Raya Singkil - Tembok Luwung No. 77, Tembok Luwung, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Sentra Bordir, seberang Mushola Baitul Muttaqin', 'dist' => 7.5],
+            ['address' => 'Jl. Sunan Amangkurat No. 12, Pesarean, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Dekat komplek Makam Amangkurat I', 'dist' => 6.8],
+            ['address' => 'Jl. Raya Ujungrusi No. 50, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Dekat RS Islam PKU Muhammadiyah Tegal', 'dist' => 8.2],
+            ['address' => 'Jl. Raya Harjosari Kidul No. 102, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Depan Masjid Jami Harjosari', 'dist' => 7.0],
+            ['address' => 'Jl. Raya Kalimati No. 34, Kalimati, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Dekat jembatan Kalimati perbatasan', 'dist' => 8.5],
+            ['address' => 'Jl. Pagiyanten Indah No. 19, Kec. Adiwerna, Kab. Tegal', 'landmark' => 'Sebelah barat Balai Desa Pagiyanten', 'dist' => 6.2],
+            ['address' => 'Jl. Raya Talang No. 89, Tegalwangi, Kec. Talang, Kab. Tegal', 'landmark' => 'Dekat Pasar Talang, ruko tingkat hijau', 'dist' => 9.5],
+            ['address' => 'Jl. Kyai Mojo, Pesayangan, Kec. Talang, Kab. Tegal', 'landmark' => 'Sentra Logam Pesayangan, masuk gang 3', 'dist' => 10.0],
+            ['address' => 'Jl. Raya Pegirikan No. 14, Pegirikan, Kec. Talang, Kab. Tegal', 'landmark' => 'Depan Puskesmas Pegirikan', 'dist' => 8.8],
+            ['address' => 'Jl. Pasangan Raya No. 27, Pasangan, Kec. Talang, Kab. Tegal', 'landmark' => 'Belakang balai desa Pasangan', 'dist' => 9.2],
+
+            // Area Pangkah & Kedungbanteng (Jarak 5 - 12 km)
+            ['address' => 'Jl. Raya Bogares No. 45, Bogares Kidul, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Sentra Kacang Asin Bogares, rumah pagar besi tempa', 'dist' => 6.0],
+            ['address' => 'Jl. Raya Bogares Lor No. 18, Bogares Lor, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Dekat pertigaan tugu Bogares', 'dist' => 7.2],
+            ['address' => 'Jl. Pabrik Gula Pangkah No. 05, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Sebelah selatan gerbang PG Pangkah', 'dist' => 6.5],
+            ['address' => 'Jl. Curug Indah RT 03/RW 02, Curug, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Belakang lapangan sepakbola Curug', 'dist' => 8.0],
+            ['address' => 'Jl. Grobog Wetan No. 11, Grobog Kulon, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Dekat Balai Desa Grobog', 'dist' => 9.0],
+            ['address' => 'Jl. Raya Penusupan No. 88, Penusupan, Kec. Pangkah, Kab. Tegal', 'landmark' => 'Depan Masjid Baiturrahman Penusupan', 'dist' => 7.8],
+            ['address' => 'Jl. Raya Tonggara No. 23, Tonggara, Kec. Kedungbanteng, Kab. Tegal', 'landmark' => 'Dekat waduk Cacaban Slawi', 'dist' => 11.5],
+
+            // Area Dukuhturi & Tarub (Jarak 8 - 14 km)
+            ['address' => 'Jl. Raya Kupu No. 64, Kupu, Kec. Dukuhturi, Kab. Tegal', 'landmark' => 'Dekat jembatan kali Kupu', 'dist' => 11.0],
+            ['address' => 'Jl. Raya Sidakaton No. 90, Sidakaton, Kec. Dukuhturi, Kab. Tegal', 'landmark' => 'Perempatan pasar Sidakaton, ruko batik', 'dist' => 10.5],
+            ['address' => 'Jl. Bandasari Permai No. 15, Bandasari, Kec. Dukuhturi, Kab. Tegal', 'landmark' => 'Belakang kantor balai desa Bandasari', 'dist' => 12.0],
+            ['address' => 'Jl. Mindaka Raya No. 42, Mindaka, Kec. Tarub, Kab. Tegal', 'landmark' => 'Dekat perlintasan rel KA Mindaka', 'dist' => 12.5],
+            ['address' => 'Jl. Raya Brekat No. 08, Brekat, Kec. Tarub, Kab. Tegal', 'landmark' => 'Sebelah timur Balai Desa Brekat', 'dist' => 13.0],
+            ['address' => 'Jl. Kesadikan No. 37, Kesadikan, Kec. Tarub, Kab. Tegal', 'landmark' => 'Depan SDN Kesadikan 01', 'dist' => 14.0],
+
+            // Area Lebaksiu, Balapulang & Bojong (Arah Selatan: Jarak 8 - 22 km)
+            ['address' => 'Jl. Raya Yomani - Guci KM 2, Yamansari, Kec. Lebaksiu, Kab. Tegal', 'landmark' => 'Dekat pertigaan patung sapi Yomani', 'dist' => 8.5],
+            ['address' => 'Jl. Pondok Pesantren Babakan No. 12, Babakan, Kec. Lebaksiu, Kab. Tegal', 'landmark' => 'Masuk gerbang komplek Ponpes Babakan', 'dist' => 9.0],
+            ['address' => 'Jl. Raya Lebakgowah No. 56, Kec. Lebaksiu, Kab. Tegal', 'landmark' => 'Dekat jembatan Kali Gung Lebaksiu', 'dist' => 7.8],
+            ['address' => 'Jl. Raya Balapulang No. 101, Balapulang Wetan, Kec. Balapulang, Kab. Tegal', 'landmark' => 'Dekat Pasar Balapulang, seberang Bank BRI', 'dist' => 11.0],
+            ['address' => 'Jl. Raya Kalibakung No. 25, Kalibakung, Kec. Balapulang, Kab. Tegal', 'landmark' => 'Dekat Wisata Kesehatan Jamu (RSOB Kalibakung)', 'dist' => 15.0],
+            ['address' => 'Jl. Raya Tuwel - Guci KM 5, Tuwel, Kec. Bojong, Kab. Tegal', 'landmark' => 'Jalur utama wisata air panas Guci', 'dist' => 20.0],
+            ['address' => 'Jl. Bojong Kulon No. 40, Kec. Bojong, Kab. Tegal', 'landmark' => 'Dekat Pasar Bojong, jalan tanjakan', 'dist' => 18.0],
+            ['address' => 'Jl. Raya Bumijawa No. 15, Kec. Bumijawa, Kab. Tegal', 'landmark' => 'Dekat Kantor Camat Bumijawa hawa sejuk', 'dist' => 25.0],
+            ['address' => 'Jl. Raya Margasari No. 67, Kec. Margasari, Kab. Tegal', 'landmark' => 'Dekat Stasiun Prupuk / Margasari', 'dist' => 22.0],
+
+            // Area Kramat & Suradadi (Jalur Pantura Tegal: Jarak 14 - 24 km)
+            ['address' => 'Perum Mejasem Baru Blok C No. 12, Mejasem Barat, Kec. Kramat, Kab. Tegal', 'landmark' => 'Dekat Lapangan Barat Mejasem, gerbang portal putih', 'dist' => 13.5],
+            ['address' => 'Jl. Pala Raya No. 48, Mejasem Timur, Kec. Kramat, Kab. Tegal', 'landmark' => 'Sebelah utara Pasar Mejasem', 'dist' => 14.2],
+            ['address' => 'Jl. Raya Pantura Kramat No. 210, Padaharja, Kec. Kramat, Kab. Tegal', 'landmark' => 'Depan Rumah Makan Luwes Pantura', 'dist' => 18.0],
+            ['address' => 'Jl. Pantai Maribaya No. 19, Maribaya, Kec. Kramat, Kab. Tegal', 'landmark' => 'Dekat gerbang wisata Pantai Maribaya', 'dist' => 21.0],
+            ['address' => 'Jl. Raya Purwahamba No. 55, Suradadi, Kab. Tegal', 'landmark' => 'Dekat Obyek Wisata Purwahamba Indah (Purin)', 'dist' => 24.0],
+
+            // Area Kota Tegal (Tetangga Langsung Slawi: Jarak 10 - 16 km)
+            ['address' => 'Jl. Kartini No. 20, Kejambon, Kec. Tegal Timur, Kota Tegal', 'landmark' => 'Dekat RSUD Kardinah Kota Tegal', 'dist' => 12.0],
+            ['address' => 'Jl. Pancasila No. 04, Panggung, Kec. Tegal Timur, Kota Tegal', 'landmark' => 'Dekat Alun-Alun Kota Tegal & Stasiun Tegal', 'dist' => 13.5],
+            ['address' => 'Jl. KH. Mansyur No. 33, Pekauman, Kec. Tegal Barat, Kota Tegal', 'landmark' => 'Belakang Masjid Agung Kota Tegal', 'dist' => 13.0],
+            ['address' => 'Jl. Teuku Umar No. 82, Debong Tengah, Kec. Tegal Selatan, Kota Tegal', 'landmark' => 'Dekat RS Harapan Anda Tegal', 'dist' => 10.8],
+            ['address' => 'Jl. Kapten Sudibyo No. 115, Randugunting, Kec. Tegal Selatan, Kota Tegal', 'landmark' => 'Dekat Pacific Mall Tegal', 'dist' => 11.2],
+            ['address' => 'Jl. Mataram No. 08, Muarareja, Kec. Tegal Barat, Kota Tegal', 'landmark' => 'Dekat Pantai Muarareja Indah', 'dist' => 14.5],
+            ['address' => 'Jl. Raya Kolonel Sugiono No. 202, Margadana, Kota Tegal', 'landmark' => 'Dekat Terminal Bis Tegal Pantura', 'dist' => 15.0],
+            ['address' => 'Jl. Raya Jatibarang - Slawi KM 4, Jatibarang Lor, Kab. Brebes', 'landmark' => 'Dekat Pabrik Gula Jatibarang', 'dist' => 9.5],
         ];
 
         $parentsPool = [
-            'Bpk. H. Rahmat & Ibu Hj. Siti Aminah',
-            'Bpk. Bambang Sutrisno & Ibu Sri Wahyuni',
+            'Bpk. H. Rahmat Hidayat & Ibu Hj. Siti Aminah',
+            'Bpk. Bambang Sutrisno, S.E. & Ibu Sri Wahyuni',
             'Bpk. Hendra Gunawan & Ibu Ratna Dewi',
-            'Bpk. Slamet Riyadi & Ibu Endang Lestari',
+            'Bpk. H. Slamet Riyadi & Ibu Hj. Endang Lestari',
             'Bpk. Joko Purnomo & Ibu Suhartini',
-            'Bpk. Drs. Agus Susanto & Ibu Dra. Nurul Hidayah',
+            'Bpk. Drs. H. Agus Susanto & Ibu Dra. Hj. Nurul Hidayah',
             'Bpk. Ir. Budi Santoso & Ibu Maria Ulfah',
             'Bpk. Eko Prasetyo & Ibu Tri Astuti',
             'Bpk. H. Wahyudi & Ibu Hj. Marwiyah',
             'Bpk. Danang Wicaksono & Ibu Kartini',
+            'Bpk. Drs. H. Mulyono & Ibu Hj. Khodijah',
+            'Bpk. Edi Suwarno & Ibu Tutik Handayani',
+            'Bpk. H. Syaiful Bahri & Ibu Hj. Umi Kalsum',
+            'Bpk. Toto Sugiharto & Ibu Widianingsih',
+            'Bpk. Sukirman, S.Pd. & Ibu Siti Romlah',
         ];
 
-        $muaList = ['Sarah MUA Gallery', 'Lestari Wedding MakeUp', 'Ayu Glamour MUA', 'Diva Paes Jogja', 'Griya Pengantin Citra', 'Kendedes MUA Solo', 'Cantika Wedding Studio'];
-        $decorList = ['Barokah Floral Decor', 'Jogja Rustic Wedding', 'Asri Pelaminan Modern', 'Gardenia Floral Art', 'Nirmala Wedding Decor', 'Maharani Decor Jogja'];
-        $photoList = ['Lensa Cerita Fotografi', 'Kisah Kita Studio', 'Visi Visual Wedding', 'Cahaya Asmara Photo', 'Momentum Cinematic', 'Abadi Story Photography'];
-        $mcList = ['Mas Dimas MC', 'MC Rama & Partners', 'Pratama Wedding Host', 'Bagus MC Jogja', 'Aditya Master Ceremony', 'WO Berkah Bersama'];
-
-        // 100 Pasangan Pengantin Terkurasi
-        $couples = [
-            // 2026: November (1-22 Past/Today, 23-30 Up Next)
-            ['date' => '2026-11-01', 'name' => 'Dimas Pratama & Anindya Putri',        'phone' => '081223344551', 'email' => 'dimas.anindya@gmail.com',      'pkg' => 0, 'status' => 'completed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-04', 'name' => 'Fajar Nugroho & Nabila Maharani',      'phone' => '081334455662', 'email' => 'fajar.nabila@yahoo.com',       'pkg' => 1, 'status' => 'completed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2026-11-07', 'name' => 'Ilham Maulana & Annisa Rahmawati',     'phone' => '082145566773', 'email' => 'ilham.annisa@gmail.com',       'pkg' => 2, 'status' => 'completed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-10', 'name' => 'Rizky Kurniawan & Amanda Permatasari', 'phone' => '085756677884', 'email' => 'rizky.amanda@outlook.com',     'pkg' => 3, 'status' => 'completed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 10],
-            ['date' => '2026-11-14', 'name' => 'Bima Sakti & Citra Kirana Dewi',       'phone' => '081267788995', 'email' => 'bima.citra@gmail.com',         'pkg' => 0, 'status' => 'completed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-18', 'name' => 'Muhammad Reza & Dian Sastrowardoyo',   'phone' => '081378899006', 'email' => 'reza.dian@gmail.com',          'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 15],
-            ['date' => '2026-11-20', 'name' => 'Aditya Pratama & Bella Safira',        'phone' => '082289900117', 'email' => 'aditya.bella@gmail.com',       'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-22', 'name' => 'Bagus Wicaksono & Maya Indah Sari',    'phone' => '085890011228', 'email' => 'bagus.maya@yahoo.co.id',     'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5], // Hari ini
-            ['date' => '2026-11-24', 'name' => 'Andi Wijaya & Tiara Andini',           'phone' => '081201122339', 'email' => 'andi.tiara@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-27', 'name' => 'Bayu Kusuma & Rina Marlina',          'phone' => '081312233440', 'email' => 'bayu.rina@gmail.com',          'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 10],
-            ['date' => '2026-11-29', 'name' => 'Doni Saputra & Siska Febriana',        'phone' => '082123344551', 'email' => 'doni.siska@outlook.com',       'pkg' => 2, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-11-30', 'name' => 'Eko Prasetyo & Winda Amalia',          'phone' => '085734455662', 'email' => 'eko.winda@gmail.com',          'pkg' => 3, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2026: Desember (Musim Nikah Akhir Tahun & Tanggal Cantik)
-            ['date' => '2026-12-04', 'name' => 'Gilang Ramadhan & Hesti Purwadinata',  'phone' => '081245566773', 'email' => 'gilang.hesti@gmail.com',       'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2026-12-06', 'name' => 'Hendra Setiawan & Jessica Mila',       'phone' => '081356677884', 'email' => 'hendra.jessica@gmail.com',     'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-09', 'name' => 'Joko Widodo & Kartika Sari Dewi',      'phone' => '082267788995', 'email' => 'joko.kartika@yahoo.com',       'pkg' => 0, 'status' => 'rejected',             'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-12', 'name' => 'Kevin Sanjaya & Larasati Nugroho',     'phone' => '085878899006', 'email' => 'kevin.laras@gmail.com',        'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 10], // 12-12
-            ['date' => '2026-12-12', 'name' => 'Lukman Hakim & Mega Utami Putri',      'phone' => '081289900117', 'email' => 'lukman.mega@outlook.com',      'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-16', 'name' => 'Mario Teguh & Nadya Arina',           'phone' => '081390011228', 'email' => 'mario.nadya@gmail.com',        'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-19', 'name' => 'Niko Al-Hakim & Olivia Jensen',       'phone' => '082101122339', 'email' => 'niko.olivia@gmail.com',       'pkg' => 2, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2026-12-23', 'name' => 'Panji Trihatmodjo & Prilly Maharani', 'phone' => '085712233440', 'email' => 'panji.prilly@gmail.com',      'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-26', 'name' => 'Rangga Azof & Qory Sandioriva',        'phone' => '081223344552', 'email' => 'rangga.qory@gmail.com',        'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2026-12-28', 'name' => 'Satria Tama & Raisa Andriana',         'phone' => '081334455663', 'email' => 'satria.raisa@gmail.com',       'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 15],
-            ['date' => '2026-12-31', 'name' => 'Tio Nugros & Tasya Farasya',          'phone' => '082145566774', 'email' => 'tio.tasya@gmail.com',          'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2027: Januari (Awal Tahun Baru)
-            ['date' => '2027-01-05', 'name' => 'Umar Said & Syifa Hadju',             'phone' => '085756677885', 'email' => 'umar.syifa@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-01-09', 'name' => 'Vino Bastian & Vanesha Prescilla',    'phone' => '081267788996', 'email' => 'vino.vanesha@gmail.com',       'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2027-01-13', 'name' => 'Wahyu Hidayat & Wulan Guritno',       'phone' => '081378899007', 'email' => 'wahyu.wulan@gmail.com',        'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-01-17', 'name' => 'Yusuf Mansur & Yasmine Wildblood',    'phone' => '082289900118', 'email' => 'yusuf.yasmine@gmail.com',     'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 10],
-            ['date' => '2027-01-20', 'name' => 'Zaky Zimah & Zaskia Adya Mecca',      'phone' => '085890011229', 'email' => 'zaky.zaskia@gmail.com',        'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 0],
-            ['date' => '2027-01-23', 'name' => 'Agung Hercules & Anggika Bolsterli',  'phone' => '081201122330', 'email' => 'agung.anggika@gmail.com',      'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-01-27', 'name' => 'Bobby Nasution & Bunga Citra Lestari','phone' => '081312233441', 'email' => 'bobby.bcl@gmail.com',           'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2027-01-30', 'name' => 'Chandra Liow & Chelsea Islan',        'phone' => '082123344552', 'email' => 'chandra.chelsea@gmail.com',    'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2027: Februari (Pra-Ramadhan & Musim Pesta)
-            ['date' => '2027-02-03', 'name' => 'Dicky Difie & Dinda Kirana',          'phone' => '085734455663', 'email' => 'dicky.dinda@gmail.com',        'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-02-06', 'name' => 'Erwin Gutawa & Enzy Storia',          'phone' => '081245566774', 'email' => 'erwin.enzy@gmail.com',         'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10],
-            ['date' => '2027-02-10', 'name' => 'Ferry Maryadi & Febby Rastanty',      'phone' => '081356677885', 'email' => 'ferry.febby@gmail.com',        'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-02-14', 'name' => 'Gading Marten & Gisella Anastasia',   'phone' => '082267788996', 'email' => 'gading.gisel@gmail.com',       'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2027-02-17', 'name' => 'Haris Azhar & Hanggini Purinda',      'phone' => '085878899007', 'email' => 'haris.hanggini@gmail.com',     'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-02-21', 'name' => 'Indra Bekti & Isyana Sarasvati',      'phone' => '081289900118', 'email' => 'indra.isyana@gmail.com',       'pkg' => 2, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-02-25', 'name' => 'Jordy Onsu & Jessica Iskandar',       'phone' => '081390011229', 'email' => 'jordy.jessica@gmail.com',      'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 15],
-            ['date' => '2027-02-28', 'name' => 'Kresna Danu & Kimberly Ryder',        'phone' => '082101122331', 'email' => 'kresna.kim@gmail.com',          'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2027: Maret (Periode Ramadhan / Syawal Planner)
-            ['date' => '2027-03-05', 'name' => 'Lucky Perdana & Luna Maya',           'phone' => '085712233441', 'email' => 'lucky.luna@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-03-12', 'name' => 'Mahendra Dito & Maudy Ayunda',        'phone' => '081223344553', 'email' => 'mahendra.maudy@gmail.com',     'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10],
-            ['date' => '2027-03-24', 'name' => 'Naufal Samudra & Natasha Wilona',     'phone' => '081334455664', 'email' => 'naufal.natasha@gmail.com',     'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-03-28', 'name' => 'Oka Antara & Pamela Bowie',           'phone' => '082145566775', 'email' => 'oka.pamela@gmail.com',         'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-
-            // 2027: April (Musim Syawal & Halalbihalal Akbar)
-            ['date' => '2027-04-03', 'name' => 'Pasha Ungu & Paula Verhoeven',        'phone' => '085756677886', 'email' => 'pasha.paula@gmail.com',        'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-04-07', 'name' => 'Raffi Ahmad & Nagita Slavina',        'phone' => '081267788997', 'email' => 'raffi.nagita@gmail.com',       'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 20],
-            ['date' => '2027-04-10', 'name' => 'Sule Sutisna & Nathalie Holscher',    'phone' => '081378899008', 'email' => 'sule.nathalie@gmail.com',      'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-04-14', 'name' => 'Tarra Budiman & Gya Sadiqah',         'phone' => '082289900119', 'email' => 'tarra.gya@gmail.com',          'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-04-18', 'name' => 'Uya Kuya & Astrid Khairunisha',       'phone' => '085890011230', 'email' => 'uya.astrid@gmail.com',         'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-04-21', 'name' => 'Vidi Aldiano & Sheila Dara Aisha',    'phone' => '081201122331', 'email' => 'vidi.sheila@gmail.com',        'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10],
-            ['date' => '2027-04-25', 'name' => 'Wendy Cagur & Ayu Ting Ting',         'phone' => '081312233442', 'email' => 'wendy.ayu@gmail.com',           'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-04-29', 'name' => 'Yayan Ruhian & Yura Yunita',          'phone' => '082123344553', 'email' => 'yayan.yura@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2027: Mei (Mid-Year Peak Wedding Season)
-            ['date' => '2027-05-02', 'name' => 'Zikri Daulay & Ziva Magnolya',        'phone' => '085734455664', 'email' => 'zikri.ziva@gmail.com',         'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-05-05', 'name' => 'Aliando Syarief & Aurelie Moeremans', 'phone' => '081245566775', 'email' => 'aliando.aurelie@gmail.com',    'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10],
-            ['date' => '2027-05-08', 'name' => 'Bastian Steel & Brisia Jodie',        'phone' => '081356677886', 'email' => 'bastian.jodie@gmail.com',      'pkg' => 2, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-05-12', 'name' => 'Chicco Jerikho & Putri Marino',       'phone' => '082267788997', 'email' => 'chicco.putri@gmail.com',       'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 15],
-            ['date' => '2027-05-15', 'name' => 'Devano Danendra & Naura Ayu',         'phone' => '085878899008', 'email' => 'devano.naura@gmail.com',       'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-05-19', 'name' => 'El Rumi & Syifa Savira',              'phone' => '081289900119', 'email' => 'el.syifa@gmail.com',           'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-05-22', 'name' => 'Fadil Jaidi & Fadly Faisal',          'phone' => '081390011230', 'email' => 'fadil.fadly@gmail.com',         'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-05-26', 'name' => 'Giorgino Abraham & Yasmin Napper',    'phone' => '082101122332', 'email' => 'gio.yasmin@gmail.com',         'pkg' => 3, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-05-29', 'name' => 'Hitto Caesar & Felicya Angelista',    'phone' => '085712233442', 'email' => 'hitto.felicya@gmail.com',      'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 10],
-
-            // 2027: Juni (Liburan Sekolah & Tanggal Favorit)
-            ['date' => '2027-06-02', 'name' => 'Iqbaal Ramadhan & Vanesha Prescilla', 'phone' => '081223344554', 'email' => 'iqbaal.milea@gmail.com',       'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-06-05', 'name' => 'Jefri Nichol & Shenina Cinnamon',     'phone' => '081334455665', 'email' => 'jefri.shenina@gmail.com',      'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2027-06-09', 'name' => 'Kaesang Pangarep & Erina Gudono',     'phone' => '082145566776', 'email' => 'kaesang.erina@gmail.com',      'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 15],
-            ['date' => '2027-06-12', 'name' => 'Luthfi Aulia & Hanggini Purinda',     'phone' => '085756677887', 'email' => 'luthfi.jeha@gmail.com',        'pkg' => 3, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-06-16', 'name' => 'Morgan Oey & Asmara Abigail',         'phone' => '081267788998', 'email' => 'morgan.asmara@gmail.com',      'pkg' => 0, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-06-19', 'name' => 'Nino Kayam & Dhabitannisa',           'phone' => '081378899009', 'email' => 'nino.dhabita@gmail.com',       'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-06-23', 'name' => 'Onadio Leonardo & Beby Prisillia',    'phone' => '082289900120', 'email' => 'onad.beby@gmail.com',          'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-06-26', 'name' => 'Pradikta Wicaksono & Enzy Storia',    'phone' => '085890011231', 'email' => 'dikta.enzy@gmail.com',         'pkg' => 3, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 10],
-            ['date' => '2027-06-30', 'name' => 'Rizky Febian & Mahalini Raharja',     'phone' => '081201122333', 'email' => 'iki.lini@gmail.com',           'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 15],
-
-            // 2027: Juli (Musim Kemarau Cerah & Outdoor / Tenda Idaman)
-            ['date' => '2027-07-04', 'name' => 'Stefan William & Ria Andrews',        'phone' => '081312233443', 'email' => 'stefan.ria@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-07-07', 'name' => 'Thariq Halilintar & Aaliyah Massaid', 'phone' => '082123344554', 'email' => 'thariq.aaliyah@gmail.com',    'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10], // 07-07
-            ['date' => '2027-07-11', 'name' => 'Verrell Bramasta & Natasha Wilona',   'phone' => '085734455665', 'email' => 'verrell.natasha@gmail.com',    'pkg' => 2, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-07-14', 'name' => 'Wafda Saifan & Safira Kamila',        'phone' => '081245566776', 'email' => 'wafda.safira@gmail.com',       'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-07-18', 'name' => 'Zayn Malik & Gigi Hadid Indah',       'phone' => '081356677887', 'email' => 'zayn.gigi@gmail.com',          'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-07-21', 'name' => 'Aldi Maldini & Erika Carlina',        'phone' => '082267788998', 'email' => 'aldi.erika@gmail.com',         'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-07-25', 'name' => 'Baim Wong & Paula Verhoeven Sari',    'phone' => '085878899009', 'email' => 'baim.paula@gmail.com',         'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-            ['date' => '2027-07-28', 'name' => 'Cakra Khan & Marion Jola',            'phone' => '081289900120', 'email' => 'cakra.marion@gmail.com',       'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-07-31', 'name' => 'Desta Mahendra & Natasha Rizky',      'phone' => '081390011231', 'email' => 'desta.acha@gmail.com',         'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 20],
-
-            // 2027: Agustus (Bulan Kemerdekaan & Pesta Rakyat)
-            ['date' => '2027-08-04', 'name' => 'Ernest Prakasa & Meira Anastasia',    'phone' => '082101122333', 'email' => 'ernest.meira@gmail.com',       'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-08-08', 'name' => 'Fero Walandouw & Steffi Zamora',      'phone' => '085712233443', 'email' => 'fero.steffi@gmail.com',        'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10], // 08-08
-            ['date' => '2027-08-11', 'name' => 'Gading Danu & Anya Geraldine',        'phone' => '081223344555', 'email' => 'gading.anya@gmail.com',         'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-08-15', 'name' => 'Haikal Kamil & Tantri Namirah',       'phone' => '081334455666', 'email' => 'haykal.tantri@gmail.com',      'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-08-18', 'name' => 'Irfan Hakim & Della Sabrina',         'phone' => '082145566777', 'email' => 'irfan.della@gmail.com',        'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 15],
-            ['date' => '2027-08-22', 'name' => 'Judika Sihotang & Duma Riris',        'phone' => '085756677888', 'email' => 'judika.duma@gmail.com',        'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-08-26', 'name' => 'Kiki Farrel & Yuriko Angeline',       'phone' => '081267788999', 'email' => 'kiki.yuriko@gmail.com',        'pkg' => 1, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-08-29', 'name' => 'Lukman Sardi & Pricillia Pullunggono','phone' => '081378899010', 'email' => 'lukman.lia@gmail.com',          'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 5],
-
-            // 2027: September & Oktober (Musim Gugur & Pra Akhir Tahun)
-            ['date' => '2027-09-05', 'name' => 'Miller Khan & Farina Rebecca',        'phone' => '082289900121', 'email' => 'miller.farina@gmail.com',      'pkg' => 0, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-09-09', 'name' => 'Naufal Ghani & Caitlin Halderman',     'phone' => '085890011232', 'email' => 'naufal.caitlin@gmail.com',     'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 10], // 09-09
-            ['date' => '2027-09-15', 'name' => 'Omar Daniel & Amanda Rawles',         'phone' => '081201122334', 'email' => 'omar.amanda@gmail.com',        'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-09-22', 'name' => 'Putra Siregar & Septia Yetri',        'phone' => '081312233444', 'email' => 'putra.septia@gmail.com',       'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-09-29', 'name' => 'Qausar Harta & Masayu Clara',         'phone' => '082123344555', 'email' => 'qausar.clara@gmail.com',       'pkg' => 0, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-10-06', 'name' => 'Rendy Kjaernett & Lady Nayoan',       'phone' => '085734455666', 'email' => 'rendy.lady@gmail.com',         'pkg' => 3, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-10-10', 'name' => 'Samuel Zylgwyn & Franda Heckenbücker','phone' => '081245566777', 'email' => 'samuel.franda@gmail.com',      'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 15], // 10-10
-            ['date' => '2027-10-16', 'name' => 'Teuku Wisnu & Shireen Sungkar',       'phone' => '081356677888', 'email' => 'wisnu.shireen@gmail.com',      'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-10-24', 'name' => 'Umar Lubis & Ravelra Ruth',           'phone' => '082267788999', 'email' => 'umar.ravelra@gmail.com',       'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-10-31', 'name' => 'Vincent Rompies & Fifi Karamoy',      'phone' => '085878899010', 'email' => 'vincent.fifi@gmail.com',       'pkg' => 0, 'status' => 'pending_verification', 'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-
-            // 2027: November & Desember (Tutup Tahun 2027)
-            ['date' => '2027-11-07', 'name' => 'Wendi Cagur & Ayu Natasha Sari',      'phone' => '081289900121', 'email' => 'wendi.ayu@gmail.com',          'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-11-11', 'name' => 'Xander Bogaerts & Kimberly Anggun',   'phone' => '081390011232', 'email' => 'xander.kimberly@gmail.com',    'pkg' => 3, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 10], // 11-11
-            ['date' => '2027-11-20', 'name' => 'Yoga Pratama & Jessica Veranda',      'phone' => '082101122334', 'email' => 'yoga.ve@gmail.com',             'pkg' => 2, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 0],
-            ['date' => '2027-11-28', 'name' => 'Zulham Zamrun & Nurul Qomaril',       'phone' => '085712233444', 'email' => 'zulham.nurul@gmail.com',       'pkg' => 0, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-12-05', 'name' => 'Arya Saloka & Putri Anne Lestari',    'phone' => '081223344556', 'email' => 'arya.anne@gmail.com',           'pkg' => 4, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 10],
-            ['date' => '2027-12-12', 'name' => 'Bryan Domani & Mawar Eva de Jongh',    'phone' => '081334455667', 'email' => 'bryan.mawar@gmail.com',         'pkg' => 4, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 3, 'disc' => 20], // 12-12
-            ['date' => '2027-12-19', 'name' => 'Cicio Manassero & Natasha Ryder',     'phone' => '082145566778', 'email' => 'cio.natasha@gmail.com',         'pkg' => 1, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 5],
-            ['date' => '2027-12-26', 'name' => 'Daffa Wardhana & Chelsea Shania',     'phone' => '085756677889', 'email' => 'daffa.chelsea@gmail.com',       'pkg' => 2, 'status' => 'confirmed',            'pay' => 'lunas', 'dur' => 2, 'disc' => 0],
-            ['date' => '2027-12-31', 'name' => 'Endy Arfian & Megan Domani Putri',    'phone' => '081267789000', 'email' => 'endy.megan@gmail.com',          'pkg' => 3, 'status' => 'confirmed',            'pay' => 'dp',    'dur' => 2, 'disc' => 10],
+        // Vendor Rekanan Lokal Tegal & Slawi
+        $muaList = [
+            'Rias Pengantin Tegal Ayu',
+            'Griya Pengantin Slawi Ayu',
+            'Barokah MUA & Hijab Style',
+            'Cantika Paes & MakeUp Slawi',
+            'Lestari Wedding Gallery Tegal',
+            'Diva Kebaya & Paes Adiwerna',
+            'Ayu Glamour MakeUp Artist',
         ];
+        $decorList = [
+            'NK Barokah Floral Decor',
+            'Slawi Rustic & Modern Decor',
+            'Pelaminan Asri Pangkah',
+            'Gardenia Floral Art Tegal',
+            'Kencana Sari Dekorasi Slawi',
+            'Maharani Wedding Decor Adiwerna',
+        ];
+        $photoList = [
+            'Lensa Tegal Fotografi',
+            'Kisah Indah Cinema Slawi',
+            'Visi Visual Wedding Tegal',
+            'Cahaya Asmara Studio Procot',
+            'Momentum Cinematic Slawi',
+            'Cerita Bahagia Photography',
+        ];
+        $mcList = [
+            'Mas Dimas MC Tegal',
+            'Pak RT Slamet MC Adiwerna',
+            'Kang Aji Pranata Adicara',
+            'Pratama Wedding Host Slawi',
+            'Bagus MC Tegal Ayu',
+            'WO Berkah Bersama Slawi',
+        ];
+
+        // 200 Nama Pasangan Pengantin Realistis Indonesia
+        $coupleNames = [
+            'Dimas Pratama & Anindya Putri',
+            'Fajar Nugroho & Nabila Maharani',
+            'Ilham Maulana & Annisa Rahmawati',
+            'Rizky Kurniawan & Amanda Permatasari',
+            'Bima Sakti & Citra Kirana Dewi',
+            'Muhammad Reza & Dian Sastrowardoyo',
+            'Aditya Pratama & Bella Safira',
+            'Bagus Wicaksono & Maya Indah Sari',
+            'Andi Wijaya & Tiara Andini',
+            'Bayu Kusuma & Rina Marlina',
+            'Doni Saputra & Siska Febriana',
+            'Eko Prasetyo & Winda Amalia',
+            'Gilang Ramadhan & Hesti Purwadinata',
+            'Hendra Setiawan & Jessica Mila',
+            'Joko Widodo & Kartika Sari Dewi',
+            'Kevin Sanjaya & Larasati Nugroho',
+            'Lukman Hakim & Mega Utami Putri',
+            'Mario Teguh & Nadya Arina',
+            'Niko Al-Hakim & Olivia Jensen',
+            'Panji Trihatmodjo & Prilly Maharani',
+            'Rangga Azof & Qory Sandioriva',
+            'Satria Tama & Raisa Andriana',
+            'Tio Nugros & Tasya Farasya',
+            'Umar Said & Syifa Hadju',
+            'Vino Bastian & Vanesha Prescilla',
+            'Wahyu Hidayat & Wulan Guritno',
+            'Yusuf Mansur & Yasmine Wildblood',
+            'Zaky Zimah & Zaskia Adya Mecca',
+            'Agung Hercules & Anggika Bolsterli',
+            'Bobby Nasution & Bunga Citra Lestari',
+            'Chandra Liow & Chelsea Islan',
+            'Dicky Difie & Dinda Kirana',
+            'Erwin Gutawa & Enzy Storia',
+            'Ferry Maryadi & Febby Rastanty',
+            'Gading Marten & Gisella Anastasia',
+            'Haris Azhar & Hanggini Purinda',
+            'Indra Bekti & Isyana Sarasvati',
+            'Jordy Onsu & Jessica Iskandar',
+            'Kresna Danu & Kimberly Ryder',
+            'Lucky Perdana & Luna Maya',
+            'Mahendra Dito & Maudy Ayunda',
+            'Naufal Samudra & Natasha Wilona',
+            'Oka Antara & Pamela Bowie',
+            'Pasha Ungu & Paula Verhoeven',
+            'Raffi Ahmad & Nagita Slavina',
+            'Sule Sutisna & Nathalie Holscher',
+            'Tarra Budiman & Gya Sadiqah',
+            'Uya Kuya & Astrid Khairunisha',
+            'Vidi Aldiano & Sheila Dara Aisha',
+            'Wendy Cagur & Ayu Ting Ting',
+            'Yayan Ruhian & Yura Yunita',
+            'Zikri Daulay & Ziva Magnolya',
+            'Aliando Syarief & Aurelie Moeremans',
+            'Bastian Steel & Brisia Jodie',
+            'Chicco Jerikho & Putri Marino',
+            'Devano Danendra & Naura Ayu',
+            'El Rumi & Syifa Savira',
+            'Fadil Jaidi & Fadly Faisal',
+            'Giorgino Abraham & Yasmin Napper',
+            'Hitto Caesar & Felicya Angelista',
+            'Iqbaal Ramadhan & Vanesha Angel',
+            'Jefri Nichol & Shenina Cinnamon',
+            'Kaesang Pangarep & Erina Gudono',
+            'Luthfi Aulia & Hanggini Purinda',
+            'Morgan Oey & Asmara Abigail',
+            'Nino Kayam & Dhabitannisa',
+            'Onadio Leonardo & Beby Prisillia',
+            'Pradikta Wicaksono & Enzy Storia',
+            'Rizky Febian & Mahalini Raharja',
+            'Stefan William & Ria Andrews',
+            'Thariq Halilintar & Aaliyah Massaid',
+            'Verrell Bramasta & Natasha Wilona',
+            'Wafda Saifan & Safira Kamila',
+            'Zayn Malik & Gigi Hadid Indah',
+            'Aldi Maldini & Erika Carlina',
+            'Baim Wong & Paula Verhoeven Sari',
+            'Cakra Khan & Marion Jola',
+            'Desta Mahendra & Natasha Rizky',
+            'Ernest Prakasa & Meira Anastasia',
+            'Fero Walandouw & Steffi Zamora',
+            'Gading Danu & Anya Geraldine',
+            'Haikal Kamil & Tantri Namirah',
+            'Irfan Hakim & Della Sabrina',
+            'Judika Sihotang & Duma Riris',
+            'Kiki Farrel & Yuriko Angeline',
+            'Lukman Sardi & Pricillia Pullunggono',
+            'Miller Khan & Farina Rebecca',
+            'Naufal Ghani & Caitlin Halderman',
+            'Omar Daniel & Amanda Rawles',
+            'Putra Siregar & Septia Yetri',
+            'Qausar Harta & Masayu Clara',
+            'Rendy Kjaernett & Lady Nayoan',
+            'Samuel Zylgwyn & Franda Heckenbücker',
+            'Teuku Wisnu & Shireen Sungkar',
+            'Umar Lubis & Ravelra Ruth',
+            'Vincent Rompies & Fifi Karamoy',
+            'Wendi Cagur & Ayu Natasha Sari',
+            'Xander Bogaerts & Kimberly Anggun',
+            'Yoga Pratama & Jessica Veranda',
+            'Zulham Zamrun & Nurul Qomaril',
+            'Arya Saloka & Putri Anne Lestari',
+            'Bryan Domani & Mawar Eva de Jongh',
+            'Cicio Manassero & Natasha Ryder',
+            'Daffa Wardhana & Chelsea Shania',
+            'Endy Arfian & Megan Domani Putri',
+            'Fachri Albar & Renata Kusmanto',
+            'Giring Ganesha & Cynthia Riza',
+            'Hito Caesar & Felicya Angelista',
+            'Ibnu Jamil & Ririn Ekawati',
+            'Jonas Rivanno & Asmirandah Zantman',
+            'Kunto Aji & Dewi Syariati',
+            ' Marcell Siahaan & Rima Melati',
+            'Nino Fernandez & Hannah Al Rashid',
+            'Omesh Anandayu & Dian Ayu Lestari',
+            'Pevita Pearce & Mirzan Meer',
+            'Qibil Changcuters & Triani Amalia',
+            'Rio Dewanto & Atiqah Hasiholan',
+            'Surya Saputra & Cynthia Lamusu',
+            'Tora Sudiro & Mieke Amalia',
+            'Uus Rizky & Kartika Wijaksana',
+            'Vino Giovanni & Marsha Timothy',
+            'Winky Wiryawan & Kenes Andari',
+            'Yuki Kato & Fero Anggara',
+            'Zack Lee & Nafa Urbach',
+            'Adipati Dolken & Canti Tachril',
+            'Bams Samsons & Mikhavita Wijaya',
+            'Christian Sugiono & Titi Kamal',
+            'Darius Sinathrya & Donna Agnesia',
+            'Eza Gionino & Meiza Aulia',
+            'Fandy Christian & Dahlia Poland',
+            'Glenn Alinskie & Chelsea Olivia',
+            'Haikal Baron & Soraya Larasati',
+            'Irwansyah & Zaskia Sungkar',
+            'Junior Liem & Putri Titian',
+            'Kevin Julio & Imelda Therinne',
+            'Lucky Hakim & Tiara Dewi',
+            'Mike Lewis & Janisaa Pradja',
+            'Navicula Robi & Lakota Moira',
+            'Ozy Syahputra & Rina Diana',
+            'Panji Petualang & Nenty Estevany',
+            'Qomaruddin & Siti Aisyah',
+            'Rezky Aditya & Citra Kirana',
+            'Sultan Djorghi & Annisa Trihapsari',
+            'Teuku Zacky & Ilmira Usmanova',
+            'Usman Harun & Dewi Sartika',
+            'Vicky Nitinegoro & Cynthia Ramlan',
+            'Whisnu Santoso & Nadila Ernesta',
+            'Xavier Marks & Angela Gilsha',
+            'Yuda Pratama & Dinda Hauw',
+            'Zul Arifin & Nurul Huda',
+            'Ananda Omesh & Dian Ayu',
+            'Bima Arya & Yane Ardian',
+            'Coki Pardede & Firda Rahma',
+            'Didi Riyadi & Nirina Zubir',
+            'Engku Emran & Laudya Cynthia Bella',
+            'Fadlan Muhammad & Lyra Virna',
+            'Gatot Brajamusti & Reza Artamevia',
+            'Hardi Fadhillah & Kiki Azhari',
+            'Indra Priawan & Nikita Willy',
+            'Jerry Aurum & Denada Tambunan',
+            'Kiki Rizky & Ratu Sofya',
+            'Luthfi Agizal & Nadya Indry',
+            'Muzammil Hasballah & Sonia Ristanti',
+            'Natta Reza & Wardah Maulina',
+            'Opie Kumis & Siti Jubaedah',
+            'Pasha Chrismansyah & Adelia Wilhelmina',
+            'Qory Sandioriva & Shah Rei',
+            'Rizal Armada & Monica Imas',
+            'Sahrul Gunawan & Dine Mutiara',
+            'Taufik Hidayat & Ami Gumelar',
+            'Ungu Makki & Lala Hamid',
+            'Virgoun Tambunan & Inara Rusli',
+            'Wawan Teamlo & Endang Sukamti',
+            'Xabiru Oshe & Chava Al-Hakim',
+            'Yosi Mokalu & Aprillia Trina',
+            'Zumi Zola & Sherrin Tharia',
+            'Ahmad Dhani & Mulan Jameela',
+            'Bambang Pamungkas & Tribuana Tungga Dewi',
+            'Cakra Birawa & Dewi Perssik',
+            'Didi Kempot & Yan Vellia',
+            'Epy Kusnandar & Karina Ranau',
+            'Farhat Abbas & Nia Daniaty',
+            'Guruh Soekarnoputra & Garniana',
+            'Hengky Kurniawan & Sonya Fatmala',
+            'Iwan Fals & Rosana Listanto',
+            'Jamal Mirdad & Lydia Kandou',
+            'Kelik Pelur & Anik Sunyahni',
+            'Limbad & Susi Indrawati',
+            'Mandra Naih & Mila Sari Juwita',
+            'Nassar Sungkar & Muzdalifah',
+            'Oon Project Pop & Ocha',
+            'Parto Patrio & Diena Risty',
+            'Qomar Empat Sekawan & Dedeh',
+            'Rhoma Irama & Ricca Rachim',
+            'Saipul Jamil & Dewi Murya',
+            'Tessy Kabul & Sri Handayani',
+            'Ucup Nirin & Siti Munawaroh',
+            'Vicky Prasetyo & Angel Lelga',
+            'Willy Dozan & Betharia Sonata',
+            'Yanto Tampan & Nurhasanah',
+            'Zaenal Abidin & Titiek Puspa',
+        ];
+
+        // Buat 200 tanggal event terdistribusi realistis:
+        // - 30 Event di masa lalu (Okt 2026 s/d 22 Nov 2026) -> Status 'completed'
+        // - 10 Event di sisa Nov 2026 (23 - 30 Nov 2026) -> Status 'confirmed' / 'pending_verification'
+        // - 160 Event sepanjang 2027 (Januari - Desember 2027) -> Campuran 'confirmed', 'pending_verification', dan 5 'rejected'
+        $eventDates = [];
+
+        // 1. Oktober & Awal November 2026 (Masa lalu)
+        $pastBase = Carbon::create(2026, 10, 1);
+        for ($i = 0; $i < 30; $i++) {
+            $eventDates[] = [
+                'date'   => $pastBase->copy()->addDays($i * 1.7)->toDateString(),
+                'status' => 'completed',
+                'pay'    => 'lunas',
+            ];
+        }
+
+        // 2. Sisa November 2026 (Hari Ini s/d Akhir Bulan)
+        $novDates = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29', '2026-11-30', '2026-11-24', '2026-11-28'];
+        foreach ($novDates as $idx => $nd) {
+            $eventDates[] = [
+                'date'   => $nd,
+                'status' => $idx % 4 === 0 ? 'pending_verification' : 'confirmed',
+                'pay'    => $idx % 3 === 0 ? 'lunas' : 'dp',
+            ];
+        }
+
+        // 3. Sepanjang Tahun 2027 (160 Event: Rata-rata 13-14 event/bulan, terutama weekend & tanggal cantik)
+        $year2027Start = Carbon::create(2027, 1, 1);
+        for ($i = 0; $i < 160; $i++) {
+            // Distribusi merata sepanjang 365 hari 2027
+            $dayOffset = (int) ($i * 2.25);
+            $evDate = $year2027Start->copy()->addDays($dayOffset);
+            if ($evDate->year > 2027) {
+                $evDate = Carbon::create(2027, 12, 28);
+            }
+
+            // Status: 85% confirmed, 12% pending_verification, 3% rejected
+            $randStatus = match ($i % 25) {
+                0, 13 => 'rejected',
+                3, 7, 18 => 'pending_verification',
+                default => 'confirmed',
+            };
+
+            $payType = ($i % 3 === 0) ? 'lunas' : 'dp';
+
+            $eventDates[] = [
+                'date'   => $evDate->toDateString(),
+                'status' => $randStatus,
+                'pay'    => $payType,
+            ];
+        }
+
+        // Pastikan genap 200 data
+        $eventDates = array_slice($eventDates, 0, 200);
+
+        // Sorting urut berdasarkan tanggal
+        usort($eventDates, fn($a, $b) => strcmp($a['date'], $b['date']));
 
         $invoiceCounterByMonth = [];
-        $couples = array_slice($couples, 0, 100);
 
-        foreach ($couples as $idx => $item) {
+        foreach ($eventDates as $idx => $item) {
             $eventDate = Carbon::parse($item['date']);
-            $durationDays = $item['dur'] ?? 2;
+            // Durasi acara: mayoritas 2 hari (standar paket tenda), sebagian 1 hari atau 3 hari
+            $durationDays = match ($idx % 7) {
+                0 => 1,
+                3, 6 => 3,
+                default => 2,
+            };
             $eventEndDate = $eventDate->copy()->addDays($durationDays - 1);
 
             $monthKey = $eventDate->format('m');
             $invoiceCounterByMonth[$monthKey] = ($invoiceCounterByMonth[$monthKey] ?? 0) + 1;
             $invoiceNumber = sprintf('NKB/%s/%02d', $monthKey, $invoiceCounterByMonth[$monthKey]);
 
-            $pkg = $packages[$item['pkg'] % $packages->count()];
+            // Pilih paket (Tenda Set, Paket 1, Paket 2, Decor 6M, Decor 8M)
+            $pkg = $packages[$idx % $packages->count()];
             $packagePrice = (float) $pkg->base_price;
 
             // Extra charge jika lebih dari 2 hari (@ 15% per hari ekstra)
             $extraDays = max(0, $durationDays - 2);
             $additionalDayCharge = $extraDays * 0.15 * $packagePrice;
 
-            // Variasi add-on realistis untuk setiap pesanan (1 - 3 add-on)
+            // Add-on realistis (1 - 3 add-on per booking)
             $selectedAddons = [];
             $addonTotal = 0;
             $addonCount = ($idx % 3) + 1;
 
             for ($a = 0; $a < $addonCount; $a++) {
-                $targetAddon = $addons[($idx * 2 + $a) % $addons->count()];
+                $targetAddon = $addons[($idx * 3 + $a) % $addons->count()];
                 $qty = match ($targetAddon->unit) {
-                    'pcs'   => 10 + (($idx * 5) % 40),
-                    'meter' => 10 + (($idx * 6) % 30),
-                    'unit'  => 1 + ($idx % 3),
+                    'pcs'   => 20 + (($idx * 10) % 60),
+                    'meter' => 15 + (($idx * 5) % 25),
+                    'unit'  => 1 + ($idx % 2),
                     'hari'  => $durationDays,
                     'set'   => 1,
                     default => 1,
@@ -255,11 +481,29 @@ class BookingSeeder extends Seeder
                 ];
             }
 
-            // Subtotal kotor sebelum diskon
-            $subtotalBeforeDiscount = $packagePrice + $additionalDayCharge + $addonTotal;
+            // Venue lokal Tegal/Slawi & Jarak dari Gudang Slawi Kulon
+            $venueData = $venues[$idx % count($venues)];
+            $distanceKm = (float) $venueData['dist'];
 
-            // Diskon Vendor Rekanan (%)
-            $discountPercent = (float) ($item['disc'] ?? 0);
+            // Hitung Ongkos Kirim: Free <= 10 km, selanjutnya 300.000 per 10 km
+            $freeDistanceKm = 10.0;
+            $transportFee = 0.0;
+            if ($distanceKm > $freeDistanceKm) {
+                $extraKm = $distanceKm - $freeDistanceKm;
+                $tiers = ceil($extraKm / 10.0);
+                $transportFee = $tiers * 300000.0;
+            }
+
+            // Subtotal kotor sebelum diskon
+            $subtotalBeforeDiscount = $packagePrice + $additionalDayCharge + $addonTotal + $transportFee;
+
+            // Diskon Vendor Rekanan (%) jika ada
+            $discountPercent = match ($idx % 6) {
+                0 => 5.0,
+                2 => 10.0,
+                5 => 15.0,
+                default => 0.0,
+            };
             $discountAmount = $discountPercent > 0 ? round(($discountPercent / 100) * $subtotalBeforeDiscount) : 0;
 
             // Grand Total Bersih
@@ -271,28 +515,33 @@ class BookingSeeder extends Seeder
                 $payType = 'lunas';
             } else {
                 // DP minimal 1jt (default rules) atau sekitar 35% grand total
-                $minDp = (float) config('wo.min_dp_amount', 1000000);
+                $minDp = 1000000.0;
                 $calculatedDp = round($grandTotal * 0.35, -5);
                 $amountPaid = max($minDp, min($calculatedDp, $grandTotal));
                 $remaining = max(0, $grandTotal - $amountPaid);
                 $payType = 'dp';
             }
 
-            // Tanggal dibuat reservasi (1-3 bulan sebelum hari H)
-            $createdAt = $eventDate->copy()->subDays(rand(20, 90));
+            // Tanggal dibuat reservasi
+            $createdAt = $eventDate->copy()->subDays(rand(15, 60));
             if ($createdAt->isFuture()) {
-                $createdAt = Carbon::today()->subDays(rand(1, 15));
+                $createdAt = Carbon::today()->subDays(rand(1, 10));
             }
 
-            // Venue & Event Details
-            $venueData = $venues[$idx % count($venues)];
+            // Pasangan, Orang Tua & Detail
+            $coupleName = $coupleNames[$idx % count($coupleNames)];
             $parents = $parentsPool[$idx % count($parentsPool)];
-            $instagram = '@' . strtolower(str_replace([' ', '&', '·', '-'], ['_', '', '', ''], explode(' & ', $item['name'])[0])) . '_wedding';
+            $firstGroom = explode(' & ', $coupleName)[0];
+            $cleanName = strtolower(preg_replace('/[^a-zA-Z]/', '', $firstGroom));
+            $instagram = '@' . $cleanName . '_wedding';
+            $phone = sprintf('08%d%07d', [1, 2, 5][($idx % 3)], rand(1000000, 9999999));
+            $email = $cleanName . '.' . rand(10, 99) . '@gmail.com';
+
             $eventTime = match ($idx % 4) {
                 0 => '08:00 - Selesai',
-                1 => '09:00 - 15:00 WIB',
-                2 => '10:00 - 16:00 WIB',
-                default => '08:00 - 14:00 WIB',
+                1 => '09:00 - 16:00 WIB',
+                2 => '10:00 - 17:00 WIB',
+                default => '08:00 - 15:00 WIB',
             };
 
             $vendorName = $discountPercent > 0 ? $muaList[$idx % count($muaList)] : null;
@@ -301,11 +550,44 @@ class BookingSeeder extends Seeder
             $vendorPhoto = $photoList[($idx + 2) % count($photoList)];
             $vendorMc = $mcList[$idx % count($mcList)];
 
+            // Survey Request (~35% dari pemesan me-request survey lokasi)
+            $surveyRequested = ($idx % 3 === 0);
+            $surveyDate = null;
+            $surveySlot = null;
+            $surveyStatus = 'none';
+            $surveyNotes = null;
+
+            if ($surveyRequested) {
+                // Survey dijadwalkan 7 s/d 18 hari sebelum hari H
+                $surveyDate = $eventDate->copy()->subDays(rand(7, 18));
+                $surveySlot = match ($idx % 3) {
+                    0 => 'morning',
+                    1 => 'afternoon',
+                    default => 'flexible',
+                };
+                if ($eventDate->isPast()) {
+                    $surveyStatus = 'completed';
+                } else {
+                    $surveyStatus = match ($idx % 4) {
+                        0 => 'completed',
+                        1, 2 => 'scheduled',
+                        default => 'requested',
+                    };
+                }
+                $surveyNotes = match ($idx % 5) {
+                    0 => 'Mobil pikap muat masuk sampai depan teras, mohon kabari WA 1 jam sebelumnya.',
+                    1 => 'Jalan kampung paving 3.5 meter, bisa koordinasi dengan ketua RT setempat.',
+                    2 => 'Dekat masjid jami desa, halaman luas muat pasang tenda lengkung.',
+                    3 => 'Ada pohon mangga di halaman depan yang perlu diukur ketinggian atap tenda.',
+                    default => 'Rumah pagar warna hijau, mohon survey saat jam istirahat siang.',
+                };
+            }
+
             $booking = Booking::create([
                 'invoice_number'        => $invoiceNumber,
-                'customer_name'         => strtoupper($item['name']),
-                'customer_phone'        => $item['phone'],
-                'customer_email'        => $item['email'],
+                'customer_name'         => strtoupper($coupleName),
+                'customer_phone'        => $phone,
+                'customer_email'        => $email,
                 'venue_address'         => $venueData['address'],
                 'address_landmark'      => $venueData['landmark'],
                 'parents_name'          => $parents,
@@ -314,6 +596,9 @@ class BookingSeeder extends Seeder
                 'vendor_name'           => $vendorName,
                 'discount_percent'      => $discountPercent,
                 'discount_amount'       => $discountAmount,
+                'owner_discount'        => 0,
+                'delivery_distance_km'  => $distanceKm,
+                'transport_fee'         => $transportFee,
                 'vendor_mua'            => $vendorMua,
                 'vendor_decor'          => $vendorDecor,
                 'vendor_photo_video'    => $vendorPhoto,
@@ -331,6 +616,11 @@ class BookingSeeder extends Seeder
                 'remaining_balance'     => $remaining,
                 'payment_type'          => $payType,
                 'payment_proof_path'    => 'proofs/sample-receipt.jpg',
+                'survey_requested'      => $surveyRequested,
+                'survey_date'           => $surveyDate?->toDateString(),
+                'survey_time_slot'      => $surveySlot,
+                'survey_notes'          => $surveyNotes,
+                'survey_status'         => $surveyStatus,
                 'status'                => $item['status'],
                 'synced_to_sheets'      => $item['status'] === 'confirmed',
                 'created_at'            => $createdAt,

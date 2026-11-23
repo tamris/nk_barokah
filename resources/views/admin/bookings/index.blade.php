@@ -486,9 +486,9 @@
                             id: b.id + '-survey',
                             type: 'survey',
                             statusLabel: isDone ? 'Survey Done' : 'Site Survey',
-                            badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800' : 'bg-[#EEF2FF] text-indigo-700',
-                            badgeDot: isDone ? 'bg-emerald-500' : 'bg-indigo-600',
-                            chipClass: isDone ? 'bg-[#ECFDF5] hover:bg-[#D1FAE5] text-emerald-900' : 'bg-[#EEF2FF] hover:bg-[#E0E7FF] text-indigo-900',
+                            badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200',
+                            badgeDot: isDone ? 'bg-emerald-500' : 'bg-purple-600',
+                            chipClass: isDone ? 'bg-[#ECFDF5] hover:bg-[#D1FAE5] text-emerald-900 border border-emerald-200/80' : 'bg-[#F3E8FF] hover:bg-[#E9D5FF] text-purple-950 border border-purple-200/80',
                             chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Survey)',
                             chipSubtitle: (b.survey_time_slot_label || 'Survey') + ': ' + b.service,
                             instruction: 'Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : 'Contact: ' + b.phone),
@@ -572,8 +572,8 @@
                         month: parseInt(b.survey_date.split('-')[1], 10),
                         type: 'survey',
                         statusLabel: isDone ? 'Survey Done' : 'Site Survey',
-                        badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800' : 'bg-[#EEF2FF] text-indigo-700',
-                        badgeDot: isDone ? 'bg-emerald-500' : 'bg-indigo-600',
+                        badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200',
+                        badgeDot: isDone ? 'bg-emerald-500' : 'bg-purple-600',
                         instruction: (b.survey_time_slot_label || 'Survey') + ': Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : ''),
                         booking: b
                     });
@@ -1610,10 +1610,14 @@
                 </div>
 
                 <div x-show="calendarMode === 'operations'"
-                     class="grid grid-cols-3 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                     class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
-                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-indigo-600 shrink-0"></span>
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-600 shrink-0"></span>
                         Site Survey
+                    </span>
+                    <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
+                        Survey Done
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
@@ -3602,7 +3606,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Site Survey</span>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                                          :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-800 border border-indigo-200'"
+                                          :class="activeDetail?.survey_status === 'completed' ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200'"
                                           x-text="activeDetail?.survey_status === 'completed' ? 'Survey Done' : 'Scheduled'">
                                     </span>
                                 </div>
@@ -3620,7 +3624,7 @@
                                         </form>
                                         <a :href="'https://wa.me/' + (activeDetail?.phone ? activeDetail.phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : '') + '?text=' + encodeURIComponent('Halo Kak ' + (activeDetail?.name || '') + ', salam dari tim survey NK Barokah Tenda. Mengenai rencana survey lokasi venue pada ' + (activeDetail?.survey_date_formatted || '') + '...')"
                                            target="_blank"
-                                           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-medium transition">
+                                           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 text-[11px] font-medium transition border border-purple-200/60">
                                             <span>WhatsApp</span>
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                         </a>
