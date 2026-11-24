@@ -10,6 +10,7 @@
 @endphp
 
 <div @open-booking-detail.window="const target = allBookings.find(b => String(b.id) === String($event.detail.id)); if (target) openDetail(target);"
+     @open-client-profile.window="openClientProfile($event.detail);"
      x-data="{
         allBookings: @js($bookingsPayload),
         clientsList: @js($clientsPayload),
@@ -82,14 +83,15 @@
         },
         openPackageModal(pkg = null) {
             if (pkg) {
-                const price = pkg.price ? Math.round(Number(pkg.price)) : 0;
+                const hasPrice = (pkg.price !== undefined && pkg.price !== null && pkg.price !== '');
+                const price = hasPrice ? Math.round(Number(pkg.price)) : 0;
                 this.packageModal = {
                     open: true,
                     isEdit: true,
                     id: pkg.id,
                     name: pkg.name || '',
-                    base_price: price || '',
-                    display_price: price > 0 ? new Intl.NumberFormat('id-ID').format(price) : '',
+                    base_price: hasPrice ? price : '',
+                    display_price: hasPrice ? new Intl.NumberFormat('id-ID').format(price) : '',
                     description: (pkg.raw_description !== undefined && pkg.raw_description !== null && pkg.raw_description !== '') ? pkg.raw_description : (pkg.description || ''),
                     action: '/admin/packages/' + pkg.id
                 };
@@ -1428,7 +1430,7 @@
                                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" x-text="b.job_source"></span>
                                                     </template>
                                                 </div>
-                                                <template x-if="b.tent_color_theme">
+                                                <template x-if="b.tent_color_theme && b.tent_color_theme !== '-'">
                                                     <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-brand-500 inline-block"></span>
                                                         <span x-text="b.tent_color_theme"></span>
@@ -1575,7 +1577,7 @@
                                 </template>
                             </div>
                             <p class="text-xs text-slate-500 truncate" x-text="b.service"></p>
-                            <template x-if="b.tent_color_theme">
+                            <template x-if="b.tent_color_theme && b.tent_color_theme !== '-'">
                                 <p class="text-[10px] text-brand-700 font-medium truncate mt-0.5" x-text="'Tema: ' + b.tent_color_theme"></p>
                             </template>
                         </div>
@@ -3670,23 +3672,49 @@
 
                 <!-- Client Information -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
-                    <h2 class="text-lg font-bold text-slate-900 tracking-tight">Client Information</h2>
-
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <img :src="activeDetail?.avatar" :alt="activeDetail?.name" class="w-14 h-14 rounded-2xl object-cover shrink-0">
-                            <div class="space-y-1">
-                                <h3 class="text-sm font-bold text-slate-900" x-text="activeDetail?.name"></h3>
-                                <p class="text-xs text-slate-400" x-text="activeDetail?.email"></p>
-                                <p class="text-xs font-mono text-slate-600" x-text="activeDetail?.phone"></p>
-                            </div>
-                        </div>
-
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Client Information</h2>
                         <button type="button"
                                 @click="openClientProfile(activeDetail)"
-                                class="px-4 py-2 rounded-full bg-[#F4F7F6] hover:bg-[#EAF0EE] text-xs font-semibold text-slate-700 transition self-start sm:self-center">
-                            View Profile
+                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 text-xs font-semibold text-slate-700 transition border border-transparent hover:border-brand-200 cursor-pointer">
+                            <span>View Profile</span>
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
+                    </div>
+
+                    <div class="flex items-start gap-3.5 sm:gap-4">
+                        <img :src="activeDetail?.avatar" :alt="activeDetail?.name" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover shrink-0 ring-1 ring-slate-100 shadow-2xs">
+                        <div class="min-w-0 flex-1 space-y-1.5">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug" x-text="activeDetail?.name"></h3>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200"
+                                      x-text="activeDetail?.event_type_label || 'Pernikahan'"></span>
+                            </div>
+
+                            <template x-if="activeDetail?.child_name">
+                                <p class="text-xs text-brand-700 font-semibold" x-text="'Nama Anak: ' + activeDetail.child_name"></p>
+                            </template>
+
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 pt-0.5">
+                                <template x-if="activeDetail?.phone">
+                                    <div class="inline-flex items-center gap-1.5 font-mono text-slate-700 font-medium">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        </svg>
+                                        <span x-text="activeDetail.phone"></span>
+                                    </div>
+                                </template>
+
+                                <template x-if="activeDetail?.email">
+                                    <div class="inline-flex items-center gap-1.5 text-slate-500 truncate">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="truncate" x-text="activeDetail.email"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -3813,33 +3841,61 @@
 
                         <!-- Site Survey (If Requested) -->
                         <template x-if="activeDetail?.survey_requested">
-                            <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-2 sm:col-span-2">
+                            <div class="p-4 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-2.5 sm:col-span-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Site Survey</span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                                          :class="activeDetail?.survey_status === 'completed' ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200'"
-                                          x-text="activeDetail?.survey_status === 'completed' ? 'Survey Done' : 'Scheduled'">
+                                    <div class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-brand-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                        </svg>
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Site Survey</span>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
+                                          :class="activeDetail?.survey_status === 'completed'
+                                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                              : 'bg-teal-50 text-teal-800 border border-teal-200'">
+                                        <span class="w-1.5 h-1.5 rounded-full"
+                                              :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-teal-500'"></span>
+                                        <span x-text="activeDetail?.survey_status === 'completed' ? 'Survey Selesai' : 'SCHEDULED'"></span>
                                     </span>
                                 </div>
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
-                                    <p class="font-semibold text-slate-800" x-text="`${activeDetail?.survey_date_formatted || '-'} · ${activeDetail?.survey_time_slot_label || '-'}`"></p>
-                                    <div class="flex items-center gap-2">
-                                        <form :action="activeDetail?.survey_status_url" method="POST" class="inline">
-                                            @csrf
-                                            <input type="hidden" name="survey_status" :value="activeDetail?.survey_status === 'completed' ? 'scheduled' : 'completed'">
-                                            <button type="submit"
-                                                    class="px-2.5 py-1 rounded-lg border text-[11px] font-medium transition cursor-pointer"
-                                                    :class="activeDetail?.survey_status === 'completed' ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700' : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'">
-                                                <span x-text="activeDetail?.survey_status === 'completed' ? 'Reopen' : 'Mark Done'"></span>
-                                            </button>
-                                        </form>
-                                        <a :href="'https://wa.me/' + (activeDetail?.phone ? activeDetail.phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : '') + '?text=' + encodeURIComponent('Halo Kak ' + (activeDetail?.name || '') + ', salam dari tim survey NK Barokah Tenda. Mengenai rencana survey lokasi venue pada ' + (activeDetail?.survey_date_formatted || '') + '...')"
-                                           target="_blank"
-                                           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 text-[11px] font-medium transition border border-purple-200/60">
-                                            <span>WhatsApp</span>
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                        </a>
-                                    </div>
+
+                                <div class="flex flex-wrap items-baseline gap-2 pt-0.5">
+                                    <span class="font-bold text-slate-900 text-sm" x-text="activeDetail?.survey_date_formatted || '-'"></span>
+                                    <span class="text-xs font-medium text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs"
+                                          x-text="activeDetail?.survey_time_slot_label || 'Waktu Fleksibel'"></span>
+                                </div>
+
+                                <template x-if="activeDetail?.survey_notes">
+                                    <p class="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-100" x-text="'Survey Notes: ' + activeDetail.survey_notes"></p>
+                                </template>
+
+                                <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-[#EFF4F2]">
+                                    <!-- Mark Done / Reopen Toggle -->
+                                    <form :action="activeDetail?.survey_status_url" method="POST" class="inline">
+                                        @csrf
+                                        <input type="hidden" name="survey_status" :value="activeDetail?.survey_status === 'completed' ? 'scheduled' : 'completed'">
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer border"
+                                                :class="activeDetail?.survey_status === 'completed'
+                                                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                                                    : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'">
+                                            <template x-if="activeDetail?.survey_status === 'completed'">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                            </template>
+                                            <template x-if="activeDetail?.survey_status !== 'completed'">
+                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                                            </template>
+                                            <span x-text="activeDetail?.survey_status === 'completed' ? 'Buka Kembali' : 'Mark Done'"></span>
+                                        </button>
+                                    </form>
+
+                                    <!-- WhatsApp Tim Survey -->
+                                    <a :href="'https://wa.me/' + (activeDetail?.phone ? activeDetail.phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : '') + '?text=' + encodeURIComponent('Halo Kak ' + (activeDetail?.name || '') + ', salam dari tim survey NK Barokah Tenda. Mengenai rencana survey lokasi venue pada ' + (activeDetail?.survey_date_formatted || '') + ' (' + (activeDetail?.survey_time_slot_label || '') + ')...')"
+                                       target="_blank"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-800 text-xs font-bold transition border border-teal-200/80 shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 fill-current text-teal-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                        <span>Message Client</span>
+                                    </a>
                                 </div>
                             </div>
                         </template>
@@ -3868,8 +3924,8 @@
                          jobSource: '',
                          setupDate: '',
                          initOperations() {
-                             this.tentColor = activeDetail?.tent_color_theme || '';
-                             this.tentSize = activeDetail?.custom_tent_size || '';
+                             this.tentColor = (activeDetail?.tent_color_theme && activeDetail?.tent_color_theme !== '-') ? activeDetail.tent_color_theme : '';
+                             this.tentSize = (activeDetail?.custom_tent_size && activeDetail?.custom_tent_size !== '-') ? activeDetail.custom_tent_size : '';
                              this.opNotes = activeDetail?.operational_notes || '';
                              this.jobSource = activeDetail?.job_source || '';
                              this.setupDate = activeDetail?.setup_date_iso || '';
@@ -3884,19 +3940,33 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-slate-900">Field Operations & Crew SPK</h3>
-                                <p class="text-[11px] text-slate-400">Loading schedule, tent specifications, and field crew instructions</p>
+                                
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2">
                             <a :href="activeDetail?.spk_url || '#'" target="_blank"
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-xs font-bold transition shadow-2xs">
-                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zM7 9V5a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
-                                <span>Print SPK</span>
+                               title="Print SPK / Surat Jalan"
+                               class="w-8 h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 flex items-center justify-center transition shadow-2xs">
+                                <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zM7 9V5a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
                             </a>
-                            <button type="button" @click="editingOperations = !editingOperations"
-                                    class="text-xs font-semibold text-brand-600 hover:text-brand-700 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
-                                <span x-text="editingOperations ? 'Close' : 'Edit Details'"></span>
+                            <button type="button"
+                                    @click="editingOperations = !editingOperations"
+                                    :title="editingOperations ? 'Tutup / Batal' : 'Edit Details'"
+                                    class="w-8 h-8 rounded-full border transition flex items-center justify-center cursor-pointer shadow-2xs"
+                                    :class="editingOperations
+                                        ? 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                        : 'border-slate-200 bg-white hover:bg-brand-50 text-slate-600 hover:text-brand-700 hover:border-brand-200'">
+                                <template x-if="!editingOperations">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                </template>
+                                <template x-if="editingOperations">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </template>
                             </button>
                         </div>
                     </div>
@@ -3907,8 +3977,13 @@
                         <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tent Color Theme</span>
                             <div class="pt-0.5">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-tight bg-rose-50 text-rose-700 border border-rose-200"
-                                      x-text="activeDetail?.tent_color_theme || 'Standard / Natural'"></span>
+                                <template x-if="activeDetail?.tent_color_theme && activeDetail?.tent_color_theme !== '-'">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-tight bg-rose-50 text-rose-700 border border-rose-200"
+                                          x-text="activeDetail?.tent_color_theme"></span>
+                                </template>
+                                <template x-if="!activeDetail?.tent_color_theme || activeDetail?.tent_color_theme === '-'">
+                                    <p class="font-bold text-slate-800 text-xs">-</p>
+                                </template>
                             </div>
                         </div>
 
@@ -3942,50 +4017,60 @@
                     </div>
 
                     <!-- Inline Edit Form -->
-                    <div x-show="editingOperations" x-cloak class="p-4 rounded-2xl bg-[#FAFBFB] border border-slate-200 space-y-3.5">
-                        <form :action="activeDetail?.operations_url" method="POST" class="space-y-3 text-xs">
+                    <div x-show="editingOperations" x-cloak class="p-4 sm:p-5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-4">
+                        <form :action="activeDetail?.operations_url" method="POST" class="space-y-4 text-xs">
                             @csrf
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Tent Color Theme</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                        Tent Color Theme
+                                    </label>
                                     <input type="text" name="tent_color_theme" x-model="tentColor"
-                                           placeholder="e.g. Putih + Pink, Hitam + Putih"
-                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                           placeholder="e.g. Putih + Sage Green, Mocca"
+                                           class="w-full px-3.5 py-2.5 rounded-2xl border border-[#E2EAE7] bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition shadow-2xs">
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Custom Tent Size / Layout</label>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                        Custom Tent Size / Layout
+                                    </label>
                                     <input type="text" name="custom_tent_size" x-model="tentSize"
                                            placeholder="e.g. 6x16 + 7x7 + 3,5x5"
-                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                           class="w-full px-3.5 py-2.5 rounded-2xl border border-[#E2EAE7] bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition shadow-2xs">
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Job Source / Partner</label>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                        Job Source / Partner
+                                    </label>
                                     <input type="text" name="job_source" x-model="jobSource"
-                                           placeholder="e.g. Job Nadia, Job Riza, Uly Wedding"
-                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                           placeholder="e.g. Direct Client, Job Nadia"
+                                           class="w-full px-3.5 py-2.5 rounded-2xl border border-[#E2EAE7] bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition shadow-2xs">
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Setup Date (Override H-2)</label>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                        Setup Date (Override H-2)
+                                    </label>
                                     <input type="date" name="setup_date" x-model="setupDate"
-                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600">
+                                           class="w-full px-3.5 py-2.5 rounded-2xl border border-[#E2EAE7] bg-white font-mono text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition shadow-2xs">
                                 </div>
                             </div>
 
-                            <div class="space-y-1">
-                                <label class="font-bold text-slate-700">Special Crew & Operational Notes</label>
-                                <textarea name="operational_notes" x-model="opNotes" rows="2"
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                    Special Crew & Operational Notes
+                                </label>
+                                <textarea name="operational_notes" x-model="opNotes" rows="3"
                                           placeholder="e.g. TIM LAYOS BAWA GENSET, Tenda 4x10 nutup jalan setengah, cover dinding dalam rumah"
-                                          class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-brand-600 resize-none"></textarea>
+                                          class="w-full px-3.5 py-2.5 rounded-2xl border border-[#E2EAE7] bg-white text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 leading-relaxed resize-none transition shadow-2xs"></textarea>
                             </div>
 
-                            <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
+                            <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[#EFF4F2]">
                                 <button type="button" @click="editingOperations = false"
-                                        class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium cursor-pointer transition">
-                                    Cancel
+                                        class="px-5 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer transition">
+                                    Batal
                                 </button>
                                 <button type="submit"
-                                        class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold transition shadow-2xs cursor-pointer active:scale-95">
-                                    Save Operations Info
+                                        class="px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-md shadow-brand-600/20 cursor-pointer active:scale-95">
+                                    Simpan Perubahan
                                 </button>
                             </div>
                         </form>
@@ -4799,7 +4884,7 @@
                                inputmode="numeric"
                                :value="packageModal.display_price"
                                @input="formatPackagePriceInput($event)"
-                               @blur="if (packageModal.base_price) { packageModal.display_price = new Intl.NumberFormat('id-ID').format(packageModal.base_price); $el.value = packageModal.display_price; }"
+                               @blur="if (packageModal.base_price !== '' && packageModal.base_price !== null && packageModal.base_price !== undefined) { packageModal.display_price = new Intl.NumberFormat('id-ID').format(packageModal.base_price); $el.value = packageModal.display_price; }"
                                required
                                placeholder="7.000.000"
                                class="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-[#E2EAE7] bg-[#FBFDFD] text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-semibold font-mono focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition">

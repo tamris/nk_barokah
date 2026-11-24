@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\URL;
 use App\Services\AdminNotificationService;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
+
+        if (request()->header('x-forwarded-proto') === 'https' || str_contains((string) request()->header('host', ''), 'trycloudflare.com')) {
+            URL::forceScheme('https');
+        }
 
         View::composer('admin.layout', function ($view) {
             try {

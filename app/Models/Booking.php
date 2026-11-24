@@ -35,9 +35,24 @@ class Booking extends Model
         'formatted_phone',
         'formatted_event_date',
         'formatted_setup_date',
+        'event_type_label',
         'whatsapp_message',
         'whatsapp_url',
     ];
+
+    /**
+     * Label representasi jenis acara untuk invoice, SPK, dan admin.
+     */
+    public function getEventTypeLabelAttribute(): string
+    {
+        return match ($this->event_type) {
+            'khitanan'    => 'Khitanan / Sunatan',
+            'tasyakuran'  => 'Tasyakuran / Pengajian',
+            'instansi'    => 'Acara Instansi / Event',
+            'sewa_alat'   => 'Sewa Alat Lepas',
+            default       => 'Pernikahan',
+        };
+    }
 
     /**
      * Tanggal efektif pemasangan tenda (H-2 otomatis bila belum diset spesifik).
@@ -55,7 +70,7 @@ class Booking extends Model
      */
     public function getFormattedSetupDateAttribute(): string
     {
-        return $this->effective_setup_date->isoFormat('dddd, D MMMM Y');
+        return $this->effective_setup_date->isoFormat('ddd, D MMM Y');
     }
 
     public function package(): BelongsTo

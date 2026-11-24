@@ -140,6 +140,8 @@ class BookingController extends Controller
                 'grand_total'           => $grandTotal,
                 'amount_paid'           => $amountPaid,
                 'remaining_balance'     => $remaining,
+                'event_type'            => $validated['event_type'] ?? 'pernikahan',
+                'child_name'            => $validated['child_name'] ?? null,
                 'payment_type'          => $validated['payment_type'],
                 'payment_proof_path'    => $proofPath,
                 'status'                => 'pending_verification',

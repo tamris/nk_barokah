@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
                 'is_active'   => true,
             ],
             [
-                'name'        => 'Custom / Sewa Alat Saja (Tanpa Tenda)',
+                'name'        => 'Custom',
                 'slug'        => 'custom-alat-saja',
                 'base_price'  => 0,
                 'description' => 'Sewa alat pesta lepas untuk venue indoor gedung / hotel tanpa konstruksi tenda terpal.',

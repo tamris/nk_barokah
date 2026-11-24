@@ -21,6 +21,8 @@ class StoreBookingRequest extends FormRequest
         $maxPerDay = (int) Setting::get('max_events_per_day', 1);
 
         return [
+            'event_type'     => ['nullable', 'string', 'in:pernikahan,khitanan,tasyakuran,instansi,sewa_alat'],
+            'child_name'     => ['nullable', 'string', 'max:150'],
             'customer_name'  => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'regex:/^(\+62|62|0)8[1-9][0-9]{6,10}$/'],
             'customer_email' => ['nullable', 'email', 'max:100'],

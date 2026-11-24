@@ -126,7 +126,15 @@
             <div class="space-y-1.5">
                 <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">1. Data Pemesan & Kontak</h2>
                 <div class="space-y-1">
-                    <p class="text-sm font-black text-slate-900">{{ $booking->customer_name }}</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="text-sm font-black text-slate-900">{{ $booking->customer_name }}</p>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-900 text-white">
+                            {{ $booking->event_type_label }}
+                        </span>
+                    </div>
+                    @if($booking->child_name)
+                        <p class="text-slate-700 font-bold">Nama Anak: <span class="text-brand-800">{{ $booking->child_name }}</span></p>
+                    @endif
                     @if($booking->parents_name && $booking->parents_name !== '-')
                         <p class="text-slate-600 font-medium">Keluarga: <strong>{{ $booking->parents_name }}</strong></p>
                     @endif

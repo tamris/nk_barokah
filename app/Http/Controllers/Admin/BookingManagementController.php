@@ -24,6 +24,8 @@ class BookingManagementController extends Controller
             ->get();
 
         $packages = Package::withCount('bookings')
+            ->where('slug', '!=', 'custom-alat-saja')
+            ->where('base_price', '>', 0)
             ->orderBy('base_price')
             ->get();
 
@@ -131,6 +133,9 @@ class BookingManagementController extends Controller
                 'code'                    => $b->invoice_number,
                 'name'                    => $b->customer_name,
                 'shortName'               => explode(' ', trim($b->customer_name))[0] ?? $b->customer_name,
+                'event_type'              => $b->event_type ?: 'pernikahan',
+                'event_type_label'        => $b->event_type_label,
+                'child_name'              => $b->child_name ?: '',
                 'email'                   => $b->customer_email ?: '-',
                 'phone'                   => $b->customer_phone,
                 'service'                 => $b->package_name,
@@ -216,8 +221,8 @@ class BookingManagementController extends Controller
                 'vendor_decor'            => $b->vendor_decor ?: '-',
                 'vendor_photo_video'      => $b->vendor_photo_video ?: '-',
                 'vendor_mc_wo'            => $b->vendor_mc_wo ?: '-',
-                'tent_color_theme'        => $b->tent_color_theme ?: 'Standard / Natural',
-                'custom_tent_size'        => $b->custom_tent_size ?: '',
+                'tent_color_theme'        => ($b->event_type === 'sewa_alat') ? '-' : ($b->tent_color_theme ?: '-'),
+                'custom_tent_size'        => ($b->event_type === 'sewa_alat') ? '-' : ($b->custom_tent_size ?: '-'),
                 'operational_notes'       => $b->operational_notes ?: '',
                 'job_source'              => $b->job_source ?: ($b->vendor_name ?: 'Direct Client'),
                 'setup_date_iso'          => $b->effective_setup_date->format('Y-m-d'),
@@ -302,10 +307,11 @@ class BookingManagementController extends Controller
 
         $topPackage = $allBookings
             ->where('status', '!=', 'rejected')
+            ->filter(fn ($b) => $b->event_type !== 'sewa_alat' && (float) $b->package_price > 0)
             ->groupBy('package_name')
             ->sortByDesc(fn ($g) => $g->count())
             ->keys()
-            ->first() ?? 'Gold Royal Package';
+            ->first() ?? 'Paket 1';
 
         $metrics = [
             'today_schedule'      => $todayCount,

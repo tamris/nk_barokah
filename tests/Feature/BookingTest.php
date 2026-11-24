@@ -31,6 +31,17 @@ class BookingTest extends TestCase
         $response->assertSee('Kursi');
     }
 
+    public function test_form_uses_https_action_when_behind_cloudflare_proxy(): void
+    {
+        $response = $this->withHeaders([
+            'Host' => 'mytest.trycloudflare.com',
+            'X-Forwarded-Proto' => 'https',
+        ])->get('https://mytest.trycloudflare.com/booking');
+
+        $response->assertStatus(200);
+        $response->assertSee('action="https://mytest.trycloudflare.com/booking"', false);
+    }
+
     public function test_customer_can_create_booking_with_lunas_payment(): void
     {
         Queue::fake();
@@ -493,7 +504,7 @@ class BookingTest extends TestCase
         Queue::fake();
         Storage::fake('public');
 
-        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+        $customPackage = Package::where('slug', 'custom-alat-saja')->orWhere('name', 'Custom')->first();
         $this->assertNotNull($customPackage);
 
         $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
@@ -518,7 +529,7 @@ class BookingTest extends TestCase
         Queue::fake();
         Storage::fake('public');
 
-        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+        $customPackage = Package::where('slug', 'custom-alat-saja')->orWhere('name', 'Custom')->first();
         $addon = Addon::first();
         $this->assertNotNull($customPackage);
         $this->assertNotNull($addon);
@@ -549,6 +560,74 @@ class BookingTest extends TestCase
         $this->assertEquals($totalPrice, $booking->grand_total);
         $this->assertCount(1, $booking->addons);
         $this->assertEquals($qty, $booking->addons->first()->quantity);
+    }
+
+    public function test_customer_can_create_booking_with_event_type_khitanan_and_child_name(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $package = Package::first();
+        $this->assertNotNull($package);
+
+        $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
+        $eventDate = now()->addYears(2)->addDays(28)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'event_type'     => 'khitanan',
+            'child_name'     => 'Muhammad Fikri Pratama',
+            'customer_name'  => 'Bpk. H. Ahmad & Ibu Siti',
+            'customer_phone' => '081299998888',
+            'venue_address'  => 'Jl. Dr. Soetomo No. 12, Slawi',
+            'event_date'     => $eventDate,
+            'package_id'     => $package->id,
+            'payment_type'   => 'lunas',
+            'payment_proof'  => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals('khitanan', $booking->event_type);
+        $this->assertEquals('Khitanan / Sunatan', $booking->event_type_label);
+        $this->assertEquals('Muhammad Fikri Pratama', $booking->child_name);
+        $this->assertEquals('Bpk. H. Ahmad & Ibu Siti', $booking->customer_name);
+    }
+
+    public function test_customer_can_create_booking_with_event_type_sewa_alat(): void
+    {
+        Queue::fake();
+        Storage::fake('public');
+
+        $customPackage = Package::where('slug', 'custom-alat-saja')->orWhere('name', 'Custom')->first();
+        $addon = Addon::first();
+        $this->assertNotNull($customPackage);
+        $this->assertNotNull($addon);
+
+        $file = UploadedFile::fake()->create('receipt.jpg', 500, 'image/jpeg');
+        $eventDate = now()->addYears(2)->addDays(30)->format('Y-m-d');
+
+        $response = $this->post(route('booking.store'), [
+            'event_type'     => 'sewa_alat',
+            'customer_name'  => 'PT Barokah Logistik (PIC: Hendra)',
+            'customer_phone' => '081377771111',
+            'venue_address'  => 'Gedung Korpri Lt. 2, Slawi',
+            'event_date'     => $eventDate,
+            'package_id'     => $customPackage->id,
+            'addons'         => [
+                ['id' => $addon->id, 'qty' => 10],
+            ],
+            'payment_type'   => 'lunas',
+            'payment_proof'  => $file,
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('booking.success', $booking->invoice_number));
+
+        $this->assertEquals('sewa_alat', $booking->event_type);
+        $this->assertEquals('Sewa Alat Lepas', $booking->event_type_label);
     }
 }
 

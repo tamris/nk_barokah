@@ -36,6 +36,7 @@ class AdminNotificationService
 
                 return [
                     'id'            => $b->id,
+                    'booking_id'    => $b->id,
                     'type'          => 'verification',
                     'category'      => 'action_required',
                     'badge_text'    => 'VERIFY ' . $paymentTypeLabel,
@@ -68,16 +69,18 @@ class AdminNotificationService
                 $daysText = $diffDays === 0 ? 'Today' : ($diffDays === 1 ? 'Tomorrow' : "{$diffDays} days left");
                 $remainingFmt = 'Rp ' . number_format($b->remaining_balance, 0, ',', '.');
 
+                $eventLabel = strtolower($b->event_type_label ?? 'acara');
                 $waMsg = urlencode(
                     "Halo Kak {$b->customer_name}, salam hangat dari NK Barokah Wedding Organizer! 💍✨\n\n" .
-                    "Mengingatkan persiapan acara pernikahan Kakak pada *{$b->formatted_event_date}* (tersisa *{$daysText}*).\n" .
+                    "Mengingatkan persiapan {$eventLabel} Kakak pada *{$b->formatted_event_date}* (tersisa *{$daysText}*).\n" .
                     "Saat ini tercatat sisa tagihan pelunasan sebesar *{$remainingFmt}*.\n\n" .
-                    "Mohon dapat diselesaikan untuk finalisasi jadwal armada dan tim kru dekorasi kami. Terima kasih banyak! 🙏😊"
+                    "Mohon dapat diselesaikan untuk finalisasi jadwal armada dan tim operasional kami. Terima kasih banyak! 🙏😊"
                 );
                 $waUrl = "https://wa.me/{$b->formatted_phone}?text={$waMsg}";
 
                 return [
                     'id'            => $b->id,
+                    'booking_id'    => $b->id,
                     'type'          => 'settlement',
                     'category'      => 'action_required',
                     'badge_text'    => 'DUE SETTLEMENT (H-7)',
@@ -132,14 +135,16 @@ class AdminNotificationService
                     $desc = "Venue survey scheduled in {$diff} days · {$timeSlot}";
                 }
 
+                $eventLabel = strtolower($b->event_type_label ?? 'acara');
                 $waMsg = urlencode(
                     "Halo Kak {$b->customer_name}, salam hangat dari tim survey NK Barokah Tenda! 📍📐\n\n" .
-                    "Mengenai jadwal survey venue pernikahan Anda pada hari *{$b->survey_date->format('l, d M Y')}* ({$timeSlot}), mohon koordinasi titik temu atau ancer-ancer lokasinya. Terima kasih! 🙏"
+                    "Mengenai jadwal survey venue {$eventLabel} Anda pada hari *{$b->survey_date->format('l, d M Y')}* ({$timeSlot}), mohon koordinasi titik temu atau ancer-ancer lokasinya. Terima kasih! 🙏"
                 );
                 $waUrl = "https://wa.me/{$b->formatted_phone}?text={$waMsg}";
 
                 return [
                     'id'            => $b->id . '-survey',
+                    'booking_id'    => $b->id,
                     'type'          => 'survey',
                     'category'      => 'field_operations',
                     'badge_text'    => $badgeText,
@@ -202,6 +207,7 @@ class AdminNotificationService
 
                 return [
                     'id'            => $b->id,
+                    'booking_id'    => $b->id,
                     'type'          => 'field',
                     'category'      => 'field_operations',
                     'badge_text'    => $badgeText,

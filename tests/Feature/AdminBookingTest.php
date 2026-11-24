@@ -1087,6 +1087,8 @@ class AdminBookingTest extends TestCase
             'payment_type'       => 'dp',
             'payment_proof_path' => 'proofs/dummy.jpg',
             'status'             => 'confirmed',
+            'event_type'         => 'khitanan',
+            'child_name'         => 'Fikri Pratama',
             'tent_color_theme'   => 'Putih + Mocca',
             'custom_tent_size'   => '6x16',
             'job_source'         => 'Job Riza',
@@ -1099,6 +1101,8 @@ class AdminBookingTest extends TestCase
         $response->assertSee('SURAT PERINTAH KERJA (SPK)');
         $response->assertSee('Bambang');
         $response->assertSee('Citra');
+        $response->assertSee('Khitanan / Sunatan');
+        $response->assertSee('Fikri Pratama');
         $response->assertSee('Putih + Mocca');
         $response->assertSee('Job Riza');
         $response->assertSee('Muatan berangkat pagi jam 07:00.');
@@ -1106,9 +1110,9 @@ class AdminBookingTest extends TestCase
 
     public function test_custom_sewa_alat_package_exists_in_database(): void
     {
-        $customPackage = Package::where('name', 'like', '%Tanpa Tenda%')->first();
+        $customPackage = Package::where('slug', 'custom-alat-saja')->orWhere('name', 'Custom')->first();
 
-        $this->assertNotNull($customPackage, 'Custom / Sewa Alat Saja (Tanpa Tenda) package should exist.');
+        $this->assertNotNull($customPackage, 'Custom package should exist.');
         $this->assertEquals(0, (int)$customPackage->base_price);
     }
 }
