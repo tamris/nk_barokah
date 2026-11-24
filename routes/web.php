@@ -29,47 +29,49 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Protected Admin Panel Routes
+    // Protected Admin Panel Routes (Accessible by both Owner & Field Coordinator)
     Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return redirect()->route('admin.bookings.index');
         });
 
-        // Booking Lifecycle Management
+        // Shared Operational Views & Field Actions (Owner + Field Staff)
         Route::get('/bookings', [BookingManagementController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/{id}', [BookingManagementController::class, 'show'])->name('bookings.show');
-        Route::post('/bookings/{id}/confirm', [BookingManagementController::class, 'confirm'])->name('bookings.confirm');
-        Route::post('/bookings/{id}/reject', [BookingManagementController::class, 'reject'])->name('bookings.reject');
-        Route::post('/bookings/{id}/settle', [BookingManagementController::class, 'settle'])->name('bookings.settle');
-        Route::post('/bookings/{id}/complete', [BookingManagementController::class, 'complete'])->name('bookings.complete');
-
-        // Booking Finance & Add-ons
-        Route::post('/bookings/{id}/discount', [BookingFinanceController::class, 'updateDiscount'])->name('bookings.discount');
-        Route::post('/bookings/{id}/owner-discount', [BookingFinanceController::class, 'updateOwnerDiscount'])->name('bookings.owner_discount');
-        Route::post('/bookings/{id}/transport', [BookingFinanceController::class, 'updateTransport'])->name('bookings.transport');
         Route::post('/bookings/{id}/addons', [BookingFinanceController::class, 'storeAddon'])->name('bookings.addons.store');
-        Route::delete('/bookings/{id}/addons/{addon_id}', [BookingFinanceController::class, 'deleteAddon'])->name('bookings.addons.delete');
-
-        // Field Operations & Site Survey
         Route::post('/bookings/{id}/survey-status', [BookingOperationsController::class, 'updateSurveyStatus'])->name('bookings.survey_status');
         Route::post('/bookings/{id}/operations', [BookingOperationsController::class, 'updateOperations'])->name('bookings.operations');
         Route::get('/bookings/{id}/spk', [BookingOperationsController::class, 'showSpk'])->name('bookings.spk');
 
-        // Master Packages & Addons
-        Route::get('/masters', [MasterDataController::class, 'index'])->name('masters.index');
-        Route::post('/packages', [MasterDataController::class, 'storePackage'])->name('packages.store');
-        Route::put('/packages/{id}', [MasterDataController::class, 'updatePackage'])->name('packages.update');
-        Route::patch('/packages/{id}/toggle', [MasterDataController::class, 'togglePackage'])->name('packages.toggle');
+        // Strictly Owner-Only Actions (Financials, Verifications, Master Catalog & Settings)
+        Route::middleware('owner')->group(function () {
+            Route::post('/bookings/{id}/confirm', [BookingManagementController::class, 'confirm'])->name('bookings.confirm');
+            Route::post('/bookings/{id}/reject', [BookingManagementController::class, 'reject'])->name('bookings.reject');
+            Route::post('/bookings/{id}/settle', [BookingManagementController::class, 'settle'])->name('bookings.settle');
+            Route::post('/bookings/{id}/complete', [BookingManagementController::class, 'complete'])->name('bookings.complete');
 
-        Route::post('/addons', [MasterDataController::class, 'storeAddon'])->name('addons.store');
-        Route::put('/addons/{id}', [MasterDataController::class, 'updateAddon'])->name('addons.update');
-        Route::patch('/addons/{id}/toggle', [MasterDataController::class, 'toggleAddon'])->name('addons.toggle');
+            Route::post('/bookings/{id}/discount', [BookingFinanceController::class, 'updateDiscount'])->name('bookings.discount');
+            Route::post('/bookings/{id}/owner-discount', [BookingFinanceController::class, 'updateOwnerDiscount'])->name('bookings.owner_discount');
+            Route::post('/bookings/{id}/transport', [BookingFinanceController::class, 'updateTransport'])->name('bookings.transport');
+            Route::delete('/bookings/{id}/addons/{addon_id}', [BookingFinanceController::class, 'deleteAddon'])->name('bookings.addons.delete');
 
-        // Settings & System Sync
-        Route::post('/settings/update-rules', [AdminSettingsController::class, 'updateBusinessRules'])->name('settings.update_rules');
-        Route::post('/settings/update-banks', [AdminSettingsController::class, 'updateBankAccounts'])->name('settings.update_banks');
-        Route::post('/settings/update-pin', [AdminSettingsController::class, 'updateOwnerPin'])->name('settings.update_pin');
-        Route::post('/settings/update-google', [AdminSettingsController::class, 'updateGoogleSettings'])->name('settings.update_google');
-        Route::post('/settings/sync-all', [AdminSettingsController::class, 'syncAllGoogle'])->name('settings.sync_all');
+            // Master Packages & Addons
+            Route::get('/masters', [MasterDataController::class, 'index'])->name('masters.index');
+            Route::post('/packages', [MasterDataController::class, 'storePackage'])->name('packages.store');
+            Route::put('/packages/{id}', [MasterDataController::class, 'updatePackage'])->name('packages.update');
+            Route::patch('/packages/{id}/toggle', [MasterDataController::class, 'togglePackage'])->name('packages.toggle');
+
+            Route::post('/addons', [MasterDataController::class, 'storeAddon'])->name('addons.store');
+            Route::put('/addons/{id}', [MasterDataController::class, 'updateAddon'])->name('addons.update');
+            Route::patch('/addons/{id}/toggle', [MasterDataController::class, 'toggleAddon'])->name('addons.toggle');
+
+            // Settings & System Sync
+            Route::post('/settings/update-rules', [AdminSettingsController::class, 'updateBusinessRules'])->name('settings.update_rules');
+            Route::post('/settings/update-banks', [AdminSettingsController::class, 'updateBankAccounts'])->name('settings.update_banks');
+            Route::post('/settings/update-pin', [AdminSettingsController::class, 'updateOwnerPin'])->name('settings.update_pin');
+            Route::post('/settings/update-staff-access', [AdminSettingsController::class, 'updateStaffAccess'])->name('settings.update_staff');
+            Route::post('/settings/update-google', [AdminSettingsController::class, 'updateGoogleSettings'])->name('settings.update_google');
+            Route::post('/settings/sync-all', [AdminSettingsController::class, 'syncAllGoogle'])->name('settings.sync_all');
+        });
     });
 });

@@ -1,5 +1,5 @@
-                <!-- Tombol Notifikasi & Agenda Interaktif -->
-                <div class="relative" x-data="{ notifTab: 'actions' }">
+                <!-- Interactive Notifications & Schedule Bell -->
+                <div class="relative" x-data="{ notifTab: '{{ ($isOwner ?? false) ? 'actions' : 'field' }}' }">
                     <button type="button"
                             @click="notifOpen = !notifOpen"
                             title="Notifications &amp; Schedule"
@@ -7,7 +7,7 @@
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
-                        @if($notifs['urgent_count'] > 0)
+                        @if(($isOwner ?? false) && $notifs['urgent_count'] > 0)
                             <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-white shadow-sm">
                                 {{ $notifs['urgent_count'] > 9 ? '9+' : $notifs['urgent_count'] }}
                             </span>
@@ -37,14 +37,21 @@
                         <!-- Header Dropdown -->
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">Notifications &amp; Schedule</h3>
+                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">{{ ($isOwner ?? false) ? 'Notifications & Schedule' : 'Field Schedule' }}</h3>
                                 <p class="text-[10px] text-slate-400">Operations control center</p>
                             </div>
-                            <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full {{ $notifs['urgent_count'] > 0 ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-teal-700 bg-teal-50 border border-teal-200' }}">
-                                {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' Action Required' : 'All Clear' }}
-                            </span>
+                            @if($isOwner ?? false)
+                                <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full {{ $notifs['urgent_count'] > 0 ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-teal-700 bg-teal-50 border border-teal-200' }}">
+                                    {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' Action Required' : 'All Clear' }}
+                                </span>
+                            @else
+                                <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full text-teal-700 bg-teal-50 border border-teal-200">
+                                    {{ $notifs['field_count'] }} Active
+                                </span>
+                            @endif
                         </div>
 
+                        @if($isOwner ?? false)
                         <!-- Pill Switcher (Tab Buttons) -->
                         <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/80 rounded-2xl my-3 text-xs font-semibold">
                             <button type="button"
@@ -116,9 +123,10 @@
                                 </div>
                             @endforelse
                         </div>
+                        @endif
 
                         <!-- Content Tab: Field Schedule -->
-                        <div x-show="notifTab === 'field'" class="max-h-[340px] overflow-y-auto space-y-2.5 pr-0.5">
+                        <div x-show="notifTab === 'field'" class="max-h-[340px] overflow-y-auto space-y-2.5 pr-0.5 {{ ($isOwner ?? false) ? '' : 'mt-3' }}">
                             @forelse($notifs['field_operations'] as $item)
                                 <div class="p-3 bg-[#FAFDFC] hover:bg-[#F4F9F7] rounded-2xl border border-slate-100 hover:border-slate-200 transition space-y-2">
                                     <div class="flex items-center justify-between gap-2">

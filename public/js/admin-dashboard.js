@@ -4,6 +4,7 @@
  */
 document.addEventListener('alpine:init', () => {
     Alpine.data('adminDashboard', (config = {}) => ({
+        isOwner: config.isOwner !== undefined ? Boolean(config.isOwner) : true,
         allBookings: config.allBookings || [],
         clientsList: config.clientsList || [],
         packagesList: config.packagesList || [],
@@ -31,7 +32,7 @@ document.addEventListener('alpine:init', () => {
         calMonth: config.calMonth,
         calendarView: 'Monthly View',
         calendarViewOpen: false,
-        calendarMode: 'events',
+        calendarMode: (config.isOwner !== undefined ? Boolean(config.isOwner) : true) ? 'events' : 'operations',
         calendarModeOpen: false,
         selectedDayModal: null,
         maxEventsPerDay: config.maxEventsPerDay ?? 1,
@@ -337,6 +338,9 @@ document.addEventListener('alpine:init', () => {
                 const iso = this.toLocalIso(d);
                 const hasEvent = this.allBookings.some(b => {
                     if (b.raw_status === 'rejected') return false;
+                    if (!this.isOwner) {
+                        return b.setup_date_iso === iso || b.teardown_date_iso === iso;
+                    }
                     const start = b.event_date_iso;
                     const end = b.event_end_date_iso || start;
                     return iso >= start && iso <= end;
@@ -377,6 +381,85 @@ document.addEventListener('alpine:init', () => {
                 .slice(0, 5);
         },
 
+        formatRelativeFieldDate(targetIso) {
+            if (!targetIso || !this.todayIso) return '';
+            const today = this.parseIsoDate(this.todayIso);
+            const target = this.parseIsoDate(targetIso);
+            const diffDays = Math.round((target - today) / 86400000);
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Tomorrow';
+            if (diffDays > 1) return `In ${diffDays} days`;
+            if (diffDays === -1) return 'Yesterday';
+            return `${Math.abs(diffDays)} days ago`;
+        },
+
+        buildFieldTasks() {
+            const tasks = [];
+            for (const b of this.allBookings) {
+                if (b.raw_status === 'rejected') continue;
+
+                if (b.setup_date_iso) {
+                    tasks.push({
+                        key: `setup-${b.id}`,
+                        taskType: 'setup',
+                        taskLabel: 'Setup',
+                        taskDateIso: b.setup_date_iso,
+                        taskDateFormatted: b.setup_date_formatted || b.setup_date_iso,
+                        relativeLabel: this.formatRelativeFieldDate(b.setup_date_iso),
+                        booking: b,
+                    });
+                }
+
+                if (b.teardown_date_iso) {
+                    tasks.push({
+                        key: `teardown-${b.id}`,
+                        taskType: 'teardown',
+                        taskLabel: 'Teardown',
+                        taskDateIso: b.teardown_date_iso,
+                        taskDateFormatted: b.teardown_date_formatted || b.teardown_date_iso,
+                        relativeLabel: this.formatRelativeFieldDate(b.teardown_date_iso),
+                        booking: b,
+                    });
+                }
+            }
+            return tasks;
+        },
+
+        get fieldScheduleList() {
+            const q = (this.scheduleQuery || this.$store.nav.search || '').toLowerCase();
+            const tasks = this.buildFieldTasks();
+            if (q) {
+                return tasks.filter(t =>
+                    (t.booking.name || '').toLowerCase().includes(q)
+                    || (t.booking.service || '').toLowerCase().includes(q)
+                    || (t.booking.code || '').toLowerCase().includes(q)
+                    || (t.booking.venue_address || '').toLowerCase().includes(q)
+                    || t.taskLabel.toLowerCase().includes(q)
+                );
+            }
+            return tasks
+                .filter(t => t.taskDateIso === this.selectedDateIso)
+                .sort((a, b) => (a.taskType === 'setup' ? 0 : 1) - (b.taskType === 'setup' ? 0 : 1));
+        },
+
+        get upcomingFieldList() {
+            const today = this.todayIso;
+            return this.buildFieldTasks()
+                .filter(t => t.booking.raw_status !== 'completed' && t.taskDateIso > today)
+                .sort((a, b) => a.taskDateIso.localeCompare(b.taskDateIso) || (a.taskType === 'setup' ? 0 : 1) - (b.taskType === 'setup' ? 0 : 1))
+                .slice(0, 5);
+        },
+
+        get pendingSurveysList() {
+            return this.allBookings
+                .filter(b => b.survey_requested && b.survey_status !== 'completed' && b.raw_status !== 'rejected')
+                .sort((a, b) => {
+                    const da = a.survey_date || '9999-12-31';
+                    const db = b.survey_date || '9999-12-31';
+                    return da.localeCompare(db) || a.id - b.id;
+                });
+        },
+
         get outstandingList() {
             return this.allBookings.filter(b => b.raw_status !== 'rejected' && b.remaining_balance > 0);
         },
@@ -395,7 +478,18 @@ document.addEventListener('alpine:init', () => {
                     || (item.job_source && item.job_source.toLowerCase().includes(q))
                     || (item.tent_color_theme && item.tent_color_theme.toLowerCase().includes(q))
                     || (item.venue_address && item.venue_address.toLowerCase().includes(q));
-                const matchStatus = this.bookingFilter === 'all' || item.bookingStatus === this.bookingFilter;
+                let matchStatus = true;
+                if (this.bookingFilter !== 'all') {
+                    if (this.isOwner) {
+                        matchStatus = item.bookingStatus === this.bookingFilter;
+                    } else if (this.bookingFilter === 'Scheduled') {
+                        matchStatus = Boolean(item.survey_requested) && item.survey_status !== 'completed';
+                    } else if (this.bookingFilter === 'Done') {
+                        matchStatus = Boolean(item.survey_requested) && item.survey_status === 'completed';
+                    } else if (this.bookingFilter === 'No Survey') {
+                        matchStatus = !item.survey_requested;
+                    }
+                }
                 const matchService = this.bookingServiceFilter === 'all' || item.service === this.bookingServiceFilter;
                 return matchSearch && matchStatus && matchService;
             });

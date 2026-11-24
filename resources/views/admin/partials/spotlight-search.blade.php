@@ -56,8 +56,8 @@
                         
                         <!-- Header -->
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100 px-1">
-                            <span class="text-xs font-bold text-slate-800">Hasil Pencarian</span>
-                            <span class="text-[10px] text-slate-400 font-mono" x-text="(filteredBookings.length + filteredClients.length) + ' ditemukan'"></span>
+                            <span class="text-xs font-bold text-slate-800">Search Results</span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-text="(filteredBookings.length + ({{ ($isOwner ?? false) ? 'filteredClients.length' : '0' }})) + ' found'"></span>
                         </div>
 
                         <!-- Bookings & Invoices Section -->
@@ -65,9 +65,9 @@
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between px-1 pt-1 pb-0.5">
                                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                        Reservasi &amp; Invoice
+                                        Bookings &amp; Orders
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredBookings.length + ' item'"></span>
+                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredBookings.length + ' items'"></span>
                                 </div>
                                 <div class="space-y-1">
                                     <template x-for="b in filteredBookings" :key="b.id">
@@ -104,7 +104,7 @@
                                                           'bg-slate-100 text-slate-600 border border-slate-200': b.raw_status === 'completed',
                                                           'bg-rose-50 text-rose-700 border border-rose-200': b.raw_status === 'rejected'
                                                       }"
-                                                      x-text="b.status"></span>
+                                                      x-text="b.bookingStatus"></span>
                                             </div>
                                         </button>
                                     </template>
@@ -112,14 +112,15 @@
                             </div>
                         </template>
 
-                        <!-- Clients Section -->
+                        @if($isOwner ?? false)
+                        <!-- Clients Section (Owner Only) -->
                         <template x-if="filteredClients.length > 0">
                             <div class="space-y-1 pt-1 border-t border-slate-100">
                                 <div class="flex items-center justify-between px-1 pt-1 pb-0.5">
                                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                        Data Klien / Kontak
+                                        Clients &amp; Contacts
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredClients.length + ' kontak'"></span>
+                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredClients.length + ' contacts'"></span>
                                 </div>
                                 <div class="space-y-1">
                                     <template x-for="c in filteredClients" :key="c.phone + c.name">
@@ -138,7 +139,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-right shrink-0">
-                                                <span class="text-[10px] font-semibold text-brand-700 block" x-text="c.totalBookings + ' Order'"></span>
+                                                <span class="text-[10px] font-semibold text-brand-700 block" x-text="c.totalBookings + ' Orders'"></span>
                                                 <span class="text-[10px] text-slate-400" x-text="c.totalSpentFormatted"></span>
                                             </div>
                                         </button>
@@ -146,24 +147,25 @@
                                 </div>
                             </div>
                         </template>
+                        @endif
 
                         <!-- Empty State -->
-                        <template x-if="query && filteredBookings.length === 0 && filteredClients.length === 0">
+                        <template x-if="query && filteredBookings.length === 0 && ({{ ($isOwner ?? false) ? 'filteredClients.length === 0' : 'true' }})">
                             <div class="py-6 text-center space-y-1">
                                 <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs font-bold text-slate-800">Tidak ada data ditemukan</p>
-                                <p class="text-[11px] text-slate-400" x-text="'Tidak ada reservasi atau klien yang cocok dengan \'' + query + '\''"></p>
+                                <p class="text-xs font-bold text-slate-800">No results found</p>
+                                <p class="text-[11px] text-slate-400" x-text="'No bookings match \'' + query + '\''"></p>
                             </div>
                         </template>
 
                         <!-- Footer -->
                         <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 px-1">
-                            <span>Cari nama, invoice, telepon, atau alamat</span>
-                            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[9px]">ESC batal</span>
+                            <span>Search by name, invoice, phone, or venue</span>
+                            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[9px]">ESC to close</span>
                         </div>
                     </div>
                 </div>

@@ -12,13 +12,15 @@ class BookingOperationsController extends Controller
     public function updateSurveyStatus(Request $request, $id)
     {
         $validated = $request->validate([
-            'survey_status' => ['required', 'string', 'in:none,requested,scheduled,completed'],
+            'survey_status' => ['nullable', 'string', 'in:none,requested,scheduled,completed'],
             'survey_date'   => ['nullable', 'date'],
             'survey_notes'  => ['nullable', 'string', 'max:500'],
         ]);
 
         $booking = Booking::findOrFail($id);
-        $booking->survey_status = $validated['survey_status'];
+        if (!empty($validated['survey_status'])) {
+            $booking->survey_status = $validated['survey_status'];
+        }
         if ($request->has('survey_date')) {
             $booking->survey_date = $validated['survey_date'];
         }
@@ -30,14 +32,14 @@ class BookingOperationsController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success'       => true,
-                'message'       => 'Status survey lokasi berhasil diperbarui.',
+                'message'       => 'Site survey status and notes updated successfully.',
                 'survey_status' => $booking->survey_status,
                 'survey_date'   => $booking->survey_date ? $booking->survey_date->format('Y-m-d') : null,
             ]);
         }
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
-            ->with('success', 'Status survey lokasi berhasil diperbarui.');
+            ->with('success', 'Site survey status and notes updated successfully.');
     }
 
     public function updateOperations(Request $request, $id)

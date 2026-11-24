@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Owner Portal Login | NK Barokah</title>
+    <title>Portal Login | NK Barokah</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -67,7 +67,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold text-slate-900 tracking-tight">NK Barokah</h1>
-                <p class="text-xs text-slate-400 font-medium">Owner Management Portal</p>
+                <p class="text-xs text-slate-400 font-medium">Management &amp; Field Portal</p>
             </div>
         </div>
 

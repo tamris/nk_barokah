@@ -1,4 +1,5 @@
-                <!-- Payment Proof -->
+                @if($isOwner ?? false)
+                <!-- Payment Proof (Owner Only) -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-slate-900 tracking-tight">Payment Proof</h2>
@@ -26,3 +27,4 @@
                         <p class="text-xs text-slate-400 py-4 text-center">No payment proof uploaded.</p>
                     </template>
                 </div>
+                @endif

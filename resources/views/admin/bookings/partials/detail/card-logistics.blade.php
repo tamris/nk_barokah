@@ -2,6 +2,8 @@
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4"
                      x-data="{
                          editingTransport: false,
+                         editingSurveyNotes: false,
+                         surveyNotesDraft: '',
                          distanceKm: 0,
                          rawFee: 0,
                          displayFee: '',
@@ -10,6 +12,8 @@
                              this.rawFee = activeDetail?.transport_fee || 0;
                              this.displayFee = this.rawFee ? new Intl.NumberFormat('id-ID').format(this.rawFee) : '0';
                              this.editingTransport = false;
+                             this.editingSurveyNotes = false;
+                             this.surveyNotesDraft = activeDetail?.survey_notes || '';
                          },
                          formatFeeInput(e) {
                              const clean = e.target.value.replace(/\D/g, '');
@@ -58,17 +62,20 @@
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transport Fee</span>
+                                @if($isOwner ?? false)
                                 <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                     <button type="button" @click="editingTransport = !editingTransport"
                                             class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
                                         <span x-text="editingTransport ? 'Cancel' : 'Edit'"></span>
                                     </button>
                                 </template>
+                                @endif
                             </div>
                             <p class="font-bold text-slate-800 text-sm font-mono"
                                x-text="(activeDetail?.transport_fee || 0) > 0 ? activeDetail.transport_fee_formatted : 'FREE'"></p>
                         </div>
 
+                        @if($isOwner ?? false)
                         <!-- Edit Transport Fee Form (Inline) -->
                         <div x-show="editingTransport && activeDetail?.invoiceStatus !== 'Paid'" x-cloak
                              class="sm:col-span-2 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
@@ -106,6 +113,7 @@
                                 </div>
                             </form>
                         </div>
+                        @endif
 
                         <!-- Landmark -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
@@ -135,19 +143,43 @@
                                               : 'bg-teal-50 text-teal-800 border border-teal-200'">
                                         <span class="w-1.5 h-1.5 rounded-full"
                                               :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-teal-500'"></span>
-                                        <span x-text="activeDetail?.survey_status === 'completed' ? 'Survey Selesai' : 'SCHEDULED'"></span>
+                                        <span x-text="activeDetail?.survey_status === 'completed' ? 'Survey Done' : 'Scheduled'"></span>
                                     </span>
                                 </div>
 
                                 <div class="flex flex-wrap items-baseline gap-2 pt-0.5">
                                     <span class="font-bold text-slate-900 text-sm" x-text="activeDetail?.survey_date_formatted || '-'"></span>
                                     <span class="text-xs font-medium text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs"
-                                          x-text="activeDetail?.survey_time_slot_label || 'Waktu Fleksibel'"></span>
+                                          x-text="activeDetail?.survey_time_slot_label || 'Flexible Time'"></span>
                                 </div>
 
-                                <template x-if="activeDetail?.survey_notes">
-                                    <p class="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-100" x-text="'Survey Notes: ' + activeDetail.survey_notes"></p>
+                                <template x-if="activeDetail?.survey_notes && !editingSurveyNotes">
+                                    <p class="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line" x-text="'Survey Notes: ' + activeDetail.survey_notes"></p>
                                 </template>
+
+                                <!-- Inline Survey Notes Form (Owner & Field Coordinator) -->
+                                <div x-show="editingSurveyNotes" x-cloak class="p-3 rounded-xl bg-white border border-slate-200 space-y-2.5">
+                                    <form :action="activeDetail?.survey_status_url" method="POST" class="space-y-2.5 text-xs">
+                                        @csrf
+                                        <input type="hidden" name="survey_status" :value="activeDetail?.survey_status || 'scheduled'">
+                                        <div>
+                                            <label class="block text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Field Survey Notes</label>
+                                            <textarea name="survey_notes" x-model="surveyNotesDraft" rows="2"
+                                                      placeholder="e.g. Yard measures 8x12m, narrow entrance for small pickup only, PLN cable safe."
+                                                      class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                                        </div>
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button type="button" @click="editingSurveyNotes = false"
+                                                    class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer">
+                                                Cancel
+                                            </button>
+                                            <button type="submit"
+                                                    class="px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold cursor-pointer">
+                                                Save Notes
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
 
                                 <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-[#EFF4F2]">
                                     <!-- Mark Done / Reopen Toggle -->
@@ -169,7 +201,15 @@
                                         </button>
                                     </form>
 
-                                    <!-- WhatsApp Tim Survey -->
+                                    <!-- Edit / Add Survey Notes -->
+                                    <button type="button"
+                                            @click="editingSurveyNotes = !editingSurveyNotes; if (editingSurveyNotes) { surveyNotesDraft = activeDetail?.survey_notes || ''; }"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition border border-slate-200 shadow-2xs cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        <span x-text="activeDetail?.survey_notes ? 'Edit Notes' : 'Add Notes'"></span>
+                                    </button>
+
+                                    <!-- WhatsApp Survey Team -->
                                     <a :href="'https://wa.me/' + (activeDetail?.phone ? activeDetail.phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : '') + '?text=' + encodeURIComponent('Halo Kak ' + (activeDetail?.name || '') + ', salam dari tim survey NK Barokah Tenda. Mengenai rencana survey lokasi venue pada ' + (activeDetail?.survey_date_formatted || '') + ' (' + (activeDetail?.survey_time_slot_label || '') + ')...')"
                                        target="_blank"
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-800 text-xs font-bold transition border border-teal-200/80 shadow-2xs">

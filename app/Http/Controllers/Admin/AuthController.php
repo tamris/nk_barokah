@@ -25,7 +25,7 @@ class AuthController extends Controller
             $request->merge(['pin' => trim((string) $request->input('pin'))]);
         }
 
-        // 1. PIN-based login (Fast 6-digit access for owner)
+        // 1. PIN-based login (Fast 6-digit access for Owner & Field Coordinator)
         if ($request->filled('pin') || (!$request->filled('email') && !$request->filled('password'))) {
             $request->validate([
                 'pin' => ['required', 'string', 'digits:6'],
@@ -36,21 +36,25 @@ class AuthController extends Controller
 
             $inputPin = (string) $request->input('pin');
 
-            // Find matching user with this PIN
             $users = User::all();
             $matchedUser = null;
+            $matchedDisabledUser = false;
 
             foreach ($users as $user) {
                 if ($user->pin && Hash::check($inputPin, $user->pin)) {
+                    if ($user->is_active === false) {
+                        $matchedDisabledUser = true;
+                        continue;
+                    }
                     $matchedUser = $user;
                     break;
                 }
             }
 
             // Fallback for default owner if PIN is 123456
-            if (!$matchedUser && $inputPin === '123456') {
+            if (!$matchedUser && !$matchedDisabledUser && $inputPin === '123456') {
                 $owner = User::where('email', 'owner@nkbarokah.com')->first();
-                if ($owner) {
+                if ($owner && $owner->is_active !== false) {
                     $owner->pin = '123456';
                     $owner->save();
                     $matchedUser = $owner;
@@ -65,6 +69,12 @@ class AuthController extends Controller
                     ->with('success', 'Welcome back, ' . $matchedUser->name . '!');
             }
 
+            if ($matchedDisabledUser) {
+                return back()->withErrors([
+                    'pin' => 'This staff account is currently disabled by the owner.',
+                ]);
+            }
+
             return back()->withErrors([
                 'pin' => 'The 6-digit PIN entered is incorrect.',
             ]);
@@ -75,6 +85,13 @@ class AuthController extends Controller
             'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
+
+        $candidate = User::where('email', $credentials['email'])->first();
+        if ($candidate && $candidate->is_active === false) {
+            return back()->withErrors([
+                'email' => 'This staff account is currently disabled by the owner.',
+            ])->onlyInput('email');
+        }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -99,5 +116,3 @@ class AuthController extends Controller
             ->with('success', 'You have been logged out successfully.');
     }
 }
-
-

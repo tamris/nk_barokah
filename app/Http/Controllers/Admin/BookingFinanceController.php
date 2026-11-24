@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookingFinanceController extends Controller
 {
@@ -165,18 +166,19 @@ class BookingFinanceController extends Controller
         $unitPrice = (float) $validated['unit_price'];
 
         $booking->addons()->create([
-            'addon_id'   => !empty($validated['addon_id']) ? $validated['addon_id'] : null,
-            'addon_name' => $validated['addon_name'],
-            'unit_price' => $unitPrice,
-            'quantity'   => $quantity,
-            'subtotal'   => round($quantity * $unitPrice),
+            'addon_id'      => !empty($validated['addon_id']) ? $validated['addon_id'] : null,
+            'addon_name'    => $validated['addon_name'],
+            'unit_price'    => $unitPrice,
+            'quantity'      => $quantity,
+            'subtotal'      => round($quantity * $unitPrice),
+            'added_by_role' => Auth::user()?->role ?? 'owner',
         ]);
 
         $booking->recalculateTotals();
         SyncBookingToGoogleServicesJob::dispatch($booking);
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
-            ->with('success', "Item tambahan '{$validated['addon_name']}' ({$quantity}x) berhasil ditambahkan ke reservasi #{$booking->invoice_number}.");
+            ->with('success', "Add-on item '{$validated['addon_name']}' ({$quantity}x) added to booking #{$booking->invoice_number}.");
     }
 
     public function deleteAddon(Request $request, $id, $addonId): RedirectResponse

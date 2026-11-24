@@ -64,12 +64,14 @@
                     <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Partner Discount</span>
+                            @if($isOwner ?? false)
                             <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                 <button type="button" @click="editingDiscount = !editingDiscount; if(editingDiscount) { pct = (activeDetail?.discount_percent > 0) ? activeDetail.discount_percent : ''; }"
                                         class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
                                     <span x-text="editingDiscount ? 'Cancel' : 'Edit'"></span>
                                 </button>
                             </template>
+                            @endif
                         </div>
                         <div>
                             <template x-if="(activeDetail?.discount_amount || 0) > 0">
@@ -84,6 +86,7 @@
                         </div>
                     </div>
 
+                    @if($isOwner ?? false)
                     <!-- Inline Edit Partner Discount Form -->
                     <div x-show="editingDiscount && activeDetail?.invoiceStatus !== 'Paid'" x-cloak
                          class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
@@ -119,4 +122,5 @@
                             </div>
                         </form>
                     </div>
+                    @endif
                 </div>

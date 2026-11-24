@@ -61,6 +61,7 @@
                             <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div x-show="calendarModeOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
+                            @if($isOwner ?? false)
                             <button type="button"
                                     @click="calendarMode = 'events'; calendarModeOpen = false"
                                     :class="calendarMode === 'events' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
@@ -75,6 +76,22 @@
                                 <span>Field Operations</span>
                                 <span x-show="calendarMode === 'operations'" class="text-brand-600 font-bold">✓</span>
                             </button>
+                            @else
+                            <button type="button"
+                                    @click="calendarMode = 'operations'; calendarModeOpen = false"
+                                    :class="calendarMode === 'operations' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
+                                    class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
+                                <span>Field Operations</span>
+                                <span x-show="calendarMode === 'operations'" class="text-brand-600 font-bold">✓</span>
+                            </button>
+                            <button type="button"
+                                    @click="calendarMode = 'events'; calendarModeOpen = false"
+                                    :class="calendarMode === 'events' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
+                                    class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
+                                <span>Event Schedule</span>
+                                <span x-show="calendarMode === 'events'" class="text-brand-600 font-bold">✓</span>
+                            </button>
+                            @endif
                         </div>
                     </div>
 
@@ -113,11 +130,13 @@
             <div class="w-full lg:w-auto shrink-0">
                 <!-- Legend Dinamis (Acara vs Field Operations) -->
                 <div x-show="calendarMode === 'events'"
-                     class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                     class="grid {{ ($isOwner ?? false) ? 'grid-cols-4' : 'grid-cols-2' }} gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                    @if($isOwner ?? false)
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
                         Inquiry
                     </span>
+                    @endif
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
                         Confirmed
@@ -126,10 +145,12 @@
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-500 shrink-0"></span>
                         Complete
                     </span>
+                    @if($isOwner ?? false)
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-rose-500 shrink-0"></span>
                         Cancelled
                     </span>
+                    @endif
                 </div>
 
                 <div x-show="calendarMode === 'operations'"

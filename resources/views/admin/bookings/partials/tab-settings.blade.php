@@ -393,43 +393,123 @@
                 </div>
             </div>
 
-            <!-- FORM 4: SECURITY & OWNER PIN ACCESS -->
-            <div class="lg:col-span-12 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
-                <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
-                    <div class="space-y-0.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                            <h2 class="text-base font-bold text-slate-900 tracking-tight">Security & Owner PIN Access (6 Digits)</h2>
+            <!-- FORM 4: SECURITY & ROLE PIN ACCESS (OWNER + FIELD COORDINATOR) -->
+            <div class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+
+                <!-- 4A: OWNER PIN ACCESS -->
+                <div class="bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] flex flex-col justify-between space-y-5">
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <h2 class="text-base font-bold text-slate-900 tracking-tight">Owner PIN Access (6 Digits)</h2>
+                                </div>
+                                <p class="text-xs text-slate-400">Full administrative access to financials, approvals, and settings.</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">Owner</span>
                         </div>
-                        <p class="text-xs text-slate-400">Configure or update your 6-digit PIN for quick access to the owner management portal.</p>
+
+                        <form action="{{ route('admin.settings.update_pin') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">New Owner PIN</label>
+                                    <input type="password" name="pin" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                           placeholder="••••••"
+                                           class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Owner PIN</label>
+                                    <input type="password" name="pin_confirmation" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                           placeholder="••••••"
+                                           class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                                </div>
+                            </div>
+                            <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <p class="text-[11px] text-slate-400">Default PIN: <span class="font-mono font-bold text-brand-700">123456</span></p>
+                                <button type="submit"
+                                        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Update Owner PIN</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <form action="{{ route('admin.settings.update_pin') }}" method="POST" class="max-w-xl space-y-4">
-                    @csrf
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">New PIN (6 Numeric Digits)</label>
-                            <input type="password" name="pin" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
-                                   placeholder="••••••"
-                                   class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                <!-- 4B: FIELD COORDINATOR ACCESS (1 SHARED ACCOUNT) -->
+                @php
+                    $staffActive = $staffAccount ? (bool) $staffAccount->is_active : true;
+                    $staffDisplayName = $staffAccount?->name ?? 'Field Coordinator';
+                @endphp
+                <div class="bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5"
+                     x-data="{ staffEnabled: {{ $staffActive ? 'true' : 'false' }} }">
+                    <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full" :class="staffEnabled ? 'bg-teal-500' : 'bg-slate-300'"></span>
+                                <h2 class="text-base font-bold text-slate-900 tracking-tight">Field Coordinator Access</h2>
+                            </div>
+                            <p class="text-xs text-slate-400">Shared field account for calendar, survey notes, crew SPK, and adding items.</p>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm New PIN</label>
-                            <input type="password" name="pin_confirmation" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
-                                   placeholder="••••••"
-                                   class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+                              :class="staffEnabled ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
+                              x-text="staffEnabled ? 'Active' : 'Disabled'"></span>
+                    </div>
+
+                    <form action="{{ route('admin.settings.update_staff') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Account Display Name</label>
+                                <input type="text" name="staff_name" required maxlength="100"
+                                       value="{{ $staffDisplayName }}"
+                                       placeholder="Field Coordinator"
+                                       class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                            </div>
+
+                            <label class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] cursor-pointer select-none">
+                                <span class="text-xs font-semibold text-slate-700">Allow Login Access</span>
+                                <input type="hidden" name="staff_is_active" :value="staffEnabled ? 1 : 0">
+                                <button type="button"
+                                        @click="staffEnabled = !staffEnabled"
+                                        :class="staffEnabled ? 'bg-brand-600' : 'bg-slate-300'"
+                                        class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 cursor-pointer">
+                                    <span :class="staffEnabled ? 'translate-x-4' : 'translate-x-0.5'"
+                                          class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 mt-0.5"></span>
+                                </button>
+                            </label>
                         </div>
-                    </div>
-                    <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <p class="text-[11px] text-slate-400">Current default PIN: <span class="font-mono font-bold text-brand-700">123456</span></p>
-                        <button type="submit"
-                                class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Update PIN</span>
-                        </button>
-                    </div>
-                </form>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    {{ $staffAccount ? 'New Staff PIN (Leave blank to keep)' : 'Set 6-Digit Staff PIN' }}
+                                </label>
+                                <input type="password" name="staff_pin" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                       placeholder="••••••"
+                                       class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Staff PIN</label>
+                                <input type="password" name="staff_pin_confirmation" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                       placeholder="••••••"
+                                       class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <p class="text-[11px] text-slate-400">Default Staff PIN: <span class="font-mono font-bold text-teal-700">112233</span></p>
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Save Staff Access</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
 
         </div>

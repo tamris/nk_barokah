@@ -77,7 +77,7 @@
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4"/>
                             </svg>
-                            <span x-text="bookingFilter === 'all' ? 'All Status' : bookingFilter"></span>
+                            <span x-text="bookingFilter === 'all' ? '{{ ($isOwner ?? false) ? 'All Status' : 'All Surveys' }}' : bookingFilter"></span>
                         </span>
                         <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="statusMenuOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
@@ -87,12 +87,12 @@
                     <div x-show="statusMenuOpen"
                          class="absolute left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30"
                          x-cloak>
-                        <template x-for="st in ['all', 'Inquiry', 'Confirmed', 'Complete', 'Cancelled']" :key="st">
+                        <template x-for="st in {{ ($isOwner ?? false) ? "['all', 'Inquiry', 'Confirmed', 'Complete', 'Cancelled']" : "['all', 'Scheduled', 'Done', 'No Survey']" }}" :key="st">
                             <button type="button"
                                     @click="bookingFilter = st; statusMenuOpen = false"
                                     :class="bookingFilter === st ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between">
-                                <span x-text="st === 'all' ? 'All Status' : st"></span>
+                                <span x-text="st === 'all' ? '{{ ($isOwner ?? false) ? 'All Status' : 'All Surveys' }}' : st"></span>
                                 <span x-show="bookingFilter === st" class="text-brand-600">✓</span>
                             </button>
                         </template>
@@ -132,11 +132,13 @@
                 </div>
             </div>
 
+            @if($isOwner ?? false)
             <a href="{{ route('booking.create') }}" target="_blank"
                class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>New Booking</span>
             </a>
+            @endif
         </div>
 
         <div class="hidden md:block bg-white rounded-[28px] shadow-card border border-[#EDF2F0] overflow-hidden">
@@ -146,10 +148,12 @@
                         <tr class="text-xs font-semibold text-slate-600 border-b border-[#EFF4F2]">
                             <th class="py-4 px-6">Booking ID</th>
                             <th class="py-4 px-5">Client</th>
-                            <th class="py-4 px-5">Event Due</th>
+                            <th class="py-4 px-5">{{ ($isOwner ?? false) ? 'Event Due' : 'Crew Schedule' }}</th>
                             <th class="py-4 px-5">Services</th>
-                            <th class="py-4 px-5">Booking Status</th>
-                            <th class="py-4 px-6">Invoice Status</th>
+                            @if($isOwner ?? false)
+                                <th class="py-4 px-5">Booking Status</th>
+                            @endif
+                            <th class="py-4 px-6">{{ ($isOwner ?? false) ? 'Invoice Status' : 'Site Survey' }}</th>
                         </tr>
                     </thead>
                     <!-- Shimmer Rows during Pagination -->
@@ -171,9 +175,11 @@
                                 <td class="py-4 px-5 whitespace-nowrap">
                                     <div class="h-4 w-28 rounded-md shimmer-mask"></div>
                                 </td>
+                                @if($isOwner ?? false)
                                 <td class="py-4 px-5 whitespace-nowrap">
                                     <div class="h-6 w-20 rounded-full shimmer-mask"></div>
                                 </td>
+                                @endif
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <div class="h-6 w-16 rounded-full shimmer-mask"></div>
                                 </td>
@@ -208,12 +214,28 @@
                                         </div>
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
-                                        <span class="text-[13px] font-medium text-slate-800" x-text="b.date_short"></span>
-                                        <span class="text-[11px] font-medium text-slate-400 ml-1.5" x-text="b.time"></span>
+                                        @if($isOwner ?? false)
+                                            <span class="text-[13px] font-medium text-slate-800" x-text="b.date_short"></span>
+                                            <span class="text-[11px] font-medium text-slate-400 ml-1.5" x-text="b.time"></span>
+                                        @else
+                                            <div class="space-y-1 text-[11.5px]">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                                    <span class="text-slate-400 font-medium">Setup:</span>
+                                                    <span class="font-semibold text-slate-800" x-text="b.setup_date_formatted || '-'"></span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                                    <span class="text-slate-400 font-medium">Teardown:</span>
+                                                    <span class="font-semibold text-slate-700" x-text="b.teardown_date_formatted || '-'"></span>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         <span class="text-[13px] font-medium text-slate-700" x-text="b.service"></span>
                                     </td>
+                                    @if($isOwner ?? false)
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         <span :class="{
                                                 'bg-[#E6F6EF] text-emerald-700': b.bookingStatus === 'Confirmed',
@@ -232,29 +254,46 @@
                                             <span x-text="b.bookingStatus"></span>
                                         </span>
                                     </td>
+                                    @endif
                                     <td class="py-4 px-6 whitespace-nowrap">
-                                        <span :class="{
-                                                'bg-[#E6F6EF] text-emerald-700': b.invoiceStatus === 'Paid',
-                                                'bg-[#FEF6E0] text-amber-600': b.invoiceStatus === 'Sent',
-                                                'bg-[#F1F5F9] text-slate-500': b.invoiceStatus === 'Draft',
-                                                'bg-[#FEECEB] text-rose-600': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
-                                              }"
-                                              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
-                                            <span class="w-1.5 h-1.5 rounded-full"
-                                                  :class="{
-                                                    'bg-emerald-500': b.invoiceStatus === 'Paid',
-                                                    'bg-amber-400': b.invoiceStatus === 'Sent',
-                                                    'bg-slate-400': b.invoiceStatus === 'Draft',
-                                                    'bg-rose-500': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
-                                                  }"></span>
-                                            <span x-text="b.invoiceStatus"></span>
-                                        </span>
+                                        @if($isOwner ?? false)
+                                            <span :class="{
+                                                    'bg-[#E6F6EF] text-emerald-700': b.invoiceStatus === 'Paid',
+                                                    'bg-[#FEF6E0] text-amber-600': b.invoiceStatus === 'Sent',
+                                                    'bg-[#F1F5F9] text-slate-500': b.invoiceStatus === 'Draft',
+                                                    'bg-[#FEECEB] text-rose-600': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
+                                                  }"
+                                                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold">
+                                                <span class="w-1.5 h-1.5 rounded-full"
+                                                      :class="{
+                                                        'bg-emerald-500': b.invoiceStatus === 'Paid',
+                                                        'bg-amber-400': b.invoiceStatus === 'Sent',
+                                                        'bg-slate-400': b.invoiceStatus === 'Draft',
+                                                        'bg-rose-500': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
+                                                      }"></span>
+                                                <span x-text="b.invoiceStatus"></span>
+                                            </span>
+                                        @else
+                                            <template x-if="b.survey_requested">
+                                                <span :class="b.survey_status === 'completed'
+                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                        : 'bg-teal-50 text-teal-800 border border-teal-200'"
+                                                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                                                    <span class="w-1.5 h-1.5 rounded-full"
+                                                          :class="b.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-teal-500'"></span>
+                                                    <span x-text="b.survey_status === 'completed' ? 'Done' : 'Scheduled'"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!b.survey_requested">
+                                                <span class="text-xs font-medium text-slate-300">—</span>
+                                            </template>
+                                        @endif
                                     </td>
                                 </tr>
                             </template>
 
                         <tr x-show="filteredBookings.length === 0">
-                            <td colspan="6" class="py-12 text-center text-xs text-slate-400">
+                            <td colspan="{{ ($isOwner ?? false) ? 6 : 5 }}" class="py-12 text-center text-xs text-slate-400">
                                 No bookings match your search or filter.
                             </td>
                         </tr>
@@ -333,7 +372,11 @@
                 <div @click="openDetail(b)" class="bg-white rounded-[24px] p-4 shadow-card border border-[#EDF2F0] space-y-3 cursor-pointer active:scale-[0.99] transition">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + b.code"></span>
-                        <span class="text-[11px] text-slate-400" x-text="b.date_short"></span>
+                        @if($isOwner ?? false)
+                            <span class="text-[11px] text-slate-400" x-text="b.date_short"></span>
+                        @else
+                            <span class="text-[11px] font-semibold text-emerald-700" x-text="'Setup: ' + (b.setup_date_formatted || '-')"></span>
+                        @endif
                     </div>
                     <div class="flex items-center gap-3">
                         <img :src="b.avatar" :alt="b.name" class="w-10 h-10 rounded-xl object-cover">
@@ -346,21 +389,45 @@
                             </div>
                             <p class="text-xs text-slate-500 truncate" x-text="b.service"></p>
                             <template x-if="b.tent_color_theme && b.tent_color_theme !== '-'">
-                                <p class="text-[10px] text-brand-700 font-medium truncate mt-0.5" x-text="'Tema: ' + b.tent_color_theme"></p>
+                                <p class="text-[10px] text-brand-700 font-medium truncate mt-0.5" x-text="'Theme: ' + b.tent_color_theme"></p>
                             </template>
+                            @if(!($isOwner ?? false))
+                                <p class="text-[10px] text-slate-500 truncate mt-0.5">
+                                    <span class="text-emerald-700 font-semibold" x-text="'Setup: ' + (b.setup_date_formatted || '-')"></span>
+                                    <span class="mx-1 text-slate-300">·</span>
+                                    <span class="text-amber-700 font-semibold" x-text="'Teardown: ' + (b.teardown_date_formatted || '-')"></span>
+                                </p>
+                            @endif
                         </div>
                     </div>
                     <div class="pt-2.5 border-t border-[#F1F5F4] flex items-center justify-between">
-                        <span :class="{
-                                'bg-[#E6F6EF] text-emerald-700': b.bookingStatus === 'Confirmed',
-                                'bg-[#EAF3FF] text-blue-600': b.bookingStatus === 'Inquiry',
-                                'bg-[#F3EAFF] text-purple-600': b.bookingStatus === 'Complete',
-                                'bg-[#FEECEB] text-rose-600': b.bookingStatus === 'Cancelled'
-                              }"
-                              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold">
-                            <span x-text="b.bookingStatus"></span>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F4F7F6] text-slate-700" x-text="b.invoiceStatus"></span>
+                        @if($isOwner ?? false)
+                            <span :class="{
+                                    'bg-[#E6F6EF] text-emerald-700': b.bookingStatus === 'Confirmed',
+                                    'bg-[#EAF3FF] text-blue-600': b.bookingStatus === 'Inquiry',
+                                    'bg-[#F3EAFF] text-purple-600': b.bookingStatus === 'Complete',
+                                    'bg-[#FEECEB] text-rose-600': b.bookingStatus === 'Cancelled'
+                                  }"
+                                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                                <span x-text="b.bookingStatus"></span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F4F7F6] text-slate-700" x-text="b.invoiceStatus"></span>
+                        @else
+                            <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                <span class="font-medium text-slate-400">Survey:</span>
+                                <template x-if="b.survey_requested">
+                                    <span :class="b.survey_status === 'completed'
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                            : 'bg-teal-50 text-teal-800 border border-teal-200'"
+                                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold"
+                                          x-text="b.survey_status === 'completed' ? 'Done' : 'Scheduled'"></span>
+                                </template>
+                                <template x-if="!b.survey_requested">
+                                    <span class="text-slate-400 font-medium">—</span>
+                                </template>
+                            </div>
+                            <span class="text-[11px] font-semibold text-brand-700">Details →</span>
+                        @endif
                     </div>
                 </div>
             </template>

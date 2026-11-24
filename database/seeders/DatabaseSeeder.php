@@ -19,9 +19,23 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'owner@nkbarokah.com'],
             [
-                'name'     => 'Owner NK Barokah',
-                'password' => Hash::make('password'),
-                'pin'      => '123456',
+                'name'      => 'Owner NK Barokah',
+                'role'      => User::ROLE_OWNER,
+                'password'  => Hash::make('password'),
+                'pin'       => '123456',
+                'is_active' => true,
+            ]
+        );
+
+        // Shared Field Coordinator / Staff Account (1 Shared Account)
+        User::updateOrCreate(
+            ['email' => 'staff@nkbarokah.com'],
+            [
+                'name'      => 'Field Coordinator',
+                'role'      => User::ROLE_STAFF,
+                'password'  => Hash::make('staffpassword'),
+                'pin'       => '112233',
+                'is_active' => true,
             ]
         );
 

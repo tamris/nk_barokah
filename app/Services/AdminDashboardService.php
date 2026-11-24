@@ -6,18 +6,25 @@ use App\Models\Addon;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Setting;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class AdminDashboardService
 {
-    public function getDashboardData(): array
+    public function getDashboardData(bool $isOwner = true): array
     {
         Carbon::setLocale('en');
 
-        $allBookings = Booking::with(['package', 'addons'])
-            ->orderByDesc('created_at')
-            ->get();
+        $bookingsQuery = Booking::with(['package', 'addons'])
+            ->orderByDesc('created_at');
+
+        // Field Coordinator only sees confirmed & completed bookings (hide Inquiry & Cancelled)
+        if (!$isOwner) {
+            $bookingsQuery->whereIn('status', ['confirmed', 'completed']);
+        }
+
+        $allBookings = $bookingsQuery->get();
 
         $packages = Package::withCount('bookings')
             ->where('slug', '!=', 'custom-alat-saja')
@@ -37,6 +44,7 @@ class AdminDashboardService
             'initialCalYear'  => (int) $today->year,
             'initialCalMonth' => (int) $today->month,
             'settings'        => Setting::getAll(),
+            'staffAccount'    => User::where('role', User::ROLE_STAFF)->first(),
         ];
     }
 
@@ -109,11 +117,12 @@ class AdminDashboardService
                 'package_price'                      => (float) $b->package_price,
                 'package_price_formatted'            => 'Rp ' . number_format((float) $b->package_price, 0, ',', '.'),
                 'addons'                             => $b->addons->map(fn ($a) => [
-                    'id'         => $a->id,
-                    'name'       => $a->addon_name,
-                    'quantity'   => (int) $a->quantity,
-                    'unit_price' => 'Rp ' . number_format((float) $a->unit_price, 0, ',', '.'),
-                    'subtotal'   => 'Rp ' . number_format((float) $a->subtotal, 0, ',', '.'),
+                    'id'            => $a->id,
+                    'name'          => $a->addon_name,
+                    'quantity'      => (int) $a->quantity,
+                    'unit_price'    => 'Rp ' . number_format((float) $a->unit_price, 0, ',', '.'),
+                    'subtotal'      => 'Rp ' . number_format((float) $a->subtotal, 0, ',', '.'),
+                    'added_by_role' => $a->added_by_role,
                 ])->values()->all(),
                 'subtotal_before_discount'           => $subtotalBeforeDiscount,
                 'subtotal_before_discount_formatted' => 'Rp ' . number_format($subtotalBeforeDiscount, 0, ',', '.'),
@@ -194,6 +203,8 @@ class AdminDashboardService
                 'job_source'                         => $b->job_source ?: ($b->vendor_name ?: 'Direct Client'),
                 'setup_date_iso'                     => $b->effective_setup_date->format('Y-m-d'),
                 'setup_date_formatted'               => $b->formatted_setup_date,
+                'teardown_date_iso'                  => $eventEndDate->copy()->addDay()->format('Y-m-d'),
+                'teardown_date_formatted'            => $eventEndDate->copy()->addDay()->format('D, M d, Y'),
                 'is_custom_setup_date'               => !empty($b->setup_date),
                 'spk_url'                            => route('admin.bookings.spk', $b->id),
                 'operations_url'                     => route('admin.bookings.operations', $b->id),
@@ -343,11 +354,58 @@ class AdminDashboardService
             ->keys()
             ->first() ?? 'Paket 1';
 
+        $twoDaysAhead = $today->copy()->addDays(2);
+        $loadingSoonCount = $allBookings->filter(function (Booking $b) use ($today, $twoDaysAhead) {
+            if (!in_array($b->status, ['confirmed', 'pending_verification'])) {
+                return false;
+            }
+            $setupDate = $b->effective_setup_date->copy()->startOfDay();
+            return $setupDate->between($today, $twoDaysAhead);
+        })->count();
+
+        $pendingSurveysCount = $allBookings->filter(function (Booking $b) {
+            return $b->status !== 'rejected'
+                && (bool) $b->survey_requested
+                && in_array($b->survey_status ?? 'requested', ['requested', 'scheduled'], true);
+        })->count();
+
+        $todayIso = $today->format('Y-m-d');
+        $todayFieldTasks = 0;
+        $upcomingFieldTasks = 0;
+        foreach ($allBookings as $b) {
+            if ($b->status === 'rejected') {
+                continue;
+            }
+            $setupIso = $b->effective_setup_date->format('Y-m-d');
+            $endDate = $b->event_end_date ? Carbon::parse($b->event_end_date) : Carbon::parse($b->event_date);
+            $teardownIso = $endDate->copy()->addDay()->format('Y-m-d');
+
+            if ($setupIso === $todayIso) {
+                $todayFieldTasks++;
+            }
+            if ($teardownIso === $todayIso) {
+                $todayFieldTasks++;
+            }
+
+            if ($b->status !== 'completed') {
+                if ($setupIso > $todayIso) {
+                    $upcomingFieldTasks++;
+                }
+                if ($teardownIso > $todayIso) {
+                    $upcomingFieldTasks++;
+                }
+            }
+        }
+
         return [
             'today_schedule'        => $todayCount,
+            'today_field_tasks'     => $todayFieldTasks,
             'upcoming_count'        => $upcomingCount,
+            'upcoming_field_tasks'  => $upcomingFieldTasks,
             'pending_count'         => $pendingCount,
             'outstanding_count'     => $outstandingBookings->count(),
+            'loading_soon_count'    => $loadingSoonCount,
+            'pending_surveys_count' => $pendingSurveysCount,
             'total_bookings'        => $allBookings->count(),
             'revenue'               => $totalCollected,
             'revenue_short'         => $totalCollected >= 1000000

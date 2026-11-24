@@ -62,7 +62,9 @@
         }
 
         document.addEventListener('alpine:init', () => {
-            const validMainTabs = ['dashboard', 'bookings', 'calendar', 'clients', 'services', 'invoice', 'settings'];
+            const validMainTabs = @js((Auth::user()?->isOwner() ?? false)
+                ? ['dashboard', 'bookings', 'calendar', 'clients', 'services', 'invoice', 'settings']
+                : ['dashboard', 'bookings', 'calendar']);
             const urlParams = new URLSearchParams(window.location.search);
             const savedTab = sessionStorage.getItem('admin_active_tab');
             const safeSavedTab = validMainTabs.includes(savedTab) ? savedTab : 'dashboard';
@@ -211,8 +213,10 @@
 
     @php
         $isDashboardPage = request()->routeIs('admin.bookings.index');
+        $isOwner = Auth::user()?->isOwner() ?? false;
         $ownerName = Auth::user()->name ?? 'Owner NK Barokah';
         $ownerEmail = Auth::user()->email ?? 'owner@nkbarokah.com';
+        $roleLabel = Auth::user()?->roleLabel() ?? 'NK Barokah Owner';
         $notifs = $adminNotifications ?? (new \App\Services\AdminNotificationService())->getNotifications();
     @endphp
 
@@ -237,15 +241,20 @@
             <!-- Tengah: Navigasi Pill (Desktop) -->
             <nav class="hidden xl:flex items-center gap-1 bg-[#F4F7F6] p-1 rounded-full border border-[#EDF2F0]">
                 @php
-                    $navItems = [
-                        ['key' => 'dashboard', 'label' => 'Dashboard'],
-                        ['key' => 'bookings',  'label' => 'Bookings'],
-                        ['key' => 'calendar',  'label' => 'Calendar'],
-                        ['key' => 'clients',   'label' => 'Clients'],
-                        ['key' => 'services',  'label' => 'Services'],
-                        ['key' => 'invoice',   'label' => 'Invoice'],
-                       
-                    ];
+                    $navItems = $isOwner
+                        ? [
+                            ['key' => 'dashboard', 'label' => 'Dashboard'],
+                            ['key' => 'bookings',  'label' => 'Bookings'],
+                            ['key' => 'calendar',  'label' => 'Calendar'],
+                            ['key' => 'clients',   'label' => 'Clients'],
+                            ['key' => 'services',  'label' => 'Services'],
+                            ['key' => 'invoice',   'label' => 'Invoice'],
+                        ]
+                        : [
+                            ['key' => 'dashboard', 'label' => 'Dashboard'],
+                            ['key' => 'bookings',  'label' => 'Bookings'],
+                            ['key' => 'calendar',  'label' => 'Calendar'],
+                        ];
                 @endphp
 
                 @foreach($navItems as $nav)
@@ -272,29 +281,31 @@
 
                 @include('admin.partials.spotlight-search')
 
-                <!-- Tombol Pengaturan & Google Sync -->
-                @if($isDashboardPage)
-                    <button type="button"
-                            @click="$store.nav.setTab('settings')"
-                            title="Settings & Configuration"
-                            :class="$store.nav.tab === 'settings'
-                                ? 'bg-brand-600 text-white shadow-pill font-semibold'
-                                : 'bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700'"
-                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition cursor-pointer">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                    </button>
-                @else
-                    <a href="{{ route('admin.bookings.index') }}"
-                       title="Settings & Configuration"
-                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                    </a>
+                <!-- Settings & Google Sync Button (Owner Only) -->
+                @if($isOwner)
+                    @if($isDashboardPage)
+                        <button type="button"
+                                @click="$store.nav.setTab('settings')"
+                                title="Settings & Configuration"
+                                :class="$store.nav.tab === 'settings'
+                                    ? 'bg-brand-600 text-white shadow-pill font-semibold'
+                                    : 'bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700'"
+                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition cursor-pointer">
+                            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    @else
+                        <a href="{{ route('admin.bookings.index') }}"
+                           title="Settings & Configuration"
+                           class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 flex items-center justify-center transition">
+                            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </a>
+                    @endif
                 @endif
 
                 @include('admin.partials.notifications')

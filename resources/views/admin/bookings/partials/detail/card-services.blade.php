@@ -73,7 +73,7 @@
                     <div x-show="addingAddon && activeDetail?.raw_status !== 'completed' && activeDetail?.bookingStatus !== 'Complete'" x-cloak
                          class="p-4 rounded-2xl bg-[#F8FAFA] border border-brand-200 shadow-xs space-y-3">
                         <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Tambah Item / Layanan Baru</span>
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Add New Item / Service</span>
                             <button type="button" @click="resetForm()" class="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">
                                 Close
                             </button>
@@ -87,18 +87,18 @@
                                 <button type="button" @click="addonMode = 'catalog'"
                                         :class="addonMode === 'catalog' ? 'bg-white shadow-2xs font-bold text-brand-700' : 'text-slate-500 font-semibold'"
                                         class="py-1.5 rounded-lg text-center transition cursor-pointer">
-                                    Pilih Add-on
+                                    Catalog Add-on
                                 </button>
                                 <button type="button" @click="addonMode = 'custom'; selectedAddonId = ''; catalogDropdownOpen = false;"
                                         :class="addonMode === 'custom' ? 'bg-white shadow-2xs font-bold text-brand-700' : 'text-slate-500 font-semibold'"
                                         class="py-1.5 rounded-lg text-center transition cursor-pointer">
-                                    Item Kustom Lapangan
+                                    Custom Field Item
                                 </button>
                             </div>
 
                             <!-- Catalog Selection (Rich Custom Dropdown) -->
                             <div x-show="addonMode === 'catalog'" class="space-y-1 relative" @click.away="catalogDropdownOpen = false">
-                                <label class="font-bold text-slate-700">Pilih Layanan</label>
+                                <label class="font-bold text-slate-700">Select Service</label>
                                 
                                 <!-- Custom Trigger Button -->
                                 <button type="button" @click="catalogDropdownOpen = !catalogDropdownOpen"
@@ -114,7 +114,7 @@
                                             </div>
                                         </template>
                                         <template x-if="!selectedAddonId">
-                                            <span class="text-slate-400 font-medium">-- Pilih dari Katalog Add-on --</span>
+                                            <span class="text-slate-400 font-medium">-- Select from Add-on Catalog --</span>
                                         </template>
                                     </div>
                                     <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200"
@@ -143,7 +143,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                         <input type="text" x-model="catalogSearch" @click.stop
-                                               placeholder="Cari item (panggung, kursi, tenda, blower...)"
+                                               placeholder="Search items (stage, chair, tent, blower...)"
                                                class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-[#F8FAFA] text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-brand-600 transition">
                                     </div>
 
@@ -162,7 +162,7 @@
                                                     </div>
                                                     <div class="min-w-0">
                                                         <p class="font-bold text-xs truncate" x-text="item.name"></p>
-                                                        <p class="text-[10px] text-slate-400" x-text="'Satuan: ' + (item.unit || 'unit')"></p>
+                                                        <p class="text-[10px] text-slate-400" x-text="'Unit: ' + (item.unit || 'unit')"></p>
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-1.5 shrink-0">
@@ -180,7 +180,7 @@
 
                                         <template x-if="filteredAddons.length === 0">
                                             <div class="py-4 text-center text-slate-400 text-xs">
-                                                Tidak ada add-on yang cocok dengan kata kunci
+                                                No add-on items match your search
                                             </div>
                                         </template>
                                     </div>
@@ -189,21 +189,21 @@
 
                             <!-- Custom Item Name -->
                             <div x-show="addonMode === 'custom'" class="space-y-1">
-                                <label class="font-bold text-slate-700">Nama Item Tambahan</label>
+                                <label class="font-bold text-slate-700">Custom Item Name</label>
                                 <input type="text" name="addon_name" x-model="addonName"
-                                       placeholder="Misal: Tambahan Panjang Tenda 3x6m"
+                                       placeholder="e.g. Extra Tent Length 3x6m"
                                        class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-600">
                             </div>
 
                             <!-- Quantity & Price Grid -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Jumlah (Qty)</label>
+                                    <label class="font-bold text-slate-700">Quantity (Qty)</label>
                                     <input type="number" min="1" max="9999" name="quantity" x-model.number="addonQty"
                                            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-600">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="font-bold text-slate-700">Harga Satuan</label>
+                                    <label class="font-bold text-slate-700">Unit Price</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">Rp</span>
                                         <input type="text" inputmode="numeric" :value="displayPrice" @input="formatPriceInput($event)"
@@ -216,7 +216,7 @@
 
                             <!-- Subtotal Live Preview -->
                             <div class="p-2.5 rounded-xl bg-white border border-[#EFF4F2] flex items-center justify-between text-xs">
-                                <span class="text-slate-500 font-medium">Subtotal Tambahan:</span>
+                                <span class="text-slate-500 font-medium">Item Subtotal:</span>
                                 <span class="font-mono font-bold text-emerald-700"
                                       x-text="'Rp ' + new Intl.NumberFormat('id-ID').format((addonQty || 1) * (rawPrice || 0))"></span>
                             </div>
@@ -226,11 +226,11 @@
                                 <button type="submit"
                                         :disabled="!addonName || !rawPrice"
                                         class="flex-1 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs tracking-wide transition shadow-2xs cursor-pointer active:scale-95">
-                                    Tambahkan ke Pesanan
+                                    Add to Booking
                                 </button>
                                 <button type="button" @click="resetForm()"
                                         class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-xs cursor-pointer transition">
-                                    Batal
+                                    Cancel
                                 </button>
                             </div>
                         </form>
@@ -248,30 +248,37 @@
                         <template x-for="(ad, aIdx) in (activeDetail?.addons || [])" :key="aIdx">
                             <div class="flex items-center justify-between gap-3 pt-2 border-t border-[#EBF1EF]">
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-slate-800 truncate" x-text="ad.name + ' (x' + ad.quantity + ')'"></p>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="font-semibold text-slate-800 truncate" x-text="ad.name + ' (x' + ad.quantity + ')'"></p>
+                                        <template x-if="ad.added_by_role === 'staff'">
+                                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200">Field Staff</span>
+                                        </template>
+                                    </div>
                                     <p class="text-[11px] text-slate-400" x-text="ad.unit_price + ' / unit'"></p>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
                                     <span class="font-bold text-slate-800" x-text="ad.subtotal"></span>
+                                    @if($isOwner ?? false)
                                     <template x-if="activeDetail?.raw_status !== 'completed' && activeDetail?.bookingStatus !== 'Complete' && activeDetail?.raw_status !== 'rejected'">
                                         <button type="button"
                                                 @click="triggerConfirm(
-                                                    'Hapus Item Tambahan',
-                                                    'Hapus item \'' + ad.name + '\' (' + ad.subtotal + ') dari pesanan ini?',
-                                                    'Total tagihan dan sisa pembayaran klien akan otomatis dihitung ulang secara akurat.',
+                                                    'Delete Add-on Item',
+                                                    'Remove item \'' + ad.name + '\' (' + ad.subtotal + ') from this booking?',
+                                                    'Total invoice and remaining balance will be automatically recalculated.',
                                                     '/admin/bookings/' + activeDetail.id + '/addons/' + ad.id,
-                                                    'Ya, Hapus Item',
+                                                    'Yes, Remove Item',
                                                     'bg-rose-600 hover:bg-rose-700 text-white',
                                                     'warning',
                                                     'DELETE'
                                                 )"
-                                                title="Hapus item ini"
+                                                title="Remove item"
                                                 class="p-1.5 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 transition cursor-pointer active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                         </button>
                                     </template>
+                                    @endif
                                 </div>
                             </div>
                         </template>
@@ -301,6 +308,7 @@
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Special Owner Discount</span>
+                                @if($isOwner ?? false)
                                 <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                     <button type="button"
                                             @click="editingOwnerDiscount = !editingOwnerDiscount; if(editingOwnerDiscount) { rawOwnerDiscount = activeDetail?.owner_discount || 0; displayOwnerDiscount = rawOwnerDiscount > 0 ? new Intl.NumberFormat('id-ID').format(rawOwnerDiscount) : ''; }"
@@ -308,6 +316,7 @@
                                         <span x-text="editingOwnerDiscount ? 'Cancel' : 'Edit'"></span>
                                     </button>
                                 </template>
+                                @endif
                             </div>
                             <div>
                                 <template x-if="(activeDetail?.owner_discount || 0) > 0">
@@ -321,6 +330,7 @@
                             </div>
                         </div>
 
+                        @if($isOwner ?? false)
                         <!-- Inline Edit Special Owner Discount Form -->
                         <div x-show="editingOwnerDiscount && activeDetail?.invoiceStatus !== 'Paid'" x-cloak
                              class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
@@ -356,6 +366,7 @@
                                 </div>
                             </form>
                         </div>
+                        @endif
 
                         <div class="pt-3 border-t border-[#DFE8E5] space-y-1.5">
                             <template x-if="(activeDetail?.discount_amount || 0) > 0">

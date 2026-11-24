@@ -5,23 +5,85 @@
                 <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 tracking-tight">Timeline</h2>
                     <div class="space-y-4 relative pl-4 before:content-[''] before:absolute before:left-[5px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8EFED]">
+                        <!-- 1. Booking Created -->
                         <div class="relative">
-                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 ring-4 ring-white absolute -left-4 top-1"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white absolute -left-4 top-1"></span>
                             <p class="text-xs font-bold text-slate-800">Booking Created</p>
                             <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.created_at_label"></p>
                         </div>
-                        <div class="relative">
-                            <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
-                                  :class="activeDetail?.raw_status === 'confirmed' || activeDetail?.raw_status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'"></span>
-                            <p class="text-xs font-bold text-slate-800" x-text="'Status: ' + (activeDetail?.bookingStatus || '')"></p>
-                            <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.updated_at_label"></p>
-                        </div>
-                        <div class="relative">
-                            <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
-                                  :class="activeDetail?.google_calendar_synced ? 'bg-brand-600' : 'bg-slate-300'"></span>
-                            <p class="text-xs font-bold text-slate-800" x-text="activeDetail?.google_calendar_synced ? 'Synced to Google Calendar' : 'Pending Calendar Sync'"></p>
-                            <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.date"></p>
-                        </div>
+
+                        <!-- 2. Site Survey (if requested) -->
+                        <template x-if="activeDetail?.survey_requested">
+                            <div class="relative">
+                                <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
+                                      :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-amber-400'"></span>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-xs font-bold text-slate-800">Site Survey</p>
+                                    <span x-show="activeDetail?.survey_status === 'completed'"
+                                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#E6F6EF] text-emerald-700">Done</span>
+                                    <span x-show="activeDetail?.survey_status !== 'completed'"
+                                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Scheduled</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-0.5"
+                                   x-text="(activeDetail?.survey_date_formatted || 'Not scheduled') + (activeDetail?.survey_time_slot_label ? ' · ' + activeDetail.survey_time_slot_label : '')"></p>
+                            </div>
+                        </template>
+
+                        <!-- Cancelled state -->
+                        <template x-if="activeDetail?.raw_status === 'rejected'">
+                            <div class="relative">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-white absolute -left-4 top-1"></span>
+                                <p class="text-xs font-bold text-rose-700">Booking Cancelled</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.updated_at_label"></p>
+                            </div>
+                        </template>
+
+                        <!-- Operational schedule milestones (when not cancelled) -->
+                        <template x-if="activeDetail?.raw_status !== 'rejected'">
+                            <div class="space-y-4">
+                                <!-- 3. Tent Setup -->
+                                <div class="relative">
+                                    <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
+                                          :class="activeDetail?.raw_status === 'completed' || (activeDetail?.setup_date_iso && activeDetail.setup_date_iso < todayIso)
+                                            ? 'bg-emerald-500'
+                                            : (activeDetail?.setup_date_iso === todayIso ? 'bg-sky-500' : 'bg-slate-300')"></span>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-xs font-bold text-slate-800">Tent Setup</p>
+                                        <span x-show="activeDetail?.setup_date_iso === todayIso"
+                                              class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700">Today</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.setup_date_formatted || '-'"></p>
+                                </div>
+
+                                <!-- 4. Event Day -->
+                                <div class="relative">
+                                    <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
+                                          :class="activeDetail?.raw_status === 'completed' || (activeDetail?.event_end_date_iso && activeDetail.event_end_date_iso < todayIso)
+                                            ? 'bg-emerald-500'
+                                            : (activeDetail?.event_date_iso && todayIso >= activeDetail.event_date_iso && todayIso <= activeDetail.event_end_date_iso ? 'bg-brand-600' : 'bg-slate-300')"></span>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-xs font-bold text-slate-800">Event Day</p>
+                                        <span x-show="activeDetail?.event_date_iso && todayIso >= activeDetail.event_date_iso && todayIso <= activeDetail.event_end_date_iso"
+                                              class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#E6F6EF] text-brand-700">Ongoing</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.date || '-'"></p>
+                                </div>
+
+                                <!-- 5. Teardown -->
+                                <div class="relative">
+                                    <span class="w-2.5 h-2.5 rounded-full ring-4 ring-white absolute -left-4 top-1"
+                                          :class="activeDetail?.raw_status === 'completed' || (activeDetail?.teardown_date_iso && activeDetail.teardown_date_iso < todayIso)
+                                            ? 'bg-emerald-500'
+                                            : (activeDetail?.teardown_date_iso === todayIso ? 'bg-amber-500' : 'bg-slate-300')"></span>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-xs font-bold text-slate-800">Teardown</p>
+                                        <span x-show="activeDetail?.teardown_date_iso === todayIso"
+                                              class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Today</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.teardown_date_formatted || '-'"></p>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -49,6 +111,7 @@
                         Chat WhatsApp Client
                     </a>
 
+                    @if($isOwner ?? false)
                     <template x-if="activeDetail?.raw_status === 'pending_verification'">
                         <button type="button"
                                 @click="triggerConfirm(
@@ -96,6 +159,7 @@
                             Mark Event Complete
                         </button>
                     </template>
+                    @endif
 
                     <a :href="activeDetail?.spk_url || '#'" target="_blank"
                        class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold text-center transition shadow-2xs">
@@ -103,6 +167,7 @@
                         <span>Print Crew SPK / Surat Jalan</span>
                     </a>
 
+                    @if($isOwner ?? false)
                     <a :href="activeDetail?.receipt_url || '#'" target="_blank"
                        class="block w-full py-2.5 px-4 rounded-full border border-[#E5ECE9] hover:bg-[#F6F8F7] text-slate-700 text-xs font-semibold text-center transition">
                         Download Receipt PDF
@@ -123,6 +188,7 @@
                             Reject Booking
                         </button>
                     </template>
+                    @endif
                 </div>
 
             </div>

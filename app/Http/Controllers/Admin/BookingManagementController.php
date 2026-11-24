@@ -7,6 +7,7 @@ use App\Jobs\SyncBookingToGoogleServicesJob;
 use App\Models\Booking;
 use App\Services\AdminDashboardService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class BookingManagementController extends Controller
 {
@@ -16,7 +17,9 @@ class BookingManagementController extends Controller
 
     public function index()
     {
-        return view('admin.bookings.index', $this->dashboardService->getDashboardData());
+        $isOwner = Auth::user()?->isOwner() ?? false;
+
+        return view('admin.bookings.index', $this->dashboardService->getDashboardData($isOwner));
     }
 
     public function show($id): RedirectResponse

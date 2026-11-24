@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use App\Models\Booking;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AdminSettingsController extends Controller
 {
@@ -98,11 +100,74 @@ class AdminSettingsController extends Controller
         ]);
 
         $user = Auth::user();
+        $newPin = (string) $request->input('pin');
+
+        // Prevent collision with Field Staff PIN
+        $otherUsers = User::where('id', '!=', $user?->id)->get();
+        foreach ($otherUsers as $other) {
+            if ($other->pin && Hash::check($newPin, $other->pin)) {
+                return back()->withErrors([
+                    'pin' => 'Owner PIN cannot be identical to the Field Coordinator PIN.',
+                ]);
+            }
+        }
+
         if ($user) {
-            $user->pin = $request->pin;
+            $user->pin = $newPin;
             $user->save();
         }
 
         return back()->with('success', 'Owner access PIN has been successfully updated!');
+    }
+
+    public function updateStaffAccess(Request $request): RedirectResponse
+    {
+        $staff = User::where('role', User::ROLE_STAFF)->first();
+
+        $pinRules = $staff
+            ? ['nullable', 'string', 'digits:6', 'confirmed']
+            : ['required', 'string', 'digits:6', 'confirmed'];
+
+        $validated = $request->validate([
+            'staff_name'      => ['required', 'string', 'max:100'],
+            'staff_is_active' => ['nullable', 'boolean'],
+            'staff_pin'       => $pinRules,
+        ], [
+            'staff_pin.required'  => 'Please set an initial 6-digit PIN for the Field Coordinator account.',
+            'staff_pin.digits'    => 'The Field Coordinator PIN must be exactly 6 digits.',
+            'staff_pin.confirmed' => 'The Field Coordinator PIN confirmation does not match.',
+        ]);
+
+        $newPin = filled($validated['staff_pin'] ?? null) ? trim((string) $validated['staff_pin']) : null;
+
+        if ($newPin !== null) {
+            $owners = User::where('role', User::ROLE_OWNER)->get();
+            foreach ($owners as $owner) {
+                if ($owner->pin && Hash::check($newPin, $owner->pin)) {
+                    return back()->withErrors([
+                        'staff_pin' => 'Field Coordinator PIN must be different from the Owner PIN.',
+                    ]);
+                }
+            }
+        }
+
+        $isActive = $request->boolean('staff_is_active');
+
+        if (!$staff) {
+            $staff = new User([
+                'email'    => 'staff@nkbarokah.com',
+                'role'     => User::ROLE_STAFF,
+                'password' => Hash::make(bin2hex(random_bytes(16))),
+            ]);
+        }
+
+        $staff->name = trim($validated['staff_name']);
+        $staff->is_active = $isActive;
+        if ($newPin !== null) {
+            $staff->pin = $newPin;
+        }
+        $staff->save();
+
+        return back()->with('success', 'Field Coordinator account settings updated successfully!');
     }
 }

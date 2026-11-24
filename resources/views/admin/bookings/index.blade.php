@@ -4,6 +4,7 @@
 
 @section('content')
 @php
+    $isOwner = Auth::user()?->isOwner() ?? false;
     $ownerName = Auth::user()->name ?? 'Owner NK Barokah';
     $hour = now()->hour;
     $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
@@ -11,9 +12,10 @@
 
 <script>
     window.__ADMIN_DASHBOARD_CONFIG__ = @js([
+        'isOwner' => $isOwner,
         'allBookings' => $bookingsPayload,
         'clientsList' => $clientsPayload,
-        'packagesList' => $packagesPayload,
+        'packagesList' => $isOwner ? $packagesPayload : [],
         'addonsList' => $addonsPayload,
         'todayIso' => now()->format('Y-m-d'),
         'currentRealYear' => now()->year,
@@ -36,10 +38,12 @@
     @include('admin.bookings.partials.tab-dashboard')
     @include('admin.bookings.partials.tab-bookings')
     @include('admin.bookings.partials.tab-calendar')
-    @include('admin.bookings.partials.tab-clients')
-    @include('admin.bookings.partials.tab-services')
-    @include('admin.bookings.partials.tab-invoice')
-    @include('admin.bookings.partials.tab-settings')
+    @if($isOwner)
+        @include('admin.bookings.partials.tab-clients')
+        @include('admin.bookings.partials.tab-services')
+        @include('admin.bookings.partials.tab-invoice')
+        @include('admin.bookings.partials.tab-settings')
+    @endif
     @include('admin.bookings.partials.view-client-profile')
     @include('admin.bookings.partials.view-booking-detail')
     @include('admin.bookings.partials.modals')

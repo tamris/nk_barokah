@@ -15,8 +15,8 @@
             <div>
                 <h3 class="text-sm font-bold text-slate-900">{{ $ownerName }}</h3>
                 <p class="text-xs text-slate-400">{{ $ownerEmail }}</p>
-                <span class="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700">
-                    NK Barokah Owner
+                <span class="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold {{ ($isOwner ?? false) ? 'bg-brand-50 text-brand-700' : 'bg-teal-50 text-teal-800 border border-teal-200' }}">
+                    {{ $roleLabel ?? 'NK Barokah Owner' }}
                 </span>
             </div>
             <div class="pt-3 border-t border-slate-100 space-y-2">

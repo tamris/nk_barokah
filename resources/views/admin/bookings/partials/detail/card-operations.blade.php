@@ -36,7 +36,7 @@
                             </a>
                             <button type="button"
                                     @click="editingOperations = !editingOperations"
-                                    :title="editingOperations ? 'Tutup / Batal' : 'Edit Details'"
+                                    :title="editingOperations ? 'Cancel' : 'Edit Details'"
                                     class="w-8 h-8 rounded-full border transition flex items-center justify-center cursor-pointer shadow-2xs"
                                     :class="editingOperations
                                         ? 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -150,11 +150,11 @@
                             <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[#EFF4F2]">
                                 <button type="button" @click="editingOperations = false"
                                         class="px-5 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer transition">
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button type="submit"
                                         class="px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-md shadow-brand-600/20 cursor-pointer active:scale-95">
-                                    Simpan Perubahan
+                                    Save Changes
                                 </button>
                             </div>
                         </form>
