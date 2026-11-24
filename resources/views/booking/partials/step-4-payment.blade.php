@@ -15,107 +15,121 @@
                     </p>
                 </div>
 
-                <!-- Quotation Breakdown Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-card space-y-3.5">
-                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-[11px] sm:text-xs font-bold text-slate-900 uppercase tracking-wider shrink-0">Rincian Reservasi</h3>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-800 border border-brand-200/70 shrink-0"
-                                  x-text="eventTypeLabel"></span>
+                <!-- Quotation Breakdown Card -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
+                    <!-- Card Header -->
+                    <div class="px-4 sm:px-5 pt-4 sm:pt-5 pb-3.5 border-b border-slate-100 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="text-[11px] sm:text-xs font-bold text-slate-900 uppercase tracking-wider">Rincian Reservasi</h3>
+                            <span class="text-[11px] font-medium text-slate-400">Ringkasan Pesanan</span>
                         </div>
-                        <span class="inline-flex items-center text-[10.5px] sm:text-xs font-bold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200/70 whitespace-nowrap shrink-0"
-                              x-text="formattedSelectedDate"></span>
+
+                        <!-- Structured Event & Schedule Meta Box -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-xl bg-[#F8FAFA] border border-slate-200/70">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center shrink-0 border border-brand-200/60 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block leading-none">Tanggal Acara</span>
+                                    <p class="text-xs font-bold text-slate-900 mt-1 leading-snug" x-text="formattedSelectedDate"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-2.5 min-w-0 pt-2 sm:pt-0 border-t sm:border-t-0 sm:border-l border-slate-200/70 sm:pl-3">
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block leading-none">Jenis Acara</span>
+                                    <p class="text-xs font-bold text-slate-900 mt-1 leading-snug" x-text="eventTypeLabel"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="space-y-2.5 text-xs">
-                        <div class="flex justify-between items-center py-0.5 text-slate-600">
-                            <span class="truncate pr-2">Paket: <strong class="text-slate-900 font-bold" x-text="currentPackageName"></strong></span>
-                            <span class="font-mono font-bold text-slate-900 whitespace-nowrap shrink-0" x-text="formatRupiah(currentPackagePrice)"></span>
+                    <!-- Itemized Pricing Breakdown -->
+                    <div class="px-4 sm:px-5 py-3.5 space-y-2.5 text-xs">
+                        <!-- Core Package -->
+                        <div class="flex items-baseline justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-900 truncate" x-text="currentPackageName"></p>
+                                <p class="text-[11px] text-slate-400">Paket Utama</p>
+                            </div>
+                            <span class="font-mono font-bold text-slate-900 whitespace-nowrap shrink-0 tabular-nums" x-text="formatRupiah(currentPackagePrice)"></span>
                         </div>
 
-                        <template x-for="ad in activeAddons" :key="ad.id">
-                            <div class="flex justify-between items-center text-slate-600 pl-2.5 py-1 border-l-2 border-brand-200 bg-slate-50/60 rounded-r-lg">
-                                <span class="truncate pr-2 font-medium" x-text="`${ad.name} (${ad.selectedQty}x)`"></span>
-                                <span class="font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
+                        <!-- Selected Add-ons -->
+                        <template x-if="activeAddons.length > 0">
+                            <div class="pt-2 border-t border-slate-100 space-y-2">
+                                <template x-for="ad in activeAddons" :key="ad.id">
+                                    <div class="flex items-baseline justify-between gap-3 text-slate-600">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <span class="truncate font-medium text-slate-700" x-text="ad.name"></span>
+                                            <span class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono font-semibold text-slate-600 shrink-0" x-text="`${ad.selectedQty}x`"></span>
+                                        </div>
+                                        <span class="font-mono font-semibold text-slate-800 whitespace-nowrap shrink-0 tabular-nums" x-text="formatRupiah(ad.selectedQty * ad.unit_price)"></span>
+                                    </div>
+                                </template>
                             </div>
                         </template>
 
                         <!-- Extra Day Charge if > 2 days -->
                         <template x-if="extraDays > 0">
-                            <div class="flex items-center justify-between gap-3 text-amber-900 bg-amber-50/90 px-3 py-2.5 rounded-xl border border-amber-200/90 shadow-2xs">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 text-amber-700">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-bold text-amber-950 leading-tight">Tambahan Durasi</div>
-                                        <div class="text-[10px] text-amber-700 font-medium leading-tight mt-0.5" x-text="`${extraDays} hari ekstra • +15%/hari`"></div>
-                                    </div>
+                            <div class="pt-2 border-t border-slate-100 flex items-baseline justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-amber-900">Tambahan Durasi</p>
+                                    <p class="text-[11px] text-amber-700" x-text="`${extraDays} hari ekstra · +15%/hari`"></p>
                                 </div>
-                                <span class="font-mono font-extrabold text-xs sm:text-sm text-amber-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
+                                <span class="font-mono font-bold text-amber-800 whitespace-nowrap shrink-0 tabular-nums" x-text="`+ ${formatRupiah(additionalDayCharge)}`"></span>
                             </div>
                         </template>
 
                         <!-- Biaya Transport Muatan Tenda -->
                         <template x-if="transportFee > 0">
-                            <div class="flex items-center justify-between gap-3 text-slate-700 bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-6 h-6 rounded-lg bg-teal-50 flex items-center justify-center shrink-0 text-brand-700">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-bold text-slate-900 leading-tight">Biaya Transport Muatan Tenda</div>
-                                        <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5" x-text="`Estimasi jarak tempuh: ${deliveryDistanceKm} km`"></div>
-                                    </div>
+                            <div class="pt-2 border-t border-slate-100 flex items-baseline justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-slate-800">Biaya Transport Muatan Tenda</p>
+                                    <p class="text-[11px] text-slate-400" x-text="`Estimasi jarak tempuh ${deliveryDistanceKm} km`"></p>
                                 </div>
-                                <span class="font-mono font-bold text-xs sm:text-sm text-slate-900 whitespace-nowrap shrink-0" x-text="`+ ${formatRupiah(transportFee)}`"></span>
+                                <span class="font-mono font-bold text-slate-900 whitespace-nowrap shrink-0 tabular-nums" x-text="`+ ${formatRupiah(transportFee)}`"></span>
                             </div>
                         </template>
 
-                        <!-- Ringkasan Request Survey Lokasi (Jika Diisi) -->
-                        <template x-if="surveyDate">
-                            <div class="flex items-center justify-between gap-3 text-slate-700 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-brand-700 flex items-center justify-center shrink-0 border border-brand-200/60">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <!-- Optional Operational Notes (Survey & Tent Config) -->
+                        <template x-if="surveyDate || tentColorTheme || customTentSize">
+                            <div class="pt-2.5 border-t border-slate-100 space-y-2">
+                                <template x-if="surveyDate">
+                                    <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-[#F8FAFA] border border-slate-200/70">
+                                        <div class="min-w-0">
+                                            <p class="text-[11px] font-semibold text-slate-800">Request Survey Lokasi</p>
+                                            <p class="text-[10.5px] text-slate-500 mt-0.5" x-text="`${surveyDate} · ${surveyTimeSlot === 'morning' ? 'Pagi (09:00 - 12:00)' : (surveyTimeSlot === 'afternoon' ? 'Siang - Sore (13:00 - 17:00)' : 'Fleksibel')}`"></p>
+                                        </div>
+                                        <span class="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200/60 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Gratis</span>
                                     </div>
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-semibold text-slate-800 leading-tight">Request Survey Lokasi Tempat</div>
-                                        <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5" x-text="`Rencana: ${surveyDate} (${surveyTimeSlot === 'morning' ? 'Pagi (09:00 - 12:00)' : (surveyTimeSlot === 'afternoon' ? 'Siang - Sore (13:00 - 17:00)' : 'Fleksibel')})`"></div>
+                                </template>
+
+                                <template x-if="tentColorTheme || customTentSize">
+                                    <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-[#F8FAFA] border border-slate-200/70">
+                                        <div class="min-w-0">
+                                            <p class="text-[11px] font-semibold text-slate-800">Konfigurasi Tenda</p>
+                                            <p class="text-[10.5px] text-slate-500 mt-0.5 truncate"
+                                               x-text="[tentColorTheme ? 'Tema: ' + tentColorTheme : '', customTentSize ? 'Ukuran: ' + customTentSize : ''].filter(Boolean).join(' · ')"></p>
+                                        </div>
+                                        <span class="text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Tercatat</span>
                                     </div>
-                                </div>
-                                <span class="text-[10px] font-semibold text-brand-700 bg-emerald-50 border border-brand-200/60 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Gratis</span>
+                                </template>
                             </div>
                         </template>
+                    </div>
 
-                        <!-- Ringkasan Warna & Dimensi Tenda -->
-                        <template x-if="tentColorTheme || customTentSize">
-                            <div class="flex items-start justify-between gap-3 text-slate-700 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
-                                <div class="flex items-start gap-2.5 min-w-0">
-                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-brand-700 flex items-center justify-center shrink-0 border border-brand-200/60 mt-0.5">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-semibold text-slate-800 leading-tight">Konfigurasi Tenda</div>
-                                        <template x-if="tentColorTheme">
-                                            <div class="text-[11px] text-brand-700 font-bold leading-tight mt-0.5" x-text="'Tema: ' + tentColorTheme"></div>
-                                        </template>
-                                        <template x-if="customTentSize">
-                                            <div class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 truncate" x-text="'Dimensi: ' + customTentSize"></div>
-                                        </template>
-                                    </div>
-                                </div>
-                                <span class="text-[10px] font-semibold text-brand-700 bg-emerald-50 border border-brand-200/60 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">Tercatat</span>
-                            </div>
-                        </template>
-
-                        <div class="pt-3 border-t border-slate-200/90 flex justify-between items-center">
-                            <div>
-                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Total Tagihan</span>
-                                <span class="text-[10px] text-slate-400">Termasuk seluruh layanan & fasilitas sewa</span>
-                            </div>
-                            <span class="text-base sm:text-lg font-mono font-black text-brand-700 tracking-tight" x-text="formatRupiah(grandTotal)"></span>
+                    <!-- Total Tagihan Footer -->
+                    <div class="px-4 sm:px-5 py-3.5 bg-[#F8FAFA] border-t border-dashed border-slate-200 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <span class="text-xs font-bold text-slate-900 uppercase tracking-wider block">Total Tagihan</span>
+                            <span class="text-[11px] text-slate-400">Termasuk seluruh layanan & fasilitas sewa</span>
                         </div>
+                        <span class="text-base sm:text-lg font-mono font-extrabold text-brand-700 tracking-tight whitespace-nowrap shrink-0 tabular-nums" x-text="formatRupiah(grandTotal)"></span>
                     </div>
                 </div>
 
@@ -189,26 +203,26 @@
 
                     <!-- Destination Bank Section (Authentic ATM / Debit Card UI) -->
                     <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
                             <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                 Rekening Resmi Transfer
                             </span>
                             <!-- Bank Switcher Tabs -->
-                            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-subtle">
+                            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-subtle shrink-0">
                                 <button type="button" @click="activeBank = 'bca'"
-                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer active:scale-95"
                                         :class="activeBank === 'bca' 
                                             ? 'bg-blue-700 text-white shadow-xs' 
                                             : 'text-slate-600 hover:text-slate-900'">
-                                    <span class="w-2 h-2 rounded-full" :class="activeBank === 'bca' ? 'bg-white' : 'bg-blue-600'"></span>
+                                    <span class="w-2 h-2 rounded-full shrink-0" :class="activeBank === 'bca' ? 'bg-white' : 'bg-blue-600'"></span>
                                     <span>Bank BCA</span>
                                 </button>
                                 <button type="button" @click="activeBank = 'bri'"
-                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer active:scale-95"
                                         :class="activeBank === 'bri' 
                                             ? 'bg-[#00529C] text-white shadow-xs' 
                                             : 'text-slate-600 hover:text-slate-900'">
-                                    <span class="w-2 h-2 rounded-full" :class="activeBank === 'bri' ? 'bg-white' : 'bg-sky-600'"></span>
+                                    <span class="w-2 h-2 rounded-full shrink-0" :class="activeBank === 'bri' ? 'bg-white' : 'bg-sky-600'"></span>
                                     <span>Bank BRI</span>
                                 </button>
                             </div>
