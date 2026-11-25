@@ -93,11 +93,25 @@
                     <div class="space-y-3 text-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 font-medium">{{ __('admin.detail.booking_status') }}</span>
-                            <span class="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E6F6EF] text-emerald-700" x-text="tStatus(activeDetail?.bookingStatus)"></span>
+                            <span :class="{
+                                    'bg-[#E6F6EF] text-emerald-700': activeDetail?.bookingStatus === 'Confirmed',
+                                    'bg-[#EAF3FF] text-blue-600': activeDetail?.bookingStatus === 'Inquiry',
+                                    'bg-[#F3EAFF] text-purple-600': activeDetail?.bookingStatus === 'Complete',
+                                    'bg-[#FEECEB] text-rose-600': activeDetail?.bookingStatus === 'Cancelled'
+                                  }"
+                                  class="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                  x-text="tStatus(activeDetail?.bookingStatus)"></span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 font-medium">{{ __('admin.detail.invoice_status') }}</span>
-                            <span class="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF6E0] text-amber-700" x-text="tInvoiceStatus(activeDetail?.invoiceStatus)"></span>
+                            <span :class="{
+                                    'bg-[#E6F6EF] text-emerald-700': activeDetail?.invoiceStatus === 'Paid',
+                                    'bg-[#FEF6E0] text-amber-700': activeDetail?.invoiceStatus === 'Sent',
+                                    'bg-[#F1F5F9] text-slate-500': activeDetail?.invoiceStatus === 'Draft',
+                                    'bg-[#FEECEB] text-rose-600': activeDetail?.invoiceStatus === 'Overdue' || activeDetail?.invoiceStatus === 'Cancelled'
+                                  }"
+                                  class="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                  x-text="tInvoiceStatus(activeDetail?.invoiceStatus)"></span>
                         </div>
                     </div>
                 </div>
@@ -124,7 +138,7 @@
                                     'check'
                                 )"
                                 class="w-full py-2.5 px-4 rounded-full bg-[#E6F6EF] hover:bg-[#D5F0E4] text-emerald-700 text-xs font-semibold transition">
-                            ✓ Verify & Confirm Payment
+                            ✓ {{ __('admin.detail.verify_confirm') }}
                         </button>
                     </template>
 
@@ -140,7 +154,7 @@
                                     'check'
                                 )"
                                 class="w-full py-2.5 px-4 rounded-full bg-[#E6F6EF] hover:bg-[#D5F0E4] text-emerald-700 text-xs font-semibold transition">
-                            ✓ Record Settlement (Paid 100%)
+                            ✓ {{ __('admin.detail.record_settlement') }}
                         </button>
                     </template>
 
@@ -148,7 +162,7 @@
                         <button type="button"
                                 @click="triggerConfirm(
                                     'Mark Event as Complete',
-                                    'Confirm that all wedding event series for ' + activeDetail.name + ' have been successfully completed?',
+                                    'Confirm that all event series for ' + activeDetail.name + ' have been successfully completed?',
                                     'Booking status will change to Complete and payment will be automatically recorded as PAID 100%.',
                                     activeDetail.complete_url,
                                     'Yes, Mark Complete',
@@ -156,7 +170,7 @@
                                     'check'
                                 )"
                                 class="w-full py-2.5 px-4 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
-                            Mark Event Complete
+                            {{ __('admin.detail.mark_complete') }}
                         </button>
                     </template>
                     @endif
@@ -185,7 +199,7 @@
                                     'warning'
                                 )"
                                 class="w-full py-2.5 px-4 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
-                            Reject Booking
+                            {{ __('admin.detail.reject_booking') }}
                         </button>
                     </template>
                     @endif

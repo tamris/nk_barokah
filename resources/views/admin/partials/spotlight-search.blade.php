@@ -1,6 +1,7 @@
                 <!-- Global Spotlight Search Command Palette -->
                 <div x-data="globalSpotlight()"
-                     @open-spotlight.window="$nextTick(() => { $refs.searchInput?.focus(); if (query.trim().length > 0) open = true; })"
+                     @open-spotlight.window="$dispatch('close-notifs'); $nextTick(() => { $refs.searchInput?.focus(); if (query.trim().length > 0) open = true; })"
+                     @close-spotlight.window="open = false"
                      @keydown.window="handleKeyDown($event)"
                      @click.away="open = false"
                      class="relative hidden md:block">
@@ -13,8 +14,8 @@
                         <input type="text"
                                x-ref="searchInput"
                                x-model="query"
-                               @input="open = query.trim().length > 0"
-                               @focus="if (query.trim().length > 0) open = true"
+                               @input="$dispatch('close-notifs'); open = query.trim().length > 0"
+                               @focus="$dispatch('close-notifs'); if (query.trim().length > 0) open = true"
                                @keydown.enter.prevent="submitFirstResult()"
                                placeholder="{{ __('admin.spotlight.placeholder') }}"
                                class="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium">

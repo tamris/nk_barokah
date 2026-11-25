@@ -57,14 +57,14 @@
                      x-init="$watch('activeDetail', () => { resetForm(); })">
                     
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Service Details</h2>
+                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ __('admin.detail.services_pricing') }}</h2>
                         <template x-if="activeDetail?.raw_status !== 'completed' && activeDetail?.bookingStatus !== 'Complete' && activeDetail?.raw_status !== 'rejected'">
                             <button type="button" @click="addingAddon = !addingAddon"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition cursor-pointer active:scale-95">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                                 </svg>
-                                <span x-text="addingAddon ? 'Cancel' : 'Add Item'"></span>
+                                <span x-text="addingAddon ? '{{ __('admin.detail.cancel') }}' : '{{ __('admin.detail.add_item') }}'"></span>
                             </button>
                         </template>
                     </div>
@@ -73,9 +73,9 @@
                     <div x-show="addingAddon && activeDetail?.raw_status !== 'completed' && activeDetail?.bookingStatus !== 'Complete'" x-cloak
                          class="p-4 rounded-2xl bg-[#F8FAFA] border border-brand-200 shadow-xs space-y-3">
                         <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Add New Item / Service</span>
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">{{ __('admin.detail.add_new_item_title') }}</span>
                             <button type="button" @click="resetForm()" class="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">
-                                Close
+                                {{ __('admin.nav.close') }}
                             </button>
                         </div>
 
@@ -87,18 +87,18 @@
                                 <button type="button" @click="addonMode = 'catalog'"
                                         :class="addonMode === 'catalog' ? 'bg-white shadow-2xs font-bold text-brand-700' : 'text-slate-500 font-semibold'"
                                         class="py-1.5 rounded-lg text-center transition cursor-pointer">
-                                    Catalog Add-on
+                                    {{ __('admin.detail.catalog_addon') }}
                                 </button>
                                 <button type="button" @click="addonMode = 'custom'; selectedAddonId = ''; catalogDropdownOpen = false;"
                                         :class="addonMode === 'custom' ? 'bg-white shadow-2xs font-bold text-brand-700' : 'text-slate-500 font-semibold'"
                                         class="py-1.5 rounded-lg text-center transition cursor-pointer">
-                                    Custom Field Item
+                                    {{ __('admin.detail.custom_field_item') }}
                                 </button>
                             </div>
 
                             <!-- Catalog Selection (Rich Custom Dropdown) -->
                             <div x-show="addonMode === 'catalog'" class="space-y-1 relative" @click.away="catalogDropdownOpen = false">
-                                <label class="font-bold text-slate-700">Select Service</label>
+                                <label class="font-bold text-slate-700">{{ __('admin.detail.select_service') }}</label>
                                 
                                 <!-- Custom Trigger Button -->
                                 <button type="button" @click="catalogDropdownOpen = !catalogDropdownOpen"
@@ -240,7 +240,7 @@
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <p class="text-sm font-bold text-slate-900" x-text="activeDetail?.service"></p>
-                                <p class="text-[11px] text-slate-400">Core Wedding Organizer Package</p>
+                                <p class="text-[11px] text-slate-400" x-text="activeDetail?.event_type === 'sewa_alat' ? '{{ __('admin.detail.equipment_sub') }}' : '{{ __('admin.detail.core_package_sub') }}'"></p>
                             </div>
                             <span class="text-sm font-bold text-slate-900 shrink-0" x-text="activeDetail?.package_price_formatted"></span>
                         </div>
@@ -251,7 +251,7 @@
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <p class="font-semibold text-slate-800 truncate" x-text="ad.name + ' (x' + ad.quantity + ')'"></p>
                                         <template x-if="ad.added_by_role === 'staff'">
-                                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200">Field Staff</span>
+                                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200">{{ __('admin.detail.field_staff_badge') }}</span>
                                         </template>
                                     </div>
                                     <p class="text-[11px] text-slate-400" x-text="ad.unit_price + ' / unit'"></p>
@@ -307,13 +307,13 @@
                         <!-- Special Owner Discount -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Special Owner Discount</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.owner_discount') }}</span>
                                 @if($isOwner ?? false)
                                 <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                     <button type="button"
                                             @click="editingOwnerDiscount = !editingOwnerDiscount; if(editingOwnerDiscount) { rawOwnerDiscount = activeDetail?.owner_discount || 0; displayOwnerDiscount = rawOwnerDiscount > 0 ? new Intl.NumberFormat('id-ID').format(rawOwnerDiscount) : ''; }"
                                             class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
-                                        <span x-text="editingOwnerDiscount ? 'Cancel' : 'Edit'"></span>
+                                        <span x-text="editingOwnerDiscount ? '{{ __('admin.detail.cancel') }}' : '{{ __('admin.detail.edit') }}'"></span>
                                     </button>
                                 </template>
                                 @endif
@@ -325,7 +325,7 @@
                                     </p>
                                 </template>
                                 <template x-if="!(activeDetail?.owner_discount > 0)">
-                                    <p class="text-slate-400 text-xs font-medium">No discount applied</p>
+                                    <p class="text-slate-400 text-xs font-medium">{{ __('admin.detail.no_discount') }}</p>
                                 </template>
                             </div>
                         </div>
@@ -337,7 +337,7 @@
                             <form :action="activeDetail?.owner_discount_url" method="POST" class="flex flex-col sm:flex-row items-end gap-3 text-xs">
                                 @csrf
                                 <div class="w-full flex-1 space-y-1">
-                                    <label class="font-bold text-slate-600">Discount Amount (Rp)</label>
+                                    <label class="font-bold text-slate-600">{{ __('admin.detail.discount_amount_rp') }}</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none select-none">Rp</span>
                                         <input type="text"
@@ -357,11 +357,11 @@
                                 <div class="flex items-center gap-2 w-full sm:w-auto">
                                     <button type="submit"
                                             class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold transition shadow-2xs cursor-pointer active:scale-95">
-                                        Save
+                                        {{ __('admin.detail.save') }}
                                     </button>
                                     <button type="button" @click="editingOwnerDiscount = false"
                                             class="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer transition">
-                                        Cancel
+                                        {{ __('admin.detail.cancel') }}
                                     </button>
                                 </div>
                             </form>
@@ -371,27 +371,27 @@
                         <div class="pt-3 border-t border-[#DFE8E5] space-y-1.5">
                             <template x-if="(activeDetail?.discount_amount || 0) > 0">
                                 <div class="flex justify-between text-brand-700 font-semibold">
-                                    <span>Vendor Partner Discount (<span x-text="(activeDetail?.discount_percent || 0) + '%'"></span>)</span>
+                                    <span>{{ __('admin.detail.partner_discount') }} (<span x-text="(activeDetail?.discount_percent || 0) + '%'"></span>)</span>
                                     <span x-text="'- ' + activeDetail?.discount_amount_formatted"></span>
                                 </div>
                             </template>
                             <template x-if="(activeDetail?.owner_discount || 0) > 0">
                                 <div class="flex justify-between text-amber-700 font-semibold">
-                                    <span>Special Owner Discount</span>
+                                    <span>{{ __('admin.detail.owner_discount') }}</span>
                                     <span x-text="'- ' + activeDetail?.owner_discount_formatted"></span>
                                 </div>
                             </template>
                             <div class="flex justify-between">
-                                <span class="text-slate-500">Grand Total</span>
+                                <span class="text-slate-500">{{ __('admin.detail.grand_total') }}</span>
                                 <span class="font-extrabold text-slate-900 text-sm" x-text="activeDetail?.grand_total_formatted"></span>
                             </div>
                             <div class="flex justify-between text-emerald-700">
-                                <span x-text="'Amount Paid (' + (activeDetail?.payment_type || 'DP') + ')'"></span>
+                                <span x-text="'{{ __('admin.detail.amount_paid') }} (' + (activeDetail?.payment_type || 'DP') + ')'"></span>
                                 <span class="font-bold" x-text="activeDetail?.amount_paid_formatted"></span>
                             </div>
                             <div class="flex justify-between" :class="(activeDetail?.remaining_balance || 0) > 0 ? 'text-rose-600 font-bold' : 'text-emerald-700 font-bold'">
-                                <span>Remaining Balance</span>
-                                <span x-text="(activeDetail?.remaining_balance || 0) > 0 ? activeDetail?.remaining_formatted : 'PAID (100%)'"></span>
+                                <span>{{ __('admin.detail.remaining_balance') }}</span>
+                                <span x-text="(activeDetail?.remaining_balance || 0) > 0 ? activeDetail?.remaining_formatted : '{{ __('admin.detail.paid_full_badge') }}'"></span>
                             </div>
                         </div>
                     </div>

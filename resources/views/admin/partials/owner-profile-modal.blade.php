@@ -87,7 +87,7 @@
             </div>
 
             <div class="pt-3 border-t border-slate-100 space-y-2">
-                <form action="{{ route('admin.logout') }}" method="POST">
+                <form action="{{ route('admin.logout') }}" method="POST" @submit="try { sessionStorage.removeItem('admin_active_tab'); } catch (e) {}">
                     @csrf
                     <button type="submit" class="w-full py-2.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition cursor-pointer">
                         {{ __('admin.nav.sign_out') }}

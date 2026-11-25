@@ -51,10 +51,11 @@ class AdminDashboardService
     private function formatBookings(Collection $allBookings, Carbon $today): Collection
     {
         $warehouseAddress = Setting::get('warehouse_address', 'NK Barokah Tenda Slawi Kulon');
+        $locale = app()->getLocale();
 
-        return $allBookings->map(function (Booking $b) use ($today, $warehouseAddress) {
-            $eventDate = Carbon::parse($b->event_date);
-            $eventEndDate = $b->event_end_date ? Carbon::parse($b->event_end_date) : $eventDate;
+        return $allBookings->map(function (Booking $b) use ($today, $warehouseAddress, $locale) {
+            $eventDate = Carbon::parse($b->event_date)->locale($locale);
+            $eventEndDate = $b->event_end_date ? Carbon::parse($b->event_end_date)->locale($locale) : $eventDate->copy();
             $durationDays = max(1, (int) ($b->duration_days ?: ($eventDate->diffInDays($eventEndDate) + 1)));
 
             if ($durationDays > 1 && !$eventDate->isSameDay($eventEndDate)) {
@@ -147,14 +148,14 @@ class AdminDashboardService
                 'date'                               => $dateFormatted,
                 'date_short'                         => $dateShortFormatted,
                 'formatted_event_date'               => $b->formatted_event_date,
-                'time'                               => app()->getLocale() === 'id' ? $b->created_at->format('H:i') : $b->created_at->format('h:i A'),
+                'time'                               => $locale === 'id' ? $b->created_at->format('H:i') : $b->created_at->format('h:i A'),
                 'relative_date'                      => $relativeDate,
-                'created_at_label'                   => app()->getLocale() === 'id'
-                    ? $b->created_at->isoFormat('D MMM Y · HH:mm')
-                    : $b->created_at->isoFormat('MMM D, Y · h:mm A'),
-                'updated_at_label'                   => app()->getLocale() === 'id'
-                    ? $b->updated_at->isoFormat('D MMM Y · HH:mm')
-                    : $b->updated_at->isoFormat('MMM D, Y · h:mm A'),
+                'created_at_label'                   => $locale === 'id'
+                    ? $b->created_at->copy()->locale('id')->isoFormat('D MMM Y · HH:mm')
+                    : $b->created_at->format('M d, Y · h:i A'),
+                'updated_at_label'                   => $locale === 'id'
+                    ? $b->updated_at->copy()->locale('id')->isoFormat('D MMM Y · HH:mm')
+                    : $b->updated_at->format('M d, Y · h:i A'),
                 'payment_proof_url'                  => $b->payment_proof_path ? asset('storage/' . $b->payment_proof_path) : null,
                 'is_proof_pdf'                       => $isPdf,
                 'synced_to_sheets'                   => (bool) $b->synced_to_sheets,
@@ -186,7 +187,13 @@ class AdminDashboardService
                 'maps_route_url'                     => 'https://www.google.com/maps/dir/?api=1&origin=' . urlencode($warehouseAddress) . '&destination=' . urlencode($b->venue_address ?? ''),
                 'survey_requested'                   => (bool) $b->survey_requested,
                 'survey_date'                        => $b->survey_date ? $b->survey_date->format('Y-m-d') : null,
-                'survey_date_formatted'              => $b->survey_date ? $b->survey_date->isoFormat('ddd, D MMM Y') : null,
+                'survey_date_formatted'              => $b->survey_date ? $b->survey_date->copy()->locale($locale)->isoFormat('ddd, D MMM Y') : null,
+                'survey_date_wa'                     => $b->survey_date ? $b->survey_date->copy()->locale('id')->isoFormat('dddd, D MMMM Y') : null,
+                'survey_slot_wa'                     => match ($b->survey_time_slot) {
+                    'morning'   => 'Pagi (09:00 - 12:00)',
+                    'afternoon' => 'Siang (13:00 - 17:00)',
+                    default     => 'Waktu Fleksibel',
+                },
                 'survey_time_slot'                   => $b->survey_time_slot,
                 'survey_time_slot_label'             => match ($b->survey_time_slot) {
                     'morning'   => __('admin.survey_slots.morning'),
@@ -206,9 +213,9 @@ class AdminDashboardService
                 'operational_notes'                  => $b->operational_notes ?: '',
                 'job_source'                         => $b->job_source ?: ($b->vendor_name ?: 'Direct Client'),
                 'setup_date_iso'                     => $b->effective_setup_date->format('Y-m-d'),
-                'setup_date_formatted'               => $b->formatted_setup_date,
+                'setup_date_formatted'               => $b->effective_setup_date->copy()->locale($locale)->isoFormat('ddd, D MMM Y'),
                 'teardown_date_iso'                  => $eventEndDate->copy()->addDay()->format('Y-m-d'),
-                'teardown_date_formatted'            => $eventEndDate->copy()->addDay()->isoFormat('ddd, D MMM Y'),
+                'teardown_date_formatted'            => $eventEndDate->copy()->addDay()->locale($locale)->isoFormat('ddd, D MMM Y'),
                 'is_custom_setup_date'               => !empty($b->setup_date),
                 'spk_url'                            => route('admin.bookings.spk', $b->id),
                 'operations_url'                     => route('admin.bookings.operations', $b->id),

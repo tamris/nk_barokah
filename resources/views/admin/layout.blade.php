@@ -283,7 +283,8 @@
     </style>
 </head>
 <body class="min-h-full bg-[#F6F8F7] text-slate-800 antialiased font-sans selection:bg-brand-100 selection:text-brand-900"
-      x-data="{ mobileMenuOpen: false, syncModalOpen: false, notifOpen: false, profileModalOpen: false }">
+      x-data="{ mobileMenuOpen: false, syncModalOpen: false, notifOpen: false, profileModalOpen: false }"
+      @close-notifs.window="notifOpen = false">
 
     @php
         $isDashboardPage = request()->routeIs('admin.bookings.index');

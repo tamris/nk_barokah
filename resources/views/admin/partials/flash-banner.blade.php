@@ -2,7 +2,7 @@
         <div x-data="{
                 show: {{ (session('success') || session('error')) ? 'true' : 'false' }},
                 type: '{{ session('error') ? 'error' : 'success' }}',
-                title: '{{ session('error') ? 'Error' : 'Success' }}',
+                title: '{{ session('error') ? __('admin.toast.error') : __('admin.toast.success') }}',
                 message: {{ Js::from(session('success') ?? session('error') ?? '') }},
                 progress: 100,
                 duration: 4500,
@@ -20,7 +20,7 @@
                 trigger(msg, t = 'success', customTitle = null) {
                     this.message = msg;
                     this.type = t;
-                    this.title = customTitle || (t === 'error' ? 'Error' : 'Success');
+                    this.title = customTitle || (t === 'error' ? '{{ __('admin.toast.error') }}' : '{{ __('admin.toast.success') }}');
                     this.show = true;
                     this.remaining = this.duration;
                     this.progress = 100;
@@ -84,7 +84,7 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
                                   :class="type === 'error' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'"
                                   x-text="title"></span>
-                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">Baru saja</span>
+                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ __('admin.toast.just_now') }}</span>
                         </div>
                         <p class="text-xs font-semibold text-slate-800 mt-0.5 leading-snug break-words"
                            x-text="message"></p>
@@ -94,7 +94,7 @@
                 <!-- Dismiss Button -->
                 <button type="button" @click="close()"
                         class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 active:scale-90 flex items-center justify-center transition shrink-0 cursor-pointer"
-                        title="Tutup pemberitahuan">
+                        title="{{ __('admin.toast.dismiss') }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>

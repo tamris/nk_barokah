@@ -515,7 +515,7 @@
                                             <p class="text-[13px] font-bold text-slate-900 truncate" x-text="inv.name"></p>
                                             <p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate">
                                                 <span class="font-semibold text-slate-700" x-text="inv.remaining_formatted"></span>
-                                                <span> · Event: </span>
+                                                <span> · {{ __('admin.dashboard.event_prefix') }}: </span>
                                                 <span x-text="inv.date_short"></span>
                                             </p>
                                         </div>

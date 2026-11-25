@@ -34,7 +34,7 @@
                      }"
                      x-init="$watch('activeDetail', () => { initDiscount(); })">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Vendor Partners</h2>
+                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ __('admin.detail.vendors_title') }}</h2>
                         <template x-if="activeDetail?.vendor_name">
                             <span class="px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold" x-text="activeDetail.vendor_name"></span>
                         </template>
@@ -47,11 +47,11 @@
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_mua || '-'"></p>
                         </div>
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Decoration</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.vendor_decor') }}</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_decor || '-'"></p>
                         </div>
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Photo / Video</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.vendor_photo') }}</span>
                             <p class="font-semibold text-slate-800 truncate" x-text="activeDetail?.vendor_photo_video || '-'"></p>
                         </div>
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
@@ -63,12 +63,12 @@
                     <!-- Partner Discount Display Card -->
                     <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Partner Discount</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.partner_discount') }}</span>
                             @if($isOwner ?? false)
                             <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                 <button type="button" @click="editingDiscount = !editingDiscount; if(editingDiscount) { pct = (activeDetail?.discount_percent > 0) ? activeDetail.discount_percent : ''; }"
                                         class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
-                                    <span x-text="editingDiscount ? 'Cancel' : 'Edit'"></span>
+                                    <span x-text="editingDiscount ? '{{ __('admin.detail.cancel') }}' : '{{ __('admin.detail.edit') }}'"></span>
                                 </button>
                             </template>
                             @endif
@@ -81,7 +81,7 @@
                                 </p>
                             </template>
                             <template x-if="!(activeDetail?.discount_amount > 0)">
-                                <p class="text-slate-400 text-xs font-medium">No discount applied</p>
+                                <p class="text-slate-400 text-xs font-medium">{{ __('admin.detail.no_discount') }}</p>
                             </template>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                         <form :action="activeDetail?.discount_url" method="POST" class="flex flex-col sm:flex-row items-end gap-3 text-xs">
                             @csrf
                             <div class="w-full sm:w-36 space-y-1">
-                                <label class="font-bold text-slate-600">Discount (%)</label>
+                                <label class="font-bold text-slate-600">{{ __('admin.detail.discount_pct') }}</label>
                                 <div class="relative">
                                     <input type="number" name="discount_percent" min="0" max="100" step="1"
                                            :value="pct"
@@ -105,7 +105,7 @@
                                 </div>
                             </div>
                             <div class="w-full flex-1 space-y-1">
-                                <label class="font-bold text-slate-600">Deduction Preview</label>
+                                <label class="font-bold text-slate-600">{{ __('admin.detail.deduction_preview') }}</label>
                                 <div class="py-1.5 px-3 rounded-lg bg-[#F8FAFA] border border-[#EFF4F2] font-mono font-bold text-emerald-700 min-h-[34px] flex items-center">
                                     <span x-text="nominal > 0 ? '-Rp ' + new Intl.NumberFormat('id-ID').format(nominal) : 'Rp 0'"></span>
                                 </div>
@@ -113,11 +113,11 @@
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 <button type="submit"
                                         class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-bold transition shadow-2xs cursor-pointer active:scale-95">
-                                    Save
+                                    {{ __('admin.detail.save') }}
                                 </button>
                                 <button type="button" @click="editingDiscount = false"
                                         class="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer transition">
-                                    Cancel
+                                    {{ __('admin.detail.cancel') }}
                                 </button>
                             </div>
                         </form>

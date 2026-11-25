@@ -270,13 +270,6 @@ document.addEventListener('alpine:init', () => {
                         this.openDetail(found);
                     });
                 }
-                // Bersihkan parameter booking_id dari URL agar saat refresh (F5) tidak membuka ulang
-                try {
-                    const cleanUrl = new URL(window.location);
-                    cleanUrl.searchParams.delete('booking_id');
-                    cleanUrl.searchParams.delete('id');
-                    window.history.replaceState({}, '', cleanUrl);
-                } catch (e) {}
             }
         },
         activeDetail: null,
@@ -668,10 +661,10 @@ document.addEventListener('alpine:init', () => {
                 });
                 const nonRejectedCount = events.filter(e => e.raw_status !== 'rejected').length;
 
-                // Field Operations: Tent Setup (H-2) and Teardown (H+1)
+                // Field Operations: Tent Setup (H-2) and Teardown (H+1) — confirmed & completed only
                 const operations = [];
                 this.allBookings.forEach(b => {
-                    if (b.raw_status === 'rejected') return;
+                    if (b.raw_status === 'rejected' || b.raw_status === 'pending_verification') return;
                     const start = b.event_date_iso;
                     const end = b.event_end_date_iso || start;
                     const setupDate = b.setup_date_iso || this.addDaysToIso(start, -2);
@@ -764,7 +757,7 @@ document.addEventListener('alpine:init', () => {
             const ops = [];
 
             this.allBookings.forEach(b => {
-                if (b.raw_status === 'rejected') return;
+                if (b.raw_status === 'rejected' || b.raw_status === 'pending_verification') return;
                 const start = b.event_date_iso;
                 const end = b.event_end_date_iso || start;
                 const setupDate = b.setup_date_iso || this.addDaysToIso(start, -2);
@@ -837,6 +830,12 @@ document.addEventListener('alpine:init', () => {
             this.detailLoading = true;
             this.activeDetail = item;
             this.$store.nav.setTab('booking_detail');
+            try {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', 'booking_detail');
+                url.searchParams.set('booking_id', item.id);
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => {
                 this.detailLoading = false;

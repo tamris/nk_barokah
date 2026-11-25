@@ -19,6 +19,28 @@ class AdminNotificationService
      *     field_operations: Collection
      * }
      */
+    private function formatUiEventDate(Booking $b): string
+    {
+        $locale = app()->getLocale();
+        $start = Carbon::parse($b->event_date)->locale($locale);
+        $duration = max(1, (int) ($b->duration_days ?: 1));
+
+        if ($locale === 'id') {
+            return $b->formatted_event_date;
+        }
+
+        $daySuffix = $duration === 1 ? '1 Day' : "{$duration} Days";
+        if ($b->event_end_date && !$start->isSameDay($b->event_end_date)) {
+            $end = Carbon::parse($b->event_end_date)->locale($locale);
+            $range = $start->isSameMonth($end)
+                ? $start->isoFormat('D') . ' - ' . $end->isoFormat('D MMM Y')
+                : $start->isoFormat('D MMM') . ' - ' . $end->isoFormat('D MMM Y');
+            return "{$range} ({$daySuffix})";
+        }
+
+        return $start->isoFormat('ddd, D MMM Y') . " ({$daySuffix})";
+    }
+
     public function getNotifications(): array
     {
         $today = Carbon::today();
@@ -46,7 +68,7 @@ class AdminNotificationService
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
                     'desc'          => __('admin.notifications.transfer_of', ['type' => $paymentTypeLabel, 'amount' => $amountFmt]),
-                    'meta'          => __('admin.notifications.event_meta', ['date' => $b->formatted_event_date, 'ago' => $b->created_at->diffForHumans()]),
+                    'meta'          => __('admin.notifications.event_meta', ['date' => $this->formatUiEventDate($b), 'ago' => $b->created_at->copy()->locale(app()->getLocale())->diffForHumans()]),
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
                     'action_label'  => __('admin.notifications.review_proof'),
                     'action_type'   => 'link',
@@ -95,7 +117,7 @@ class AdminNotificationService
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
                     'desc'          => __('admin.notifications.remaining_balance', ['amount' => $remainingFmt]),
-                    'meta'          => __('admin.notifications.schedule_meta', ['date' => $b->formatted_event_date, 'days' => $daysText]),
+                    'meta'          => __('admin.notifications.schedule_meta', ['date' => $this->formatUiEventDate($b), 'days' => $daysText]),
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
                     'action_label'  => __('admin.notifications.remind_wa'),
                     'action_type'   => 'whatsapp',
@@ -207,7 +229,7 @@ class AdminNotificationService
                     $desc = $diffDays === 1
                         ? __('admin.notifications.loading_tmrw_desc')
                         : __('admin.notifications.loading_days_desc', ['days' => $diffDays]);
-                    $meta = __('admin.notifications.package_event', ['package' => $b->package_name, 'date' => $b->formatted_event_date]);
+                    $meta = __('admin.notifications.package_event', ['package' => $b->package_name, 'date' => $this->formatUiEventDate($b)]);
                 }
 
                 return [

@@ -253,7 +253,7 @@
                         <!-- Standard Package Duration -->
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-700">
-                                Standard Package Duration (Days)
+                                {{ __('admin.settings.fields.std_duration') }}
                             </label>
                             <div class="relative">
                                 <input type="number" name="standard_package_max_days" min="1" max="14" required
@@ -267,7 +267,7 @@
                         <!-- Extra Day Charge Rate -->
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-700">
-                                Extra Day Charge Rate (%)
+                                {{ __('admin.settings.fields.extra_day_rate') }}
                             </label>
                             <div class="relative">
                                 <input type="number" step="0.5" name="extra_day_charge_rate" min="0" max="100" required
@@ -297,7 +297,7 @@
                             }
                         }" class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-700">
-                                Minimum Down Payment (DP)
+                                {{ __('admin.settings.fields.min_dp') }}
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold pointer-events-none select-none">Rp</span>
@@ -317,7 +317,7 @@
                         <!-- Daily Event Capacity (Anti-Overbooking) -->
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-700">
-                                Daily Event Capacity
+                                {{ __('admin.settings.fields.daily_capacity') }}
                             </label>
                             <div class="relative">
                                 <input type="number" name="max_events_per_day" min="1" max="10" required
@@ -332,7 +332,7 @@
                     <!-- Customer Service WhatsApp -->
                     <div class="space-y-1.5 pt-1">
                         <label class="block text-xs font-bold text-slate-700">
-                            Customer Service WhatsApp Number
+                            {{ __('admin.settings.fields.cs_whatsapp') }}
                         </label>
                         <input type="text" name="admin_whatsapp" required
                                value="{{ $settings['admin_whatsapp'] ?? '6282255969313' }}"
@@ -351,7 +351,7 @@
                         <!-- Warehouse Address -->
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-700">
-                                Slawi Warehouse & Fleet Departure Address
+                                {{ __('admin.settings.fields.warehouse_addr') }}
                             </label>
                             <input type="text" name="warehouse_address" required
                                    value="{{ $settings['warehouse_address'] ?? 'Jl. K.H. Ahmad Dahlan, RT 04 / RW 01, Slawi Kulon, Kec. Slawi, Kab. Tegal' }}"
@@ -464,13 +464,13 @@
                         </div>
                         <div class="space-y-2">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Number</label>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('admin.settings.fields.account_number') }}</label>
                                 <input type="text" name="bca_account_number" required
                                        value="{{ $settings['bca_account_number'] ?? '3620648107' }}"
                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Holder Name (Owner)</label>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('admin.settings.fields.account_holder') }}</label>
                                 <input type="text" name="bca_account_name" required
                                        value="{{ $settings['bca_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}"
                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 uppercase focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
@@ -486,13 +486,13 @@
                         </div>
                         <div class="space-y-2">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Number</label>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('admin.settings.fields.account_number') }}</label>
                                 <input type="text" name="bri_account_number" required
                                        value="{{ $settings['bri_account_number'] ?? '344301026581532' }}"
                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Holder Name (Owner)</label>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('admin.settings.fields.account_holder') }}</label>
                                 <input type="text" name="bri_account_name" required
                                        value="{{ $settings['bri_account_name'] ?? 'EZZU RAKHMAT FIRDAUS' }}"
                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 uppercase focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 bg-white transition">
@@ -533,7 +533,7 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <label class="block text-xs font-bold text-slate-700">
-                                    Google Spreadsheet ID (Recap Database)
+                                    {{ __('admin.settings.fields.google_sheet_id') }}
                                 </label>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-emerald-700 bg-emerald-50">Auto Sync</span>
                             </div>
@@ -548,7 +548,7 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <label class="block text-xs font-bold text-slate-700">
-                                    Google Calendar ID (Event Schedule)
+                                    {{ __('admin.settings.fields.google_calendar_id') }}
                                 </label>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-sky-700 bg-sky-50">Auto Event</span>
                             </div>
@@ -613,14 +613,14 @@
                             @csrf
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">New Owner PIN</label>
-                                    <input type="password" name="pin" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('admin.settings.fields.new_owner_pin') }}</label>
+                                    <input type="password" name="pin" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password"
                                            placeholder="••••••"
                                            class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Owner PIN</label>
-                                    <input type="password" name="pin_confirmation" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('admin.settings.fields.confirm_owner_pin') }}</label>
+                                    <input type="password" name="pin_confirmation" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password"
                                            placeholder="••••••"
                                            class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
                                 </div>
@@ -654,14 +654,14 @@
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
                               :class="staffEnabled ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
-                              x-text="staffEnabled ? 'Active' : 'Disabled'"></span>
+                              x-text="staffEnabled ? '{{ __('admin.settings.fields.status_active') }}' : '{{ __('admin.settings.fields.status_disabled') }}'"></span>
                     </div>
 
                     <form action="{{ route('admin.settings.update_staff') }}" method="POST" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Account Display Name</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('admin.settings.fields.staff_display_name') }}</label>
                                 <input type="text" name="staff_name" required maxlength="100"
                                        value="{{ $staffDisplayName }}"
                                        placeholder="Field Coordinator"
@@ -669,7 +669,7 @@
                             </div>
 
                             <label class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] cursor-pointer select-none">
-                                <span class="text-xs font-semibold text-slate-700">Allow Login Access</span>
+                                <span class="text-xs font-semibold text-slate-700">{{ __('admin.settings.fields.allow_login') }}</span>
                                 <input type="hidden" name="staff_is_active" :value="staffEnabled ? 1 : 0">
                                 <button type="button"
                                         @click="staffEnabled = !staffEnabled"
@@ -684,15 +684,15 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    {{ $staffAccount ? 'New Staff PIN (Leave blank to keep)' : 'Set 6-Digit Staff PIN' }}
+                                    {{ $staffAccount ? __('admin.settings.fields.new_staff_pin') : __('admin.settings.fields.set_staff_pin') }}
                                 </label>
-                                <input type="password" name="staff_pin" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                <input type="password" name="staff_pin" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password"
                                        placeholder="••••••"
                                        class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Staff PIN</label>
-                                <input type="password" name="staff_pin_confirmation" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">{{ __('admin.settings.fields.confirm_staff_pin') }}</label>
+                                <input type="password" name="staff_pin_confirmation" {{ $staffAccount ? '' : 'required' }} maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="new-password"
                                        placeholder="••••••"
                                        class="w-full px-4 py-2.5 rounded-2xl border border-[#E5ECE9] bg-[#FAFDFC] focus:bg-white text-sm font-mono font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/15 focus:border-brand-500 transition">
                             </div>

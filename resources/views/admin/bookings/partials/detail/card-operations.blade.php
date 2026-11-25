@@ -29,13 +29,13 @@
 
                         <div class="flex items-center gap-2">
                             <a :href="activeDetail?.spk_url || '#'" target="_blank"
-                               title="Print SPK / Surat Jalan"
+                               title="{{ __('admin.detail.print_spk') }}"
                                class="w-8 h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 flex items-center justify-center transition shadow-2xs">
                                 <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zM7 9V5a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
                             </a>
                             <button type="button"
                                     @click="editingOperations = !editingOperations"
-                                    :title="editingOperations ? 'Cancel' : 'Edit Details'"
+                                    :title="editingOperations ? '{{ __('admin.detail.cancel') }}' : '{{ __('admin.detail.edit_details') }}'"
                                     class="w-8 h-8 rounded-full border transition flex items-center justify-center cursor-pointer shadow-2xs"
                                     :class="editingOperations
                                         ? 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -95,7 +95,7 @@
                                 {{ __('admin.detail.operational_notes') }}
                             </span>
                             <p class="text-xs font-bold text-amber-950 leading-relaxed whitespace-pre-line"
-                               x-text="activeDetail?.operational_notes || 'No special crew instructions recorded.'"></p>
+                               x-text="activeDetail?.operational_notes || '{{ __('admin.detail.no_op_notes') }}'"></p>
                         </div>
                     </div>
 
@@ -149,11 +149,11 @@
                             <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[#EFF4F2]">
                                 <button type="button" @click="editingOperations = false"
                                         class="px-5 py-2.5 rounded-full border border-[#DCE5E2] text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer transition">
-                                    Cancel
+                                    {{ __('admin.detail.cancel') }}
                                 </button>
                                 <button type="submit"
                                         class="px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-md shadow-brand-600/20 cursor-pointer active:scale-95">
-                                    Save Changes
+                                    {{ __('admin.detail.save_changes') }}
                                 </button>
                             </div>
                         </form>

@@ -231,7 +231,7 @@
                                                         'bg-[#FEECEB] hover:bg-[#FCDCD9] text-rose-700': ev.bookingStatus === 'Cancelled'
                                                     }"
                                                     class="w-full text-left px-2 py-1 rounded-lg transition cursor-pointer text-xs block group/chip">
-                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + 'D)' : '')"></p>
+                                                <p class="text-[10px] font-bold leading-tight truncate" x-text="'#' + ev.code + ' · ' + ev.shortName + (ev.duration_days > 1 ? ' (' + ev.duration_days + '{{ __('admin.calendar.day_short') }})' : '')"></p>
                                                 <p class="text-[9.5px] opacity-80 leading-tight truncate mt-0.5" x-text="ev.service"></p>
                                             </button>
                                         </template>
@@ -624,7 +624,7 @@
 
                                     <!-- Bottom Row: WhatsApp & Detail Buttons -->
                                     <div class="pt-2 border-t border-[#EDF2F0] flex items-center justify-between gap-2 text-xs">
-                                        <span class="text-[11px] text-slate-400 font-medium" x-text="op.booking.duration_days + ' {{ __('admin.calendar.days_event') }}'"></span>
+                                        <span class="text-[11px] text-slate-400 font-medium" x-text="op.booking.duration_days === 1 ? '{{ __('admin.calendar.day_event_singular') }}' : (op.booking.duration_days + ' {{ __('admin.calendar.days_event') }}')"></span>
                                         <div class="flex items-center gap-2 ml-auto">
                                             <template x-if="op.booking.whatsapp_url">
                                                 <a :href="op.booking.whatsapp_url" target="_blank"
