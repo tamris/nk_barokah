@@ -135,6 +135,9 @@ class AdminDashboardService
                 'remaining_formatted'                => 'Rp ' . number_format((float) $b->remaining_balance, 0, ',', '.'),
                 'payment_type'                       => strtoupper((string) $b->payment_type),
                 'raw_status'                         => $b->status,
+                'dp_forfeited'                       => (bool) $b->dp_forfeited,
+                'can_complete'                       => $b->status === 'confirmed' && $today->greaterThanOrEqualTo($eventEndDate->copy()->startOfDay()),
+                'can_cancel'                         => $b->status === 'pending_verification' || ($b->status === 'confirmed' && (float) $b->remaining_balance > 0),
                 'bookingStatus'                      => $bookingStatus,
                 'invoiceStatus'                      => $invoiceStatus,
                 'event_date_iso'                     => $eventDate->format('Y-m-d'),
@@ -210,6 +213,7 @@ class AdminDashboardService
                 'vendor_mc_wo'                       => $b->vendor_mc_wo ?: '-',
                 'tent_color_theme'                   => ($b->event_type === 'sewa_alat') ? '-' : ($b->tent_color_theme ?: '-'),
                 'custom_tent_size'                   => ($b->event_type === 'sewa_alat') ? '-' : ($b->custom_tent_size ?: '-'),
+                'effective_tent_size'                => $b->effective_tent_size ?: '-',
                 'operational_notes'                  => $b->operational_notes ?: '',
                 'job_source'                         => $b->job_source ?: ($b->vendor_name ?: 'Direct Client'),
                 'setup_date_iso'                     => $b->effective_setup_date->format('Y-m-d'),
@@ -365,7 +369,10 @@ class AdminDashboardService
 
         $pendingCount = $allBookings->where('status', 'pending_verification')->count();
         $outstandingBookings = $allBookings->filter(fn ($b) => in_array($b->status, ['pending_verification', 'confirmed']) && (float) $b->remaining_balance > 0);
-        $totalCollected = (float) $allBookings->whereIn('status', ['confirmed', 'completed'])->sum('amount_paid');
+        $totalCollected = (float) $allBookings->filter(function (Booking $b) {
+            return in_array($b->status, ['confirmed', 'completed'], true)
+                || ($b->status === 'rejected' && (bool) $b->dp_forfeited);
+        })->sum('amount_paid');
         $totalOutstanding = (float) $outstandingBookings->sum('remaining_balance');
         $totalBilled = (float) $allBookings->where('status', '!=', 'rejected')->sum('grand_total');
 

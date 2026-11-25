@@ -246,6 +246,7 @@ return [
         'due_prefix'        => 'Sisa',
         'view_details'      => 'Lihat Detail',
         'landmark_prefix'   => 'Patokan:',
+        'download_pdf'      => 'Unduh PDF',
     ],
 
     'clients' => [
@@ -394,8 +395,16 @@ return [
         'record_settlement'  => 'Catat Pelunasan (Lunas 100%)',
         'mark_complete'      => 'Tandai Acara Selesai',
         'print_spk'          => 'Cetak SPK Kru / Surat Jalan',
-        'download_receipt'   => 'Unduh Kuitansi PDF',
-        'reject_booking'     => 'Tolak Pesanan',
+        'download_receipt'         => 'Unduh Kuitansi PDF',
+        'reject_booking'           => 'Tolak Pesanan',
+        'cancel_booking_forfeited'  => 'Batalkan Pesanan',
+        'cancel_forfeited_question' => 'Batalkan pesanan terkonfirmasi #:code atas nama :name?',
+        'cancel_forfeited_warning'  => 'Slot tanggal acara akan dibuka kembali untuk klien lain dan DP sebesar :amount yang sudah masuk tetap tercatat di kas.',
+        'dp_forfeited_badge'        => 'DP Hangus',
+        'complete_too_early'        => 'Acara belum bisa ditandai selesai sebelum hari pelaksanaan terakhir (:date).',
+        'complete_not_confirmed'    => 'Hanya pesanan terkonfirmasi yang dapat ditandai selesai.',
+        'cancel_completed_blocked'  => 'Pesanan yang sudah selesai tidak dapat dibatalkan.',
+        'cancel_paid_blocked'       => 'Pesanan yang sudah lunas 100% tidak dapat dibatalkan.',
     ],
 
     'settings' => [

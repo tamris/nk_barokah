@@ -45,6 +45,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
         Route::post('/bookings/{id}/survey-status', [BookingOperationsController::class, 'updateSurveyStatus'])->name('bookings.survey_status');
         Route::post('/bookings/{id}/operations', [BookingOperationsController::class, 'updateOperations'])->name('bookings.operations');
         Route::get('/bookings/{id}/spk', [BookingOperationsController::class, 'showSpk'])->name('bookings.spk');
+        Route::get('/calendar/export', [BookingOperationsController::class, 'exportCalendarPdf'])->name('calendar.export');
 
         // Strictly Owner-Only Actions (Financials, Verifications, Master Catalog & Settings)
         Route::middleware('owner')->group(function () {

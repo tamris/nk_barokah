@@ -26,6 +26,7 @@ class Booking extends Model
         'amount_paid'       => 'decimal:2',
         'remaining_balance' => 'decimal:2',
         'synced_to_sheets'  => 'boolean',
+        'dp_forfeited'      => 'boolean',
         'survey_requested'  => 'boolean',
         'survey_date'       => 'date',
         'setup_date'        => 'date',
@@ -71,6 +72,29 @@ class Booking extends Model
     public function getFormattedSetupDateAttribute(): string
     {
         return $this->effective_setup_date->isoFormat('ddd, D MMM Y');
+    }
+
+    /**
+     * Ukuran tenda efektif: prioritaskan ukuran custom/hasil survei,
+     * jika kosong otomatis ambil ukuran standar tenda dari deskripsi paket.
+     */
+    public function getEffectiveTentSizeAttribute(): ?string
+    {
+        if ($this->event_type === 'sewa_alat') {
+            return null;
+        }
+
+        $custom = trim((string) ($this->custom_tent_size ?? ''));
+        if ($custom !== '' && $custom !== '-') {
+            return $custom;
+        }
+
+        $description = (string) ($this->package?->description ?? '');
+        if ($description !== '' && preg_match('/\b(Tenda\s+[^,\.]+)/iu', $description, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return null;
     }
 
     public function package(): BelongsTo

@@ -246,6 +246,7 @@ return [
         'due_prefix'        => 'Due',
         'view_details'      => 'View Details',
         'landmark_prefix'   => 'Landmark:',
+        'download_pdf'      => 'Download PDF',
     ],
 
     'clients' => [
@@ -394,8 +395,16 @@ return [
         'record_settlement'  => 'Record Settlement (Paid 100%)',
         'mark_complete'      => 'Mark Event Complete',
         'print_spk'          => 'Print Crew SPK / Surat Jalan',
-        'download_receipt'   => 'Download Receipt PDF',
-        'reject_booking'     => 'Reject Booking',
+        'download_receipt'         => 'Download Receipt PDF',
+        'reject_booking'           => 'Reject Booking',
+        'cancel_booking_forfeited'  => 'Cancel Booking',
+        'cancel_forfeited_question' => 'Cancel confirmed booking #:code for :name?',
+        'cancel_forfeited_warning'  => 'The event date slot will reopen for other clients and the verified deposit (:amount) remains retained in your collected cash.',
+        'dp_forfeited_badge'        => 'DP Retained',
+        'complete_too_early'        => 'This event cannot be marked complete before the final event day (:date).',
+        'complete_not_confirmed'    => 'Only confirmed bookings can be marked as complete.',
+        'cancel_completed_blocked'  => 'Completed bookings cannot be cancelled.',
+        'cancel_paid_blocked'       => 'Fully paid (100%) confirmed bookings cannot be cancelled.',
     ],
 
     'settings' => [

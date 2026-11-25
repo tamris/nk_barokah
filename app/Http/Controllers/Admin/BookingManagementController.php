@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use App\Models\Booking;
 use App\Services\AdminDashboardService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,9 +44,35 @@ class BookingManagementController extends Controller
     public function reject($id): RedirectResponse
     {
         $booking = Booking::with('addons')->findOrFail($id);
-        $booking->update(['status' => 'rejected']);
+
+        if ($booking->status === 'completed') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', __('admin.detail.cancel_completed_blocked'));
+        }
+
+        if ($booking->status === 'confirmed' && (float) $booking->remaining_balance <= 0) {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', __('admin.detail.cancel_paid_blocked'));
+        }
+
+        $wasConfirmed = $booking->status === 'confirmed';
+        $hasPaidDeposit = (float) $booking->amount_paid > 0;
+        $dpForfeited = $wasConfirmed && $hasPaidDeposit;
+
+        $booking->update([
+            'status'            => 'rejected',
+            'dp_forfeited'      => $dpForfeited,
+            'remaining_balance' => $wasConfirmed ? 0 : $booking->remaining_balance,
+        ]);
 
         SyncBookingToGoogleServicesJob::dispatch($booking);
+
+        if ($dpForfeited) {
+            $paidFormatted = 'Rp ' . number_format((float) $booking->amount_paid, 0, ',', '.');
+
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('success', "Pesanan #{$booking->invoice_number} ({$booking->customer_name}) dibatalkan. DP sebesar {$paidFormatted} dicatat HANGUS dan slot tanggal acara kembali tersedia.");
+        }
 
         return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
             ->with('success', "Reservasi #{$booking->invoice_number} atas nama {$booking->customer_name} telah ditolak.");
@@ -54,6 +81,20 @@ class BookingManagementController extends Controller
     public function complete($id): RedirectResponse
     {
         $booking = Booking::with('addons')->findOrFail($id);
+
+        if ($booking->status !== 'confirmed') {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', __('admin.detail.complete_not_confirmed'));
+        }
+
+        $eventEndDate = Carbon::parse($booking->event_end_date ?: $booking->event_date)->startOfDay();
+        if (Carbon::today()->lt($eventEndDate)) {
+            $formattedDate = $eventEndDate->copy()->locale(app()->getLocale())->isoFormat('D MMM Y');
+
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', __('admin.detail.complete_too_early', ['date' => $formattedDate]));
+        }
+
         $booking->update([
             'status'            => 'completed',
             'payment_type'      => 'lunas',

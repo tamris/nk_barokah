@@ -176,7 +176,8 @@ class AdminBookingTest extends TestCase
             'invoice_number'     => 'INV-202610-COMPLETE',
             'customer_name'      => 'Pengantin Bahagia',
             'customer_phone'     => '081234567890',
-            'event_date'         => now()->addMonths(2)->format('Y-m-d'),
+            'event_date'         => now()->format('Y-m-d'),
+            'event_end_date'     => now()->format('Y-m-d'),
             'package_id'         => $package->id,
             'package_name'       => $package->name,
             'package_price'      => $package->base_price,
@@ -194,6 +195,144 @@ class AdminBookingTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertEquals('completed', $booking->fresh()->status);
         Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_admin_cannot_complete_booking_before_event_end_date(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202610-FUTURE',
+            'customer_name'      => 'Acara Belum Mulai',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addDays(5)->format('Y-m-d'),
+            'event_end_date'     => now()->addDays(6)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => $package->base_price,
+            'addon_total_price'  => 0,
+            'grand_total'        => $package->base_price,
+            'amount_paid'        => $package->base_price,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.complete', $booking->id));
+
+        $response->assertSessionHas('error');
+        $this->assertEquals('confirmed', $booking->fresh()->status);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_admin_can_cancel_confirmed_booking_with_forfeited_dp_and_retains_collected_cash(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202610-FORFEIT',
+            'customer_name'      => 'Klien Batal Sepihak',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addDays(14)->format('Y-m-d'),
+            'event_end_date'     => now()->addDays(14)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 5000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 5000000,
+            'amount_paid'        => 1500000,
+            'remaining_balance'  => 3500000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.reject', $booking->id));
+
+        $response->assertSessionHas('success');
+        $fresh = $booking->fresh();
+        $this->assertEquals('rejected', $fresh->status);
+        $this->assertTrue($fresh->dp_forfeited);
+        $this->assertEquals(0, (float) $fresh->remaining_balance);
+        $this->assertEquals(1500000, (float) $fresh->amount_paid);
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+
+        // Verify DP forfeited cash is still retained in dashboard Collected Revenue, and NOT in Outstanding
+        $dashboardData = app(\App\Services\AdminDashboardService::class)->getDashboardData(true);
+        $this->assertEquals(1500000.0, (float) $dashboardData['metrics']['revenue']);
+        $this->assertEquals(0, (int) $dashboardData['metrics']['outstanding_count']);
+    }
+
+    public function test_admin_cannot_cancel_completed_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202610-DONE-NOCANCEL',
+            'customer_name'      => 'Acara Sudah Kelar',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->subDays(2)->format('Y-m-d'),
+            'event_end_date'     => now()->subDays(2)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 5000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 5000000,
+            'amount_paid'        => 5000000,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'completed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.reject', $booking->id));
+
+        $response->assertSessionHas('error');
+        $this->assertEquals('completed', $booking->fresh()->status);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_admin_cannot_cancel_fully_paid_confirmed_booking(): void
+    {
+        Queue::fake();
+
+        $admin = User::first();
+        $package = Package::first();
+
+        $booking = Booking::create([
+            'invoice_number'     => 'INV-202610-PAID-NOCANCEL',
+            'customer_name'      => 'Klien Sudah Lunas',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->addDays(10)->format('Y-m-d'),
+            'event_end_date'     => now()->addDays(10)->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 5000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 5000000,
+            'amount_paid'        => 5000000,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.reject', $booking->id));
+
+        $response->assertSessionHas('error');
+        $this->assertEquals('confirmed', $booking->fresh()->status);
+        $this->assertFalse($booking->fresh()->dp_forfeited);
+        Queue::assertNothingPushed();
     }
 
     public function test_admin_can_settle_booking_and_stays_on_booking_detail(): void
@@ -1114,6 +1253,84 @@ class AdminBookingTest extends TestCase
 
         $this->assertNotNull($customPackage, 'Custom package should exist.');
         $this->assertEquals(0, (int)$customPackage->base_price);
+    }
+
+    public function test_owner_and_field_staff_can_export_calendar_schedule_pdf(): void
+    {
+        $owner = User::where('role', User::ROLE_OWNER)->firstOrFail();
+        $staff = User::where('role', User::ROLE_STAFF)->where('is_active', true)->firstOrFail();
+        $package = Package::firstOrFail();
+
+        $eventDate = now()->addDays(10);
+
+        Booking::create([
+            'invoice_number'     => 'INV-202611-CALPDF',
+            'customer_name'      => 'Keluarga H. Slamet',
+            'customer_phone'     => '081234567890',
+            'event_date'         => $eventDate->format('Y-m-d'),
+            'event_end_date'     => $eventDate->format('Y-m-d'),
+            'package_id'         => $package->id,
+            'package_name'       => $package->name,
+            'package_price'      => 7000000,
+            'addon_total_price'  => 0,
+            'grand_total'        => 7000000,
+            'amount_paid'        => 2000000,
+            'remaining_balance'  => 5000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+            'venue_address'      => 'Jl. Pemuda No. 12, Slawi',
+            'tent_color_theme'   => 'Putih + Sage Green',
+            'operational_notes'  => 'Bawa kabel rol 50m.',
+        ]);
+
+        // Guest should be redirected to admin login
+        $this->get(route('admin.calendar.export', [
+            'year'  => $eventDate->year,
+            'month' => $eventDate->month,
+            'mode'  => 'operations',
+        ]))->assertRedirect(route('admin.login'));
+
+        // Field Coordinator can download operations PDF
+        $staffResponse = $this->actingAs($staff)->get(route('admin.calendar.export', [
+            'year'  => $eventDate->year,
+            'month' => $eventDate->month,
+            'mode'  => 'operations',
+        ]));
+        $staffResponse->assertOk();
+        $staffResponse->assertHeader('content-type', 'application/pdf');
+
+        // Owner can download events PDF
+        $ownerResponse = $this->actingAs($owner)->get(route('admin.calendar.export', [
+            'year'  => $eventDate->year,
+            'month' => $eventDate->month,
+            'mode'  => 'events',
+        ]));
+        $ownerResponse->assertOk();
+        $ownerResponse->assertHeader('content-type', 'application/pdf');
+
+        // Verify effective_tent_size falls back to package standard dimensions when custom_tent_size is empty
+        $paket1 = Package::where('slug', 'paket-1')->firstOrFail();
+        $paketBooking = Booking::create([
+            'invoice_number'     => 'INV-202611-SIZE',
+            'customer_name'      => 'Tes Ukuran Tenda',
+            'customer_phone'     => '081234567890',
+            'event_date'         => $eventDate->format('Y-m-d'),
+            'package_id'         => $paket1->id,
+            'package_name'       => $paket1->name,
+            'package_price'      => $paket1->base_price,
+            'grand_total'        => $paket1->base_price,
+            'amount_paid'        => 1000000,
+            'remaining_balance'  => $paket1->base_price - 1000000,
+            'payment_type'       => 'dp',
+            'payment_proof_path' => 'proofs/dummy.jpg',
+            'status'             => 'confirmed',
+        ])->load('package');
+
+        $this->assertEquals('Tenda 60m² (4x15 / 6x10)', $paketBooking->effective_tent_size);
+
+        $paketBooking->update(['custom_tent_size' => '8x14m Custom']);
+        $this->assertEquals('8x14m Custom', $paketBooking->fresh()->effective_tent_size);
     }
 }
 

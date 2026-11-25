@@ -126,11 +126,11 @@
                 </div>
             </div>
 
-            <!-- Sisi Kanan di Desktop: Legend / Row 3 di Mobile -->
-            <div class="w-full lg:w-auto shrink-0">
+            <!-- Sisi Kanan di Desktop: Legend + Export Actions / Row 3 di Mobile -->
+            <div class="w-full lg:w-auto flex flex-col sm:flex-row sm:items-center sm:justify-between lg:justify-end gap-2.5 lg:gap-4 shrink-0">
                 <!-- Legend Dinamis (Acara vs Field Operations) -->
                 <div x-show="calendarMode === 'events'"
-                     class="grid {{ ($isOwner ?? false) ? 'grid-cols-4' : 'grid-cols-2' }} gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                     class="grid {{ ($isOwner ?? false) ? 'grid-cols-4' : 'grid-cols-2' }} gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-3.5 lg:text-xs">
                     @if($isOwner ?? false)
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
@@ -154,7 +154,7 @@
                 </div>
 
                 <div x-show="calendarMode === 'operations'"
-                     class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
+                     class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-3.5 lg:text-xs">
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-600 shrink-0"></span>
                         {{ __('admin.calendar.legend_survey') }}
@@ -171,6 +171,20 @@
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-amber-500 shrink-0"></span>
                         {{ __('admin.calendar.legend_teardown') }}
                     </span>
+                </div>
+
+                <!-- Action Button: Download Schedule PDF (Secondary Style) -->
+                <div class="shrink-0">
+                    <a :href="calendarExportPdfUrl"
+                       target="_blank"
+                       title="{{ __('admin.calendar.download_pdf') }}"
+                       aria-label="{{ __('admin.calendar.download_pdf') }}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#F4F7F6] text-slate-700 border border-[#E5ECE9] text-xs font-semibold transition shadow-2xs active:scale-95 whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>PDF</span>
+                    </a>
                 </div>
             </div>
     </div>

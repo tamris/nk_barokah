@@ -33,7 +33,13 @@
                         <template x-if="activeDetail?.raw_status === 'rejected'">
                             <div class="relative">
                                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-white absolute -left-4 top-1"></span>
-                                <p class="text-xs font-bold text-rose-700">{{ __('admin.detail.booking_cancelled') }}</p>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <p class="text-xs font-bold text-rose-700">{{ __('admin.detail.booking_cancelled') }}</p>
+                                    <span x-show="activeDetail?.dp_forfeited"
+                                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/70">
+                                        {{ __('admin.detail.dp_forfeited_badge') }} (<span x-text="activeDetail?.amount_paid_formatted"></span>)
+                                    </span>
+                                </div>
                                 <p class="text-[11px] text-slate-400 mt-0.5" x-text="activeDetail?.updated_at_label"></p>
                             </div>
                         </template>
@@ -104,14 +110,20 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 font-medium">{{ __('admin.detail.invoice_status') }}</span>
-                            <span :class="{
-                                    'bg-[#E6F6EF] text-emerald-700': activeDetail?.invoiceStatus === 'Paid',
-                                    'bg-[#FEF6E0] text-amber-700': activeDetail?.invoiceStatus === 'Sent',
-                                    'bg-[#F1F5F9] text-slate-500': activeDetail?.invoiceStatus === 'Draft',
-                                    'bg-[#FEECEB] text-rose-600': activeDetail?.invoiceStatus === 'Overdue' || activeDetail?.invoiceStatus === 'Cancelled'
-                                  }"
-                                  class="px-3 py-1 rounded-full text-[11px] font-semibold"
-                                  x-text="tInvoiceStatus(activeDetail?.invoiceStatus)"></span>
+                            <div class="flex items-center gap-1.5">
+                                <span x-show="activeDetail?.dp_forfeited"
+                                      class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">
+                                    {{ __('admin.detail.dp_forfeited_badge') }}
+                                </span>
+                                <span :class="{
+                                        'bg-[#E6F6EF] text-emerald-700': activeDetail?.invoiceStatus === 'Paid',
+                                        'bg-[#FEF6E0] text-amber-700': activeDetail?.invoiceStatus === 'Sent',
+                                        'bg-[#F1F5F9] text-slate-500': activeDetail?.invoiceStatus === 'Draft',
+                                        'bg-[#FEECEB] text-rose-600': activeDetail?.invoiceStatus === 'Overdue' || activeDetail?.invoiceStatus === 'Cancelled'
+                                      }"
+                                      class="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                      x-text="tInvoiceStatus(activeDetail?.invoiceStatus)"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,7 +170,7 @@
                         </button>
                     </template>
 
-                    <template x-if="activeDetail?.raw_status === 'confirmed'">
+                    <template x-if="activeDetail?.raw_status === 'confirmed' && activeDetail?.can_complete">
                         <button type="button"
                                 @click="triggerConfirm(
                                     'Mark Event as Complete',
@@ -200,6 +212,22 @@
                                 )"
                                 class="w-full py-2.5 px-4 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
                             {{ __('admin.detail.reject_booking') }}
+                        </button>
+                    </template>
+
+                    <template x-if="activeDetail?.raw_status === 'confirmed' && (activeDetail?.remaining_balance || 0) > 0">
+                        <button type="button"
+                                @click="triggerConfirm(
+                                    '{{ __('admin.detail.cancel_booking_forfeited') }}',
+                                    '{{ __('admin.detail.cancel_forfeited_question', ['code' => '__CODE__', 'name' => '__NAME__']) }}'.replace('__CODE__', activeDetail.code).replace('__NAME__', activeDetail.name),
+                                    '{{ __('admin.detail.cancel_forfeited_warning', ['amount' => '__AMOUNT__']) }}'.replace('__AMOUNT__', activeDetail.amount_paid_formatted),
+                                    activeDetail.reject_url,
+                                    '{{ __('admin.detail.cancel_booking_forfeited') }}',
+                                    'bg-rose-600 hover:bg-rose-700 text-white',
+                                    'warning'
+                                )"
+                                class="w-full py-2.5 px-4 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
+                            {{ __('admin.detail.cancel_booking_forfeited') }}
                         </button>
                     </template>
                     @endif

@@ -680,7 +680,7 @@ document.addEventListener('alpine:init', () => {
                             badgeDot: 'bg-blue-600',
                             chipClass: 'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800',
                             chipTitle: '#' + b.code + ' · ' + b.shortName + ' (' + setupLbl + ')',
-                            chipSubtitle: setupLbl + ': ' + b.service + (b.tent_color_theme && b.tent_color_theme !== 'Standard / Natural' ? ' · ' + b.tent_color_theme : ''),
+                            chipSubtitle: setupLbl + ': ' + b.service + (b.effective_tent_size && b.effective_tent_size !== '-' ? ' (' + b.effective_tent_size + ')' : '') + (b.tent_color_theme && b.tent_color_theme !== '-' && b.tent_color_theme !== 'Standard / Natural' ? ' · ' + b.tent_color_theme : ''),
                             instruction: isId ? 'Muat armada dan pemasangan tenda di lokasi acara.' : 'Fleet loading and tent installation at venue.',
                             booking: b
                         });
@@ -696,7 +696,7 @@ document.addEventListener('alpine:init', () => {
                             badgeDot: 'bg-amber-500',
                             chipClass: 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-900',
                             chipTitle: '#' + b.code + ' · ' + b.shortName + ' (' + teardownLbl + ')',
-                            chipSubtitle: teardownLbl + ': ' + b.service,
+                            chipSubtitle: teardownLbl + ': ' + b.service + (b.effective_tent_size && b.effective_tent_size !== '-' ? ' (' + b.effective_tent_size + ')' : ''),
                             instruction: isId ? 'Pembongkaran tenda dan pengembalian alat ke gudang.' : 'Tent dismantling and returning equipment to warehouse.',
                             booking: b
                         });
@@ -821,6 +821,9 @@ document.addEventListener('alpine:init', () => {
         goToTodayCalendar() {
             this.calYear = this.currentRealYear;
             this.calMonth = this.currentRealMonth;
+        },
+        get calendarExportPdfUrl() {
+            return `/admin/calendar/export?year=${this.calYear}&month=${this.calMonth}&mode=${this.calendarMode}`;
         },
 
         openDetail(item) {
