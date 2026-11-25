@@ -71,12 +71,15 @@ class AdminNotificationService
                     : ($diffDays === 1 ? __('admin.notifications.tomorrow') : __('admin.notifications.days_left', ['count' => $diffDays]));
                 $remainingFmt = 'Rp ' . number_format($b->remaining_balance, 0, ',', '.');
 
-                $eventLabel = strtolower($b->event_type_label ?? 'acara');
+                $eventLabel = $b->event_type === 'sewa_alat'
+                    ? 'sewa alat & perlengkapan'
+                    : strtolower($b->event_type_label ?? 'acara');
+                $waDaysText = $diffDays === 0 ? 'hari ini' : ($diffDays === 1 ? 'besok' : "{$diffDays} hari lagi");
                 $waMsg = urlencode(
-                    "Halo Kak {$b->customer_name}, salam hangat dari NK Barokah Wedding Organizer! 💍✨\n\n" .
-                    "Mengingatkan persiapan {$eventLabel} Kakak pada *{$b->formatted_event_date}* (tersisa *{$daysText}*).\n" .
+                    "Halo Kak {$b->customer_name}, salam hangat dari NK Barokah Tenda! ✨\n\n" .
+                    "Mengingatkan pesanan {$eventLabel} Kakak pada *{$b->formatted_event_date}* (tersisa *{$waDaysText}*).\n" .
                     "Saat ini tercatat sisa tagihan pelunasan sebesar *{$remainingFmt}*.\n\n" .
-                    "Mohon dapat diselesaikan untuk finalisasi jadwal armada dan tim operasional kami. Terima kasih banyak! 🙏😊"
+                    "Mohon dapat diselesaikan untuk finalisasi jadwal armada dan tim operasional kami. Terima kasih banyak! 🙏"
                 );
                 $waUrl = "https://wa.me/{$b->formatted_phone}?text={$waMsg}";
 

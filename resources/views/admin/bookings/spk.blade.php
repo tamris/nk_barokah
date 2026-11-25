@@ -68,7 +68,7 @@
                     <img src="{{ asset('images/logo.png') }}" alt="Logo NK Barokah" class="h-14 sm:h-16 w-auto object-contain">
                     <div>
                         <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 uppercase">NK BAROKAH</h1>
-                        <p class="text-xs font-bold text-slate-700 uppercase tracking-widest">Tenda, Dekorasi & Wedding Organizer Slawi</p>
+                        <p class="text-xs font-bold text-slate-700 uppercase tracking-widest">Persewaan Tenda &amp; Perlengkapan Pesta Slawi</p>
                         <p class="text-[11px] text-slate-500 mt-0.5">
                             {{ $settings['warehouse_address'] ?? 'Jl. K.H. Ahmad Dahlan, RT 04 / RW 01, Slawi Kulon, Tegal' }}
                             · CS: {{ $settings['cs_phone'] ?? '0822-2559-6931' }}

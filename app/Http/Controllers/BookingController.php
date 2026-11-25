@@ -202,12 +202,13 @@ class BookingController extends Controller
 
         // Pre-filled WhatsApp message
         $waMessage = urlencode(
-            "Halo Admin NK Barokah Wedding Organizer, saya sudah mengajukan reservasi:\n" .
+            "Halo Admin NK Barokah Tenda, saya sudah mengajukan pesanan:\n" .
             "- No. Invoice: #{$booking->invoice_number}\n" .
             "- Nama: {$booking->customer_name}\n" .
-            "- Tanggal Acara: " . $booking->formatted_event_date . "\n" .
+            "- Jenis Layanan: {$booking->event_type_label}\n" .
+            "- Tanggal: " . $booking->formatted_event_date . "\n" .
             $surveyPart .
-            "- Paket: {$booking->package_name}\n" .
+            "- Paket / Layanan: {$booking->package_name}\n" .
             "- Pembayaran: " . ($booking->payment_type === 'lunas' ? 'LUNAS (100%)' : 'UANG MUKA (DP)') . " (Rp " . number_format($booking->amount_paid, 0, ',', '.') . ")\n\n" .
             "Mohon bantuannya untuk verifikasi bukti transfer. Terima kasih!"
         );

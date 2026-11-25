@@ -46,7 +46,7 @@
     <!-- Minimal Clean Footer -->
     <footer class="border-t border-slate-200 bg-white pt-3.5 pb-20 md:py-3.5 text-center text-xs text-slate-400">
         <div class="max-w-2xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px]">
-            <p>&copy; {{ date('Y') }} NK Barokah Wedding Organizer. Hak cipta dilindungi.</p>
+            <p>&copy; {{ date('Y') }} NK Barokah Tenda. Hak cipta dilindungi.</p>
             <p class="text-slate-400">Sistem reservasi & penguncian jadwal resmi</p>
         </div>
     </footer>

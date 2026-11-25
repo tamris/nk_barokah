@@ -97,29 +97,45 @@ class Booking extends Model
      */
     public function getFormattedEventDateAttribute(): string
     {
-        $start = \Carbon\Carbon::parse($this->event_date);
+        $start = \Carbon\Carbon::parse($this->event_date)->locale('id');
         $duration = $this->duration_days ?: 1;
+        $suffix = $this->event_type === 'sewa_alat' ? "{$duration} Hari" : "{$duration} Hari Acara";
 
         if ($this->event_end_date && !$start->isSameDay($this->event_end_date)) {
-            $end = \Carbon\Carbon::parse($this->event_end_date);
+            $end = \Carbon\Carbon::parse($this->event_end_date)->locale('id');
             $dateRange = $start->isSameMonth($end)
                 ? $start->isoFormat('D') . ' - ' . $end->isoFormat('D MMMM Y')
                 : $start->isoFormat('D MMMM') . ' - ' . $end->isoFormat('D MMMM Y');
-            return "{$dateRange} ({$duration} Hari Acara)";
+            return "{$dateRange} ({$suffix})";
         }
-        return $start->isoFormat('dddd, D MMMM Y') . ' (1 Hari Acara)';
+        return $start->isoFormat('dddd, D MMMM Y') . " ({$suffix})";
     }
 
     /**
-     * Template pesan WhatsApp profesional & lengkap sesuai status pembayaran dan reservasi.
+     * Template pesan WhatsApp profesional & dinamis sesuai jenis pesanan dan status pembayaran.
      */
     public function getWhatsAppMessageAttribute(): string
     {
+        $brandName = 'NK Barokah Tenda';
         $dateFormatted = $this->formatted_event_date;
         $grandTotalFormatted = 'Rp ' . number_format($this->grand_total, 0, ',', '.');
         $paidFormatted = 'Rp ' . number_format($this->amount_paid, 0, ',', '.');
         $remainingFormatted = 'Rp ' . number_format($this->remaining_balance, 0, ',', '.');
         $receiptUrl = route('booking.receipt', $this->invoice_number);
+
+        $eventType = $this->event_type ?: 'pernikahan';
+        $isEquipmentOnly = $eventType === 'sewa_alat';
+
+        $orderSubject = match ($eventType) {
+            'sewa_alat'  => 'sewa alat & perlengkapan acara',
+            'khitanan'   => $this->child_name ? "sewa tenda acara khitanan {$this->child_name}" : 'sewa tenda acara khitanan',
+            'tasyakuran' => 'sewa tenda acara tasyakuran / pengajian',
+            'instansi'   => 'sewa tenda acara instansi / event',
+            default      => 'sewa tenda acara pernikahan',
+        };
+
+        $dateLabel = $isEquipmentOnly ? 'Tanggal Pemakaian' : 'Tanggal Acara';
+        $packageLabel = $isEquipmentOnly ? 'Layanan' : 'Paket Pilihan';
 
         $surveyInfo = '';
         if ($this->survey_requested && $this->survey_date) {
@@ -129,81 +145,91 @@ class Booking extends Model
                 'flexible'  => 'Fleksibel',
                 default     => $this->survey_time_slot ?: 'Fleksibel',
             };
-            $surveyDateStr = \Carbon\Carbon::parse($this->survey_date)->isoFormat('dddd, D MMMM Y');
+            $surveyDateStr = \Carbon\Carbon::parse($this->survey_date)->locale('id')->isoFormat('dddd, D MMMM Y');
             $surveyInfo = "• Request Survey Lokasi: *{$surveyDateStr}* ({$slotLabel})\n";
             if ($this->survey_notes) {
                 $surveyInfo .= "• Catatan Survey: _{$this->survey_notes}_\n";
             }
         }
 
-        // Kasus 1: Acara Selesai (Completed)
+        // Kasus 1: Pesanan Selesai (Completed)
         if ($this->status === 'completed') {
-            return "Halo Kak *{$this->customer_name}*, salam hangat dari *NK Barokah Wedding Organizer*! 💍✨\n\n" .
-                "Alhamdulillah, seluruh rangkaian acara pernikahan Kak *{$this->customer_name}* pada hari *{$dateFormatted}* telah selesai dilaksanakan dengan baik dan lancar.\n\n" .
-                "📋 *Rincian Acara:*\n" .
+            $closingCompleted = match ($eventType) {
+                'pernikahan' => "Keluarga besar {$brandName} mengucapkan selamat menempuh hidup baru, semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Terima kasih sebesar-besarnya telah mempercayakan kebutuhan tenda & perlengkapan acara kepada kami! 🙏",
+                'khitanan'   => "Semoga ananda menjadi anak yang sholeh, sehat, dan berbakti kepada orang tua. Terima kasih telah mempercayakan kebutuhan tenda & perlengkapan acara kepada {$brandName}! 🙏",
+                default      => "Terima kasih sebesar-besarnya telah mempercayakan kebutuhan tenda & perlengkapan acara kepada {$brandName}. Semoga sukses dan lancar selalu! 🙏",
+            };
+
+            return "Halo Kak *{$this->customer_name}*, salam hangat dari *{$brandName}*! ✨\n\n" .
+                "Alhamdulillah, pesanan {$orderSubject} atas nama Kak *{$this->customer_name}* pada *{$dateFormatted}* telah selesai dilaksanakan dengan baik dan lancar.\n\n" .
+                "📋 *Rincian Pesanan:*\n" .
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
-                "• Paket Pilihan: *{$this->package_name}*\n" .
+                "• Jenis Layanan: *{$this->event_type_label}*\n" .
+                "• {$packageLabel}: *{$this->package_name}*\n" .
                 "• Status Pembayaran: *LUNAS (100%)*\n\n" .
-                "Keluarga besar NK Barokah Wedding Organizer mengucapkan selamat menempuh hidup baru. Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Terima kasih sebesar-besarnya telah mempercayakan momen bahagia Kakak bersama kami! 🙏🥰";
+                $closingCompleted;
         }
 
         // Kasus 2: Terkonfirmasi LUNAS 100%
         if ($this->status === 'confirmed' && ($this->remaining_balance <= 0 || strtolower($this->payment_type) === 'lunas')) {
-            return "Halo Kak *{$this->customer_name}*, salam hangat dari *NK Barokah Wedding Organizer*! 💍✨\n\n" .
-                "Kami mengonfirmasi bahwa pembayaran *PELUNASAN* untuk reservasi pernikahan Anda telah berhasil kami terima dan verifikasi. Status pembayaran Anda kini telah *LUNAS (100%)*.\n\n" .
-                "📋 *Rincian Reservasi:*\n" .
+            return "Halo Kak *{$this->customer_name}*, salam hangat dari *{$brandName}*! ✨\n\n" .
+                "Kami mengonfirmasi bahwa pembayaran *PELUNASAN* untuk pesanan {$orderSubject} Anda telah berhasil kami terima dan verifikasi. Status pembayaran Anda kini telah *LUNAS (100%)*.\n\n" .
+                "📋 *Rincian Pesanan:*\n" .
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
-                "• Paket Pilihan: *{$this->package_name}*\n" .
-                "• Tanggal Acara: *{$dateFormatted}*\n" .
+                "• Jenis Layanan: *{$this->event_type_label}*\n" .
+                "• {$packageLabel}: *{$this->package_name}*\n" .
+                "• {$dateLabel}: *{$dateFormatted}*\n" .
                 $surveyInfo .
-                "• Total Nilai Paket: *{$grandTotalFormatted}*\n" .
+                "• Total Tagihan: *{$grandTotalFormatted}*\n" .
                 "• Total Terbayar: *{$paidFormatted}*\n" .
                 "• Sisa Tagihan: *Rp 0 (LUNAS 100%)*\n\n" .
                 "📄 *Kuitansi Resmi Pelunasan:*\n" .
                 "Kuitansi resmi dapat dilihat dan diunduh melalui tautan berikut:\n" .
                 "{$receiptUrl}\n\n" .
-                "Terima kasih banyak atas kepercayaannya bersama NK Barokah Wedding Organizer. Sampai jumpa di hari bahagia! 🙏😊";
+                "Terima kasih banyak atas kepercayaannya kepada {$brandName}. Jika ada koordinasi jadwal pengiriman atau pemasangan, silakan balas pesan ini! 🙏";
         }
 
         // Kasus 3: Terkonfirmasi Down Payment (DP) - Ada Sisa Pelunasan
         if ($this->status === 'confirmed') {
-            return "Halo Kak *{$this->customer_name}*, salam hangat dari *NK Barokah Wedding Organizer*! 💍✨\n\n" .
-                "Kami mengonfirmasi bahwa pembayaran *Down Payment (DP)* untuk reservasi pernikahan Anda telah berhasil kami verifikasi secara sah. Jadwal acara pernikahan Anda telah resmi terdaftar dan terkunci di sistem kami.\n\n" .
-                "📋 *Rincian Reservasi:*\n" .
+            return "Halo Kak *{$this->customer_name}*, salam hangat dari *{$brandName}*! ✨\n\n" .
+                "Kami mengonfirmasi bahwa pembayaran *Down Payment (DP)* untuk pesanan {$orderSubject} Anda telah berhasil kami verifikasi. Jadwal pesanan Anda telah resmi terdaftar dan terkunci di sistem kami.\n\n" .
+                "📋 *Rincian Pesanan:*\n" .
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
-                "• Paket Pilihan: *{$this->package_name}*\n" .
-                "• Tanggal Acara: *{$dateFormatted}*\n" .
+                "• Jenis Layanan: *{$this->event_type_label}*\n" .
+                "• {$packageLabel}: *{$this->package_name}*\n" .
+                "• {$dateLabel}: *{$dateFormatted}*\n" .
                 $surveyInfo .
-                "• Total Nilai Paket: *{$grandTotalFormatted}*\n" .
+                "• Total Tagihan: *{$grandTotalFormatted}*\n" .
                 "• Pembayaran DP Diterima: *{$paidFormatted}*\n" .
                 "• Sisa Tagihan Pelunasan: *{$remainingFormatted}*\n\n" .
                 "📄 *Kuitansi Resmi DP:*\n" .
                 "Anda dapat melihat dan mengunduh kuitansi resmi melalui tautan berikut:\n" .
                 "{$receiptUrl}\n\n" .
-                "Terima kasih atas kepercayaannya bersama NK Barokah Wedding Organizer. Jika ada pertanyaan atau koordinasi persiapan acara, silakan balas pesan ini. Semoga persiapannya lancar hingga hari H! 🙏😊";
+                "Terima kasih atas kepercayaannya kepada {$brandName}. Jika ada pertanyaan atau koordinasi persiapan pengiriman/pemasangan, silakan balas pesan ini! 🙏";
         }
 
         // Kasus 4: Menunggu Verifikasi Pembayaran (Pending Verification)
         if ($this->status === 'pending_verification') {
-            return "Halo Kak *{$this->customer_name}*, salam hangat dari *NK Barokah Wedding Organizer*! ✨\n\n" .
-                "Kami telah menerima reservasi Anda dengan rincian:\n" .
+            return "Halo Kak *{$this->customer_name}*, salam hangat dari *{$brandName}*! ✨\n\n" .
+                "Kami telah menerima pengajuan pesanan {$orderSubject} Anda dengan rincian:\n" .
                 "• No. Invoice: *#{$this->invoice_number}*\n" .
-                "• Paket Pilihan: *{$this->package_name}*\n" .
-                "• Tanggal Acara: *{$dateFormatted}*\n" .
+                "• Jenis Layanan: *{$this->event_type_label}*\n" .
+                "• {$packageLabel}: *{$this->package_name}*\n" .
+                "• {$dateLabel}: *{$dateFormatted}*\n" .
                 $surveyInfo .
                 "• Nominal Transfer: *{$paidFormatted}* (" . strtoupper($this->payment_type) . ")\n\n" .
-                "Saat ini bukti transfer sedang dalam proses verifikasi mutasi oleh tim keuangan kami. Kami akan segera mengabari Anda setelah pembayaran terverifikasi sah. Terima kasih atas kesabarannya! 🙏";
+                "Saat ini bukti transfer sedang dalam proses verifikasi oleh tim kami. Kami akan segera mengabari Anda setelah pembayaran terverifikasi. Terima kasih! 🙏";
         }
 
-        // Kasus 5: Reservasi Ditolak (Rejected)
+        // Kasus 5: Pesanan Ditolak (Rejected)
         if ($this->status === 'rejected') {
-            return "Halo Kak *{$this->customer_name}*, kami dari *NK Barokah Wedding Organizer*.\n\n" .
-                "Mohon maaf, pengajuan reservasi dengan No. Invoice *#{$this->invoice_number}* belum dapat kami setujui karena kendala verifikasi bukti transfer pembayaran.\n\n" .
-                "Silakan hubungi kami untuk informasi lebih lanjut atau melakukan pengajuan ulang. Terima kasih. 🙏";
+            return "Halo Kak *{$this->customer_name}*, kami dari *{$brandName}*.\n\n" .
+                "Mohon maaf, pengajuan pesanan dengan No. Invoice *#{$this->invoice_number}* belum dapat kami setujui karena kendala verifikasi bukti transfer pembayaran.\n\n" .
+                "Silakan hubungi kami untuk informasi lebih lanjut atau pengajuan ulang. Terima kasih. 🙏";
         }
 
         // Fallback default
-        return "Halo Kak *{$this->customer_name}*, kami dari *NK Barokah Wedding Organizer* ingin mengonfirmasi detail reservasi pernikahan Anda (#{$this->invoice_number}). Terima kasih!";
+        return "Halo Kak *{$this->customer_name}*, kami dari *{$brandName}* ingin mengonfirmasi detail pesanan {$orderSubject} Anda (#{$this->invoice_number}). Terima kasih!";
     }
 
     /**

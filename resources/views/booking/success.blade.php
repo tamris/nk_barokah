@@ -77,7 +77,7 @@
 
             <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
                 Terima kasih, <strong class="text-slate-900 font-semibold">{{ $booking->customer_name }}</strong>. 
-                Permintaan tanggal pernikahan Anda untuk 
+                Permintaan {{ $booking->event_type === 'sewa_alat' ? 'sewa alat' : 'jadwal ' . strtolower($booking->event_type_label) }} Anda untuk 
                 <strong class="text-brand-700 font-semibold">{{ $booking->formatted_event_date }}</strong> 
                 telah berhasil dicatat.
             </p>
@@ -86,7 +86,7 @@
         <!-- Summary Breakdown Card (Clean & Tidy) -->
         <div class="bg-[#F8FAFA] border border-[#EFF4F2] rounded-2xl p-4 text-left text-xs space-y-2.5">
             <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
-                <span class="text-slate-400 uppercase tracking-wider text-[10px] font-semibold">Paket Pernikahan</span>
+                <span class="text-slate-400 uppercase tracking-wider text-[10px] font-semibold">{{ $booking->event_type === 'sewa_alat' ? 'Layanan' : 'Paket Pilihan' }}</span>
                 <span class="font-bold text-slate-900">{{ $booking->package_name }}</span>
             </div>
 

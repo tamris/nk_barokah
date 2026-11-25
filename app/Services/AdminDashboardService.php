@@ -317,7 +317,7 @@ class AdminDashboardService
             'name'            => $p->name,
             'price'           => (float) $p->base_price,
             'price_formatted' => 'Rp ' . number_format((float) $p->base_price, 0, ',', '.'),
-            'description'     => $p->description ?: 'Complete Wedding Organizer package by NK Barokah.',
+            'description'     => $p->description ?: 'Complete tent & event equipment rental package by NK Barokah Tenda.',
             'raw_description' => (string) ($p->description ?? ''),
             'is_active'       => (bool) $p->is_active,
             'booked_count'    => (int) $p->bookings_count,

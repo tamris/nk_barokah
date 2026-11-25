@@ -115,7 +115,7 @@
                 <img src="{{ asset('images/logo.png') }}" alt="NK Barokah Logo" class="h-8 sm:h-9 w-auto object-contain">
                 <div class="leading-none">
                     <span class="block text-xs sm:text-sm font-bold tracking-tight text-slate-900">NK Barokah</span>
-                    <span class="block text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">Wedding Organizer</span>
+                    <span class="block text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">Persewaan Tenda &amp; Alat Pesta</span>
                 </div>
             </a>
 
