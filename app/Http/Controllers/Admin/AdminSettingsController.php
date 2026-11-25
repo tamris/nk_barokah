@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetAdminLocale;
 use App\Jobs\SyncBookingToGoogleServicesJob;
 use App\Models\Booking;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -169,5 +171,19 @@ class AdminSettingsController extends Controller
         $staff->save();
 
         return back()->with('success', 'Field Coordinator account settings updated successfully!');
+    }
+
+    public function updateLocale(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'locale' => ['required', 'string', 'in:' . implode(',', SetAdminLocale::SUPPORTED_LOCALES)],
+        ]);
+
+        $locale = $validated['locale'];
+        App::setLocale($locale);
+
+        return back()
+            ->withCookie(cookie(SetAdminLocale::COOKIE_NAME, $locale, 60 * 24 * 365))
+            ->with('success', __('admin.settings.locale_updated'));
     }
 }

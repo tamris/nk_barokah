@@ -37,16 +37,16 @@
                         <!-- Header Dropdown -->
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">{{ ($isOwner ?? false) ? 'Notifications & Schedule' : 'Field Schedule' }}</h3>
-                                <p class="text-[10px] text-slate-400">Operations control center</p>
+                                <h3 class="text-xs font-bold text-slate-900 tracking-tight">{{ ($isOwner ?? false) ? __('admin.notifications.title') : __('admin.notifications.tab_field') }}</h3>
+                                <p class="text-[10px] text-slate-400">{{ __('admin.notifications.subtitle') }}</p>
                             </div>
                             @if($isOwner ?? false)
                                 <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full {{ $notifs['urgent_count'] > 0 ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-teal-700 bg-teal-50 border border-teal-200' }}">
-                                    {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' Action Required' : 'All Clear' }}
+                                    {{ $notifs['urgent_count'] > 0 ? $notifs['urgent_count'] . ' ' . __('admin.notifications.tab_action') : __('admin.notifications.all_caught_up') }}
                                 </span>
                             @else
                                 <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full text-teal-700 bg-teal-50 border border-teal-200">
-                                    {{ $notifs['field_count'] }} Active
+                                    {{ $notifs['field_count'] }} {{ __('admin.services.active') }}
                                 </span>
                             @endif
                         </div>
@@ -58,7 +58,7 @@
                                      @click="notifTab = 'actions'"
                                      :class="notifTab === 'actions' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
                                      class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                <span>Action Required</span>
+                                <span>{{ __('admin.notifications.tab_action') }}</span>
                                 @if($notifs['urgent_count'] > 0)
                                     <span class="px-1.5 py-0.2 text-[9px] font-extrabold rounded-full"
                                           :class="notifTab === 'actions' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-700'">
@@ -70,7 +70,7 @@
                                      @click="notifTab = 'field'"
                                      :class="notifTab === 'field' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
                                      class="py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                <span>Field Schedule</span>
+                                <span>{{ __('admin.notifications.tab_field') }}</span>
                                 @if($notifs['field_count'] > 0)
                                     <span class="px-1.5 py-0.2 text-[9px] font-extrabold rounded-full"
                                           :class="notifTab === 'field' ? 'bg-teal-600 text-white' : 'bg-teal-100 text-teal-800'">
@@ -118,8 +118,8 @@
                                     <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-800">All Caught Up!</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">No pending payment verifications or due settlements.</p>
+                                    <p class="text-xs font-bold text-slate-800">{{ __('admin.notifications.all_caught_up') }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ __('admin.notifications.no_action_desc') }}</p>
                                 </div>
                             @endforelse
                         </div>
@@ -163,19 +163,19 @@
                                     <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-800">No Upcoming Schedule</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">No tent loading operations in the next 2 days.</p>
+                                    <p class="text-xs font-bold text-slate-800">{{ __('admin.notifications.no_field_title') }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ __('admin.notifications.no_field_desc') }}</p>
                                 </div>
                             @endforelse
                         </div>
 
                         <!-- Footer Dropdown -->
                         <div class="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[10px] text-slate-400">Total: {{ $notifs['total_count'] }} events</span>
+                            <span class="text-[10px] text-slate-400">Total: {{ $notifs['total_count'] }}</span>
                             <a href="{{ route('admin.bookings.index', ['tab' => 'bookings']) }}"
                                @click="notifOpen = false; if (typeof $store !== 'undefined' && $store.nav) $store.nav.setTab('bookings')"
                                class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition">
-                                <span>View All Bookings</span>
+                                <span>{{ __('admin.dashboard.view_all') }}</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
                         </div>

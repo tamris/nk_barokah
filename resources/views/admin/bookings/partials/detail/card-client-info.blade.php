@@ -1,12 +1,12 @@
                 <!-- Client Information -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-7 shadow-card border border-[#EDF2F0] space-y-4">
                     <div class="flex items-center justify-between gap-2">
-                        <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Client Information</h2>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">{{ __('admin.detail.client_info') }}</h2>
                         @if($isOwner ?? false)
                         <button type="button"
                                 @click="openClientProfile(activeDetail)"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 text-xs font-semibold text-slate-700 transition border border-transparent hover:border-brand-200 cursor-pointer">
-                            <span>View Profile</span>
+                            <span>{{ __('admin.clients.view_profile') }}</span>
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                         @endif

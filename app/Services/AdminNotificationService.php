@@ -31,7 +31,7 @@ class AdminNotificationService
             ->get()
             ->map(function ($b) {
                 $paymentType = strtoupper($b->payment_type ?? 'DP');
-                $paymentTypeLabel = $paymentType === 'LUNAS' ? 'FULL PAYMENT' : $paymentType;
+                $paymentTypeLabel = $paymentType === 'LUNAS' ? __('admin.notifications.full_payment') : $paymentType;
                 $amountFmt = 'Rp ' . number_format($b->amount_paid, 0, ',', '.');
 
                 return [
@@ -39,16 +39,16 @@ class AdminNotificationService
                     'booking_id'    => $b->id,
                     'type'          => 'verification',
                     'category'      => 'action_required',
-                    'badge_text'    => 'VERIFY ' . $paymentTypeLabel,
+                    'badge_text'    => __('admin.notifications.verify_prefix') . ' ' . $paymentTypeLabel,
                     'badge_class'   => 'bg-amber-50 text-amber-700 border-amber-200/80',
                     'dot_color'     => 'bg-amber-500',
                     'invoice'       => $b->invoice_number,
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
-                    'desc'          => "{$paymentTypeLabel} transfer of {$amountFmt}",
-                    'meta'          => "Event: {$b->formatted_event_date} · {$b->created_at->diffForHumans()}",
+                    'desc'          => __('admin.notifications.transfer_of', ['type' => $paymentTypeLabel, 'amount' => $amountFmt]),
+                    'meta'          => __('admin.notifications.event_meta', ['date' => $b->formatted_event_date, 'ago' => $b->created_at->diffForHumans()]),
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Review Proof',
+                    'action_label'  => __('admin.notifications.review_proof'),
                     'action_type'   => 'link',
                     'action_url'    => route('admin.bookings.index', ['booking_id' => $b->id]),
                 ];
@@ -66,7 +66,9 @@ class AdminNotificationService
             ->map(function ($b) use ($today) {
                 $eventDate = Carbon::parse($b->event_date);
                 $diffDays = (int) $today->diffInDays($eventDate, false);
-                $daysText = $diffDays === 0 ? 'Today' : ($diffDays === 1 ? 'Tomorrow' : "{$diffDays} days left");
+                $daysText = $diffDays === 0
+                    ? __('admin.notifications.today')
+                    : ($diffDays === 1 ? __('admin.notifications.tomorrow') : __('admin.notifications.days_left', ['count' => $diffDays]));
                 $remainingFmt = 'Rp ' . number_format($b->remaining_balance, 0, ',', '.');
 
                 $eventLabel = strtolower($b->event_type_label ?? 'acara');
@@ -83,16 +85,16 @@ class AdminNotificationService
                     'booking_id'    => $b->id,
                     'type'          => 'settlement',
                     'category'      => 'action_required',
-                    'badge_text'    => 'DUE SETTLEMENT (H-7)',
+                    'badge_text'    => __('admin.notifications.due_settlement'),
                     'badge_class'   => 'bg-rose-50 text-rose-700 border-rose-200/80',
                     'dot_color'     => 'bg-rose-500',
                     'invoice'       => $b->invoice_number,
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
-                    'desc'          => "Remaining balance: {$remainingFmt}",
-                    'meta'          => "Schedule: {$b->formatted_event_date} ({$daysText})",
+                    'desc'          => __('admin.notifications.remaining_balance', ['amount' => $remainingFmt]),
+                    'meta'          => __('admin.notifications.schedule_meta', ['date' => $b->formatted_event_date, 'days' => $daysText]),
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Remind via WA',
+                    'action_label'  => __('admin.notifications.remind_wa'),
                     'action_type'   => 'whatsapp',
                     'action_url'    => $waUrl,
                 ];
@@ -116,23 +118,23 @@ class AdminNotificationService
                 $todayStart = $today->copy()->startOfDay();
                 $diff = (int) $todayStart->diffInDays($surveyDate, false);
                 $timeSlot = match($b->survey_time_slot) {
-                    'morning'   => 'Morning (09:00 - 12:00)',
-                    'afternoon' => 'Afternoon (13:00 - 17:00)',
-                    default     => 'Flexible Time',
+                    'morning'   => __('admin.survey_slots.morning'),
+                    'afternoon' => __('admin.survey_slots.afternoon'),
+                    default     => __('admin.survey_slots.flexible'),
                 };
 
                 if ($diff === 0) {
-                    $badgeText = 'SITE SURVEY (TODAY)';
-                    $desc = "Venue survey scheduled TODAY · {$timeSlot}";
+                    $badgeText = __('admin.notifications.site_survey_today');
+                    $desc = __('admin.notifications.survey_today_desc', ['slot' => $timeSlot]);
                 } elseif ($diff === 1) {
-                    $badgeText = 'SITE SURVEY (TOMORROW)';
-                    $desc = "Venue survey scheduled Tomorrow · {$timeSlot}";
+                    $badgeText = __('admin.notifications.site_survey_tmrw');
+                    $desc = __('admin.notifications.survey_tmrw_desc', ['slot' => $timeSlot]);
                 } elseif ($diff < 0) {
-                    $badgeText = 'SURVEY DUE';
-                    $desc = "Scheduled survey date passed (" . abs($diff) . "d ago) · Confirm outcome";
+                    $badgeText = __('admin.notifications.survey_due');
+                    $desc = __('admin.notifications.survey_due_desc', ['days' => abs($diff)]);
                 } else {
-                    $badgeText = "SITE SURVEY (IN {$diff}D)";
-                    $desc = "Venue survey scheduled in {$diff} days · {$timeSlot}";
+                    $badgeText = __('admin.notifications.site_survey_in', ['days' => $diff]);
+                    $desc = __('admin.notifications.survey_in_desc', ['days' => $diff, 'slot' => $timeSlot]);
                 }
 
                 $eventLabel = strtolower($b->event_type_label ?? 'acara');
@@ -154,9 +156,9 @@ class AdminNotificationService
                     'customer_name' => $b->customer_name,
                     'title'         => '#' . $b->invoice_number . ' · ' . $b->customer_name,
                     'desc'          => $desc,
-                    'meta'          => "Venue: " . ($b->venue_address ?: 'Slawi') . ($b->survey_notes ? " · Note: {$b->survey_notes}" : ''),
+                    'meta'          => __('admin.notifications.venue_meta', ['venue' => $b->venue_address ?: 'Slawi']) . ($b->survey_notes ? __('admin.notifications.note_meta', ['note' => $b->survey_notes]) : ''),
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Chat Client (WA)',
+                    'action_label'  => __('admin.notifications.chat_client_wa'),
                     'action_type'   => 'whatsapp',
                     'action_url'    => $waUrl,
                 ];
@@ -184,25 +186,25 @@ class AdminNotificationService
                 $duration = (int) ($b->duration_days ?: 1);
 
                 if ($isOngoing) {
-                    $badgeText = 'EVENT DAY (TODAY)';
+                    $badgeText = __('admin.notifications.event_day_today');
                     $badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
                     $dotColor = 'bg-emerald-600';
                     if ($duration > 1) {
                         $dayNumber = min($duration, (int) $startDate->diffInDays($todayStart) + 1);
-                        $desc = "Event is ongoing today (Day {$dayNumber} of {$duration})!";
+                        $desc = __('admin.notifications.event_ongoing_multi', ['day' => $dayNumber, 'total' => $duration]);
                     } else {
-                        $desc = "Event is ongoing today!";
+                        $desc = __('admin.notifications.event_ongoing');
                     }
-                    $meta = "Package: {$b->package_name} · Contact: {$b->customer_phone}";
+                    $meta = __('admin.notifications.package_contact', ['package' => $b->package_name, 'phone' => $b->customer_phone]);
                 } else {
                     $diffDays = (int) $todayStart->diffInDays($startDate, false);
-                    $badgeText = $diffDays === 2 ? 'TENT LOADING (H-2)' : ($diffDays === 1 ? 'TENT LOADING (H-1)' : "TENT LOADING (H-{$diffDays})");
+                    $badgeText = __('admin.notifications.tent_loading', ['days' => $diffDays]);
                     $badgeClass = 'bg-teal-50 text-teal-800 border-teal-200/80';
                     $dotColor = 'bg-teal-600';
-                    $desc = $diffDays === 1 
-                        ? "Tent loading & setup schedule (Tomorrow · 1 day until event)"
-                        : "Tent loading & setup schedule ({$diffDays} days until event)";
-                    $meta = "Package: {$b->package_name} · Event: {$b->formatted_event_date}";
+                    $desc = $diffDays === 1
+                        ? __('admin.notifications.loading_tmrw_desc')
+                        : __('admin.notifications.loading_days_desc', ['days' => $diffDays]);
+                    $meta = __('admin.notifications.package_event', ['package' => $b->package_name, 'date' => $b->formatted_event_date]);
                 }
 
                 return [
@@ -219,7 +221,7 @@ class AdminNotificationService
                     'desc'          => $desc,
                     'meta'          => $meta,
                     'url'           => route('admin.bookings.index', ['booking_id' => $b->id]),
-                    'action_label'  => 'Crew Details',
+                    'action_label'  => __('admin.notifications.crew_details'),
                     'action_type'   => 'link',
                     'action_url'    => route('admin.bookings.index', ['booking_id' => $b->id]),
                 ];

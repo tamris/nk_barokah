@@ -32,19 +32,19 @@
                      x-init="$watch('activeDetail', () => initTransport())">
 
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Event Location & Logistics</h2>
-                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Field Info</span>
+                        <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ __('admin.detail.location_logistics') }}</h2>
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('admin.detail.field_info') }}</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <!-- Venue Address -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1.5 sm:col-span-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Delivery Address</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.delivery_address') }}</span>
                                 <template x-if="activeDetail?.maps_route_url">
                                     <a :href="activeDetail.maps_route_url" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:text-brand-700 transition">
-                                        <span>Open in Google Maps</span>
+                                        <span>{{ __('admin.detail.open_maps') }}</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
                                 </template>
@@ -54,25 +54,25 @@
 
                         <!-- Distance -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Distance</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.distance') }}</span>
                             <p class="font-bold text-slate-800 text-sm font-mono" x-text="activeDetail?.delivery_distance_km ? `${activeDetail.delivery_distance_km} km` : '-'"></p>
                         </div>
 
                         <!-- Transport Fee -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transport Fee</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.transport_fee') }}</span>
                                 @if($isOwner ?? false)
                                 <template x-if="activeDetail?.invoiceStatus !== 'Paid' && (activeDetail?.remaining_balance || 0) > 0">
                                     <button type="button" @click="editingTransport = !editingTransport"
                                             class="text-[11px] font-bold text-brand-600 hover:text-brand-700 cursor-pointer">
-                                        <span x-text="editingTransport ? 'Cancel' : 'Edit'"></span>
+                                        <span x-text="editingTransport ? '{{ __('admin.detail.cancel') }}' : '{{ __('admin.detail.edit') }}'"></span>
                                     </button>
                                 </template>
                                 @endif
                             </div>
                             <p class="font-bold text-slate-800 text-sm font-mono"
-                               x-text="(activeDetail?.transport_fee || 0) > 0 ? activeDetail.transport_fee_formatted : 'FREE'"></p>
+                               x-text="(activeDetail?.transport_fee || 0) > 0 ? activeDetail.transport_fee_formatted : '{{ __('admin.detail.free') }}'"></p>
                         </div>
 
                         @if($isOwner ?? false)
@@ -117,13 +117,13 @@
 
                         <!-- Landmark -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Landmark</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.landmark') }}</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.address_landmark || '-'"></p>
                         </div>
 
                         <!-- Event Time -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Event Time</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.event_time') }}</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.event_time || '-'"></p>
                         </div>
 
@@ -135,7 +135,7 @@
                                         <svg class="w-3.5 h-3.5 text-brand-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                         </svg>
-                                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Site Survey</span>
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.site_survey') }}</span>
                                     </div>
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
                                           :class="activeDetail?.survey_status === 'completed'
@@ -143,7 +143,7 @@
                                               : 'bg-teal-50 text-teal-800 border border-teal-200'">
                                         <span class="w-1.5 h-1.5 rounded-full"
                                               :class="activeDetail?.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-teal-500'"></span>
-                                        <span x-text="activeDetail?.survey_status === 'completed' ? 'Survey Done' : 'Scheduled'"></span>
+                                        <span x-text="activeDetail?.survey_status === 'completed' ? '{{ __('admin.detail.survey_done_badge') }}' : '{{ __('admin.detail.survey_sched_badge') }}'"></span>
                                     </span>
                                 </div>
 
@@ -197,7 +197,7 @@
                                             <template x-if="activeDetail?.survey_status !== 'completed'">
                                                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
                                             </template>
-                                            <span x-text="activeDetail?.survey_status === 'completed' ? 'Reopen' : 'Mark Done'"></span>
+                                            <span x-text="activeDetail?.survey_status === 'completed' ? '{{ __('admin.detail.reopen') }}' : '{{ __('admin.detail.mark_done') }}'"></span>
                                         </button>
                                     </form>
 
@@ -206,7 +206,7 @@
                                             @click="editingSurveyNotes = !editingSurveyNotes; if (editingSurveyNotes) { surveyNotesDraft = activeDetail?.survey_notes || ''; }"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition border border-slate-200 shadow-2xs cursor-pointer">
                                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        <span x-text="activeDetail?.survey_notes ? 'Edit Notes' : 'Add Notes'"></span>
+                                        <span x-text="activeDetail?.survey_notes ? '{{ __('admin.detail.edit_notes') }}' : '{{ __('admin.detail.add_notes') }}'"></span>
                                     </button>
 
                                     <!-- WhatsApp Survey Team -->
@@ -214,7 +214,7 @@
                                        target="_blank"
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-teal-800 text-xs font-bold transition border border-teal-200/80 shadow-2xs">
                                         <svg class="w-3.5 h-3.5 fill-current text-teal-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-                                        <span>Message Client</span>
+                                        <span>{{ __('admin.detail.message_client') }}</span>
                                     </a>
                                 </div>
                             </div>
@@ -222,13 +222,13 @@
 
                         <!-- Parents' Names -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Parents' Names</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.parents_names') }}</span>
                             <p class="font-semibold text-slate-800" x-text="activeDetail?.parents_name || '-'"></p>
                         </div>
 
                         <!-- Instagram Account -->
                         <div class="p-3.5 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Instagram</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.instagram') }}</span>
                             <p class="font-semibold text-brand-700" x-text="activeDetail?.instagram_account || '-'"></p>
                         </div>
                     </div>

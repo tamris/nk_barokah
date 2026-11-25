@@ -117,7 +117,7 @@
                         {{ ($isOwner ?? false) ? $metrics['today_schedule'] : ($metrics['today_field_tasks'] ?? 0) }}
                     </div>
                     <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">
-                        {{ ($isOwner ?? false) ? "Today's Schedule" : "Today's Field Jobs" }}
+                        {{ ($isOwner ?? false) ? __('admin.dashboard.today_schedule') : __('admin.dashboard.today_field_jobs') }}
                     </div>
                 </div>
             </div>
@@ -137,17 +137,17 @@
                         @if($isOwner ?? false)
                             @if($metrics['pending_count'] > 0)
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-50 text-amber-700 whitespace-nowrap">
-                                    {{ $metrics['pending_count'] }} pending
+                                    {{ __('admin.dashboard.pending_badge', ['count' => $metrics['pending_count']]) }}
                                 </span>
                             @else
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-[#E6F4F1] text-brand-600 whitespace-nowrap">
-                                    On Track
+                                    {{ __('admin.dashboard.on_track') }}
                                 </span>
                             @endif
                         @endif
                     </div>
                     <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">
-                        {{ ($isOwner ?? false) ? 'Upcoming Bookings' : 'Upcoming Field Jobs' }}
+                        {{ ($isOwner ?? false) ? __('admin.dashboard.upcoming_bookings') : __('admin.dashboard.upcoming_field_jobs') }}
                     </div>
                 </div>
             </div>
@@ -162,7 +162,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['outstanding_count'] }}</div>
-                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Outstanding Invoices</div>
+                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">{{ __('admin.dashboard.outstanding_invoices') }}</div>
                     </div>
                 </div>
 
@@ -175,7 +175,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none tracking-tight">{{ $metrics['revenue_short'] }}</div>
-                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Verified Revenue</div>
+                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">{{ __('admin.dashboard.revenue_month') }}</div>
                     </div>
                 </div>
             @else
@@ -188,7 +188,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['loading_soon_count'] ?? 0 }}</div>
-                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Tent Setup (Next 2d)</div>
+                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">{{ __('admin.dashboard.tent_setup_next_2d') }}</div>
                     </div>
                 </div>
 
@@ -201,7 +201,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xl sm:text-2xl font-bold text-slate-900 leading-none">{{ $metrics['pending_surveys_count'] ?? 0 }}</div>
-                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">Pending Surveys</div>
+                        <div class="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 sm:mt-1.5 truncate">{{ __('admin.dashboard.pending_surveys') }}</div>
                     </div>
                 </div>
             @endif
@@ -223,12 +223,12 @@
         <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] flex flex-col">
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">
-                    {{ ($isOwner ?? false) ? "Today's Schedule" : "Setup & Teardown" }}
+                    {{ ($isOwner ?? false) ? __('admin.dashboard.today_schedule') : __('admin.dashboard.setup_and_teardown') }}
                 </h2>
                 <button type="button"
                         @click="$store.nav.setTab('calendar')"
                         class="px-3.5 py-1.5 rounded-full border border-[#E5ECE9] bg-white hover:bg-[#F6F8F7] text-xs font-medium text-slate-600 transition cursor-pointer">
-                    View Calendar
+                    {{ __('admin.dashboard.view_calendar') }}
                 </button>
             </div>
 
@@ -290,7 +290,7 @@
                 </svg>
                 <input type="text"
                        x-model="scheduleQuery"
-                       placeholder="Search schedule..."
+                       placeholder="{{ ($isOwner ?? false) ? __('admin.dashboard.search_schedule') : __('admin.dashboard.search_setup_teardown') }}"
                        class="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-white border border-[#E8EFED] text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-brand-400 transition">
             </div>
 
@@ -333,7 +333,7 @@
                                             'bg-purple-500': item.bookingStatus === 'Complete',
                                             'bg-rose-500': item.bookingStatus === 'Cancelled'
                                           }"></span>
-                                    <span x-text="item.bookingStatus"></span>
+                                    <span x-text="tStatus(item.bookingStatus)"></span>
                                 </span>
                             </div>
                         </div>
@@ -344,8 +344,8 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold text-slate-700" x-text="'No events on ' + selectedDatePretty"></p>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Select another date or jump to a scheduled event.</p>
+                            <p class="text-xs font-semibold text-slate-700">{{ __('admin.dashboard.no_events_scheduled') }}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5" x-text="selectedDatePretty"></p>
                         </div>
                     </div>
                 @else
@@ -385,8 +385,8 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold text-slate-700" x-text="'No setup or teardown on ' + selectedDatePretty"></p>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Select a highlighted date to inspect crew jobs.</p>
+                            <p class="text-xs font-semibold text-slate-700">{{ __('admin.dashboard.no_field_jobs_day') }}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5" x-text="selectedDatePretty"></p>
                         </div>
                     </div>
                 @endif
@@ -397,12 +397,12 @@
         <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] flex flex-col">
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">
-                    {{ ($isOwner ?? false) ? 'Upcoming Bookings' : 'Upcoming Field Jobs' }}
+                    {{ ($isOwner ?? false) ? __('admin.dashboard.upcoming_bookings') : __('admin.dashboard.upcoming_field_jobs') }}
                 </h2>
                 <button type="button"
                         @click="$store.nav.setTab('bookings')"
                         class="px-3.5 py-1.5 rounded-full border border-[#E5ECE9] bg-white hover:bg-[#F6F8F7] text-xs font-medium text-slate-600 transition cursor-pointer">
-                    View All
+                    {{ __('admin.dashboard.view_all') }}
                 </button>
             </div>
 
@@ -443,14 +443,14 @@
                                             'bg-blue-500': item.bookingStatus === 'Inquiry',
                                             'bg-purple-500': item.bookingStatus === 'Complete'
                                           }"></span>
-                                    <span x-text="item.bookingStatus"></span>
+                                    <span x-text="tStatus(item.bookingStatus)"></span>
                                 </span>
                             </div>
                         </div>
                     </template>
 
                     <div x-show="upcomingList.length === 0" class="py-12 text-center text-xs text-slate-400">
-                        No bookings available yet.
+                        {{ __('admin.dashboard.no_upcoming_bookings') }}
                     </div>
                 @else
                     <!-- Field Staff: Upcoming Setup & Teardown Queue -->
@@ -485,7 +485,7 @@
                     </template>
 
                     <div x-show="upcomingFieldList.length === 0" class="py-12 text-center text-xs text-slate-400">
-                        No upcoming setup or teardown jobs yet.
+                        {{ __('admin.dashboard.no_upcoming_field') }}
                     </div>
                 @endif
             </div>
@@ -496,11 +496,11 @@
             @if($isOwner ?? false)
                 <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] flex-1 flex flex-col">
                     <div class="flex items-center justify-between gap-2">
-                        <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">Outstanding Invoices</h2>
+                        <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">{{ __('admin.dashboard.outstanding_invoices') }}</h2>
                         <button type="button"
                                 @click="$store.nav.setTab('invoice')"
                                 class="px-3.5 py-1.5 rounded-full border border-[#E5ECE9] bg-white hover:bg-[#F6F8F7] text-xs font-medium text-slate-600 transition">
-                            View All
+                            {{ __('admin.dashboard.view_all') }}
                         </button>
                     </div>
 
@@ -530,7 +530,7 @@
                                     <span :class="inv.invoiceStatus === 'Overdue' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'"
                                           class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0">
                                         <span class="w-1.5 h-1.5 rounded-full" :class="inv.invoiceStatus === 'Overdue' ? 'bg-rose-500' : 'bg-amber-400'"></span>
-                                        <span x-text="inv.invoiceStatus"></span>
+                                        <span x-text="tInvoiceStatus(inv.invoiceStatus)"></span>
                                     </span>
                                 </div>
                             </div>
@@ -538,8 +538,8 @@
 
                         <div x-show="outstandingList.length === 0" class="py-10 text-center space-y-1.5">
                             <span class="inline-flex w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 items-center justify-center">✓</span>
-                            <p class="text-xs font-semibold text-slate-700">All Invoices Paid!</p>
-                            <p class="text-[11px] text-slate-400">No outstanding balance at the moment.</p>
+                            <p class="text-xs font-semibold text-slate-700">{{ __('admin.dashboard.all_invoices_paid') }}</p>
+                            <p class="text-[11px] text-slate-400">{{ __('admin.dashboard.no_outstanding') }}</p>
                         </div>
                     </div>
                 </div>
@@ -556,11 +556,11 @@
                                     <path d="M12 2l1.9 5.3L19.2 9l-5.3 1.9L12 16.2l-1.9-5.3L4.8 9l5.3-1.7L12 2zm6.5 12l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-bold tracking-tight">Business Insight</h3>
+                            <h3 class="text-lg font-bold tracking-tight">{{ __('admin.dashboard.business_insight') }}</h3>
                         </div>
 
                         <p class="text-[13px] text-teal-50/90 leading-relaxed">
-                            <strong class="text-white font-semibold">{{ $metrics['top_package'] }}</strong> is your top-converting wedding package this season.
+                            <strong class="text-white font-semibold">{{ $metrics['top_package'] }}</strong> {{ __('admin.dashboard.insight_text') }}
                         </p>
 
                         <div class="pt-1 flex flex-wrap items-center justify-between gap-3">
@@ -568,13 +568,13 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
-                                <span>{{ $metrics['total_bookings'] }} total bookings</span>
+                                <span>{{ __('admin.dashboard.total_bookings', ['count' => $metrics['total_bookings']]) }}</span>
                             </div>
 
                             <button type="button"
                                     @click="$store.nav.setTab('services')"
                                     class="px-4 py-2 rounded-full bg-white hover:bg-teal-50 text-brand-700 text-xs font-bold transition shadow-sm">
-                                Manage Packages
+                                {{ __('admin.dashboard.manage_packages') }}
                             </button>
                         </div>
                     </div>
@@ -583,11 +583,11 @@
                 <!-- Field Staff: Pending Site Surveys Card -->
                 <div class="bg-white rounded-[28px] p-5 sm:p-6 shadow-card border border-[#EDF2F0] flex-1 flex flex-col">
                     <div class="flex items-center justify-between gap-2">
-                        <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">Pending Site Surveys</h2>
+                        <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">{{ __('admin.dashboard.pending_site_surveys') }}</h2>
                         <button type="button"
                                 @click="$store.nav.setTab('calendar'); calendarMode = 'operations'"
                                 class="px-3.5 py-1.5 rounded-full border border-[#E5ECE9] bg-white hover:bg-[#F6F8F7] text-xs font-medium text-slate-600 transition cursor-pointer">
-                            Survey Calendar
+                            {{ __('admin.dashboard.survey_calendar') }}
                         </button>
                     </div>
 
@@ -598,7 +598,7 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="min-w-0">
                                         <p class="text-[13px] font-bold text-slate-900 truncate" x-text="sv.name"></p>
-                                        <p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate" x-text="(sv.survey_date_formatted || 'Flexible Date') + ' · ' + (sv.survey_time_slot_label || 'Flexible Time')"></p>
+                                        <p class="text-[11px] font-medium text-slate-500 mt-0.5 truncate" x-text="(sv.survey_date_formatted || '-') + ' · ' + (sv.survey_time_slot_label || '')"></p>
                                     </div>
                                     <svg class="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/>
@@ -606,7 +606,7 @@
                                 </div>
                                 <div class="mt-2.5 pt-2 border-t border-[#EBF1EF] flex items-center justify-between gap-2 text-[11px]">
                                     <span class="text-slate-500 truncate" x-text="sv.venue_address"></span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 shrink-0">Scheduled</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 shrink-0">{{ __('admin.dashboard.scheduled_badge') }}</span>
                                 </div>
                             </div>
                         </template>
@@ -615,8 +615,8 @@
                             <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">No Pending Surveys</p>
-                            <p class="text-[11px] text-slate-400">All requested venue surveys are completed.</p>
+                            <p class="text-xs font-semibold text-slate-700">{{ __('admin.dashboard.no_pending_surveys') }}</p>
+                            <p class="text-[11px] text-slate-400">{{ __('admin.dashboard.all_surveys_done') }}</p>
                         </div>
                     </div>
                 </div>
@@ -629,16 +629,16 @@
                             <div class="w-10 h-10 rounded-full bg-white text-brand-600 flex items-center justify-center shadow-sm shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                             </div>
-                            <h3 class="text-lg font-bold tracking-tight">Field Operations</h3>
+                            <h3 class="text-lg font-bold tracking-tight">{{ __('admin.dashboard.field_operations') }}</h3>
                         </div>
                         <p class="text-[13px] text-teal-50/90 leading-relaxed">
-                            Open any booking to record site survey notes, update tent dimensions, add field items, or print crew SPK.
+                            {{ __('admin.dashboard.field_ops_desc') }}
                         </p>
                         <div class="pt-1 flex items-center justify-end">
                             <button type="button"
                                     @click="$store.nav.setTab('calendar')"
                                     class="px-4 py-2 rounded-full bg-white hover:bg-teal-50 text-brand-700 text-xs font-bold transition shadow-sm cursor-pointer">
-                                Open Schedule Calendar
+                                {{ __('admin.dashboard.open_schedule_cal') }}
                             </button>
                         </div>
                     </div>

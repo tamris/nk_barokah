@@ -16,7 +16,7 @@
                                @input="open = query.trim().length > 0"
                                @focus="if (query.trim().length > 0) open = true"
                                @keydown.enter.prevent="submitFirstResult()"
-                               placeholder="Search anything..."
+                               placeholder="{{ __('admin.spotlight.placeholder') }}"
                                class="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium">
                         
                         <!-- Clear Button -->
@@ -56,8 +56,8 @@
                         
                         <!-- Header -->
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100 px-1">
-                            <span class="text-xs font-bold text-slate-800">Search Results</span>
-                            <span class="text-[10px] text-slate-400 font-mono" x-text="(filteredBookings.length + ({{ ($isOwner ?? false) ? 'filteredClients.length' : '0' }})) + ' found'"></span>
+                            <span class="text-xs font-bold text-slate-800">{{ __('admin.spotlight.results') }}</span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-text="(filteredBookings.length + ({{ ($isOwner ?? false) ? 'filteredClients.length' : '0' }})) + ' {{ __('admin.spotlight.found') }}'"></span>
                         </div>
 
                         <!-- Bookings & Invoices Section -->
@@ -65,9 +65,9 @@
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between px-1 pt-1 pb-0.5">
                                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                        Bookings &amp; Orders
+                                        {{ __('admin.spotlight.bookings_section') }}
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredBookings.length + ' items'"></span>
+                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredBookings.length"></span>
                                 </div>
                                 <div class="space-y-1">
                                     <template x-for="b in filteredBookings" :key="b.id">
@@ -118,9 +118,9 @@
                             <div class="space-y-1 pt-1 border-t border-slate-100">
                                 <div class="flex items-center justify-between px-1 pt-1 pb-0.5">
                                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                        Clients &amp; Contacts
+                                        {{ __('admin.spotlight.clients_section') }}
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredClients.length + ' contacts'"></span>
+                                    <span class="text-[10px] text-slate-400 font-medium" x-text="filteredClients.length"></span>
                                 </div>
                                 <div class="space-y-1">
                                     <template x-for="c in filteredClients" :key="c.phone + c.name">
@@ -157,15 +157,15 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs font-bold text-slate-800">No results found</p>
-                                <p class="text-[11px] text-slate-400" x-text="'No bookings match \'' + query + '\''"></p>
+                                <p class="text-xs font-bold text-slate-800">{{ __('admin.spotlight.no_results') }}</p>
+                                <p class="text-[11px] text-slate-400" x-text="'\"' + query + '\"'"></p>
                             </div>
                         </template>
 
                         <!-- Footer -->
                         <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 px-1">
-                            <span>Search by name, invoice, phone, or venue</span>
-                            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[9px]">ESC to close</span>
+                            <span>{{ __('admin.spotlight.tip_navigate') }}</span>
+                            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[9px]">ESC</span>
                         </div>
                     </div>
                 </div>

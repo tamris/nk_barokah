@@ -5,10 +5,28 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('adminDashboard', (config = {}) => ({
         isOwner: config.isOwner !== undefined ? Boolean(config.isOwner) : true,
+        locale: config.locale || 'en',
+        i18n: config.i18n || {},
         allBookings: config.allBookings || [],
         clientsList: config.clientsList || [],
         packagesList: config.packagesList || [],
         addonsList: config.addonsList || [],
+
+        tStatus(key) {
+            return (this.i18n.status && this.i18n.status[key]) || key;
+        },
+        tInvoiceStatus(key) {
+            return (this.i18n.invoice_status && this.i18n.invoice_status[key]) || key;
+        },
+        tClientStatus(key) {
+            return (this.i18n.client_status && this.i18n.client_status[key]) || key;
+        },
+        tSurveyFilter(key) {
+            return (this.i18n.survey_filter && this.i18n.survey_filter[key]) || key;
+        },
+        tCalendarView(key) {
+            return (this.i18n.calendar_views && this.i18n.calendar_views[key]) || key;
+        },
 
         todayIso: config.todayIso || '',
         selectedDateIso: config.todayIso || '',
@@ -52,8 +70,9 @@ document.addEventListener('alpine:init', () => {
         closeDayModal() {
             this.selectedDayModal = null;
         },
-        monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-        monthShort: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+        monthNames: (config.i18n && config.i18n.months) || ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        monthShort: (config.i18n && config.i18n.months_short) || ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+        dayNamesShort: (config.i18n && config.i18n.days_short) || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 
         clientSearch: '',
         clientFilter: 'all',
@@ -330,7 +349,7 @@ document.addEventListener('alpine:init', () => {
 
         get scheduleDaysStrip() {
             const base = this.parseIsoDate(this.selectedDateIso);
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayNames = this.dayNamesShort;
             const list = [];
             // 7 slots (-3..+3) so sliding -1 or +1 reveals the incoming day seamlessly with zero flicker
             for (let i = -3; i <= 3; i++) {
@@ -386,15 +405,18 @@ document.addEventListener('alpine:init', () => {
             const today = this.parseIsoDate(this.todayIso);
             const target = this.parseIsoDate(targetIso);
             const diffDays = Math.round((target - today) / 86400000);
-            if (diffDays === 0) return 'Today';
-            if (diffDays === 1) return 'Tomorrow';
-            if (diffDays > 1) return `In ${diffDays} days`;
-            if (diffDays === -1) return 'Yesterday';
-            return `${Math.abs(diffDays)} days ago`;
+            const isId = this.locale === 'id';
+            if (diffDays === 0) return isId ? 'Hari Ini' : 'Today';
+            if (diffDays === 1) return isId ? 'Besok' : 'Tomorrow';
+            if (diffDays > 1) return isId ? `${diffDays} hari lagi` : `In ${diffDays} days`;
+            if (diffDays === -1) return isId ? 'Kemarin' : 'Yesterday';
+            return isId ? `${Math.abs(diffDays)} hari lalu` : `${Math.abs(diffDays)} days ago`;
         },
 
         buildFieldTasks() {
             const tasks = [];
+            const setupLabel = (this.i18n.ops_badges && this.i18n.ops_badges.setup) || 'Setup';
+            const teardownLabel = (this.i18n.ops_badges && this.i18n.ops_badges.teardown) || 'Teardown';
             for (const b of this.allBookings) {
                 if (b.raw_status === 'rejected') continue;
 
@@ -402,7 +424,7 @@ document.addEventListener('alpine:init', () => {
                     tasks.push({
                         key: `setup-${b.id}`,
                         taskType: 'setup',
-                        taskLabel: 'Setup',
+                        taskLabel: setupLabel,
                         taskDateIso: b.setup_date_iso,
                         taskDateFormatted: b.setup_date_formatted || b.setup_date_iso,
                         relativeLabel: this.formatRelativeFieldDate(b.setup_date_iso),
@@ -414,7 +436,7 @@ document.addEventListener('alpine:init', () => {
                     tasks.push({
                         key: `teardown-${b.id}`,
                         taskType: 'teardown',
-                        taskLabel: 'Teardown',
+                        taskLabel: teardownLabel,
                         taskDateIso: b.teardown_date_iso,
                         taskDateFormatted: b.teardown_date_formatted || b.teardown_date_iso,
                         relativeLabel: this.formatRelativeFieldDate(b.teardown_date_iso),
@@ -620,7 +642,14 @@ document.addEventListener('alpine:init', () => {
             const firstWeekday = new Date(this.calYear, this.calMonth - 1, 1).getDay();
             const daysInMonth = new Date(this.calYear, this.calMonth, 0).getDate();
             const todayIso = this.todayIso;
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const isId = this.locale === 'id';
+            const dayNames = isId
+                ? ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+                : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const setupLbl = (this.i18n.ops_badges && this.i18n.ops_badges.setup) || 'Setup';
+            const teardownLbl = (this.i18n.ops_badges && this.i18n.ops_badges.teardown) || 'Teardown';
+            const surveyLbl = (this.i18n.ops_badges && this.i18n.ops_badges.survey) || 'Site Survey';
+            const surveyDoneLbl = (this.i18n.ops_badges && this.i18n.ops_badges.survey_done) || 'Survey Done';
             const cells = [];
 
             for (let b = 0; b < firstWeekday; b++) {
@@ -653,13 +682,13 @@ document.addEventListener('alpine:init', () => {
                         operations.push({
                             id: b.id + '-setup',
                             type: 'setup',
-                            statusLabel: 'Setup',
+                            statusLabel: setupLbl,
                             badgeClass: 'bg-[#EAF3FF] text-blue-700',
                             badgeDot: 'bg-blue-600',
                             chipClass: 'bg-[#EAF3FF] hover:bg-[#DCEBFF] text-blue-800',
-                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Setup)',
-                            chipSubtitle: 'Setup: ' + b.service + (b.tent_color_theme && b.tent_color_theme !== 'Standard / Natural' ? ' · ' + b.tent_color_theme : ''),
-                            instruction: 'Fleet loading and tent installation at venue.',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (' + setupLbl + ')',
+                            chipSubtitle: setupLbl + ': ' + b.service + (b.tent_color_theme && b.tent_color_theme !== 'Standard / Natural' ? ' · ' + b.tent_color_theme : ''),
+                            instruction: isId ? 'Muat armada dan pemasangan tenda di lokasi acara.' : 'Fleet loading and tent installation at venue.',
                             booking: b
                         });
                     }
@@ -669,13 +698,13 @@ document.addEventListener('alpine:init', () => {
                         operations.push({
                             id: b.id + '-teardown',
                             type: 'teardown',
-                            statusLabel: 'Teardown',
+                            statusLabel: teardownLbl,
                             badgeClass: 'bg-[#FEF3C7] text-amber-800',
                             badgeDot: 'bg-amber-500',
                             chipClass: 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-900',
-                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Teardown)',
-                            chipSubtitle: 'Teardown: ' + b.service,
-                            instruction: 'Tent dismantling and returning equipment to warehouse.',
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (' + teardownLbl + ')',
+                            chipSubtitle: teardownLbl + ': ' + b.service,
+                            instruction: isId ? 'Pembongkaran tenda dan pengembalian alat ke gudang.' : 'Tent dismantling and returning equipment to warehouse.',
                             booking: b
                         });
                     }
@@ -686,13 +715,13 @@ document.addEventListener('alpine:init', () => {
                         operations.push({
                             id: b.id + '-survey',
                             type: 'survey',
-                            statusLabel: isDone ? 'Survey Done' : 'Site Survey',
+                            statusLabel: isDone ? surveyDoneLbl : surveyLbl,
                             badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200',
                             badgeDot: isDone ? 'bg-emerald-500' : 'bg-purple-600',
                             chipClass: isDone ? 'bg-[#ECFDF5] hover:bg-[#D1FAE5] text-emerald-900 border border-emerald-200/80' : 'bg-[#F3E8FF] hover:bg-[#E9D5FF] text-purple-950 border border-purple-200/80',
-                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (Survey)',
-                            chipSubtitle: (b.survey_time_slot_label || 'Survey') + ': ' + b.service,
-                            instruction: 'Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : 'Contact: ' + b.phone),
+                            chipTitle: '#' + b.code + ' · ' + b.shortName + ' (' + (isId ? 'Survei' : 'Survey') + ')',
+                            chipSubtitle: (b.survey_time_slot_label || (isId ? 'Survei' : 'Survey')) + ': ' + b.service,
+                            instruction: (isId ? 'Cek lokasi & pengukuran venue. ' : 'Venue inspection & measurements. ') + (b.survey_notes ? (isId ? 'Catatan: ' : 'Notes: ') + b.survey_notes : (isId ? 'Kontak: ' : 'Contact: ') + b.phone),
                             booking: b
                         });
                     }
@@ -727,6 +756,11 @@ document.addEventListener('alpine:init', () => {
             const monthStart = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-01`;
             const lastDay = new Date(this.calYear, this.calMonth, 0).getDate();
             const monthEnd = `${this.calYear}-${String(this.calMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            const isId = this.locale === 'id';
+            const setupLbl = (this.i18n.ops_badges && this.i18n.ops_badges.setup) || 'Setup';
+            const teardownLbl = (this.i18n.ops_badges && this.i18n.ops_badges.teardown) || 'Teardown';
+            const surveyLbl = (this.i18n.ops_badges && this.i18n.ops_badges.survey) || 'Site Survey';
+            const surveyDoneLbl = (this.i18n.ops_badges && this.i18n.ops_badges.survey_done) || 'Survey Done';
             const ops = [];
 
             this.allBookings.forEach(b => {
@@ -743,10 +777,10 @@ document.addEventListener('alpine:init', () => {
                         day: parseInt(setupDate.split('-')[2], 10),
                         month: parseInt(setupDate.split('-')[1], 10),
                         type: 'setup',
-                        statusLabel: 'Setup',
+                        statusLabel: setupLbl,
                         badgeClass: 'bg-[#EAF3FF] text-blue-700',
                         badgeDot: 'bg-blue-600',
-                        instruction: 'Fleet loading and tent installation at venue.',
+                        instruction: isId ? 'Muat armada dan pemasangan tenda di lokasi acara.' : 'Fleet loading and tent installation at venue.',
                         booking: b
                     });
                 }
@@ -757,10 +791,10 @@ document.addEventListener('alpine:init', () => {
                         day: parseInt(teardownDate.split('-')[2], 10),
                         month: parseInt(teardownDate.split('-')[1], 10),
                         type: 'teardown',
-                        statusLabel: 'Teardown',
+                        statusLabel: teardownLbl,
                         badgeClass: 'bg-[#FEF3C7] text-amber-800',
                         badgeDot: 'bg-amber-500',
-                        instruction: 'Tent dismantling and returning equipment to warehouse.',
+                        instruction: isId ? 'Pembongkaran tenda dan pengembalian alat ke gudang.' : 'Tent dismantling and returning equipment to warehouse.',
                         booking: b
                     });
                 }
@@ -772,10 +806,10 @@ document.addEventListener('alpine:init', () => {
                         day: parseInt(b.survey_date.split('-')[2], 10),
                         month: parseInt(b.survey_date.split('-')[1], 10),
                         type: 'survey',
-                        statusLabel: isDone ? 'Survey Done' : 'Site Survey',
+                        statusLabel: isDone ? surveyDoneLbl : surveyLbl,
                         badgeClass: isDone ? 'bg-[#ECFDF5] text-emerald-800 border border-emerald-200' : 'bg-[#F3E8FF] text-purple-900 border border-purple-200',
                         badgeDot: isDone ? 'bg-emerald-500' : 'bg-purple-600',
-                        instruction: (b.survey_time_slot_label || 'Survey') + ': Venue inspection & measurements. ' + (b.survey_notes ? 'Notes: ' + b.survey_notes : ''),
+                        instruction: (b.survey_time_slot_label || (isId ? 'Survei' : 'Survey')) + (isId ? ': Cek lokasi & pengukuran venue. ' : ': Venue inspection & measurements. ') + (b.survey_notes ? (isId ? 'Catatan: ' : 'Notes: ') + b.survey_notes : ''),
                         booking: b
                     });
                 }

@@ -24,7 +24,7 @@ Route::prefix('booking')->name('booking.')->group(function () {
 // Admin Authentication Routes
 Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -34,6 +34,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', function () {
             return redirect()->route('admin.bookings.index');
         });
+
+        // Per-device display language switcher (Owner + Field Coordinator)
+        Route::post('/locale', [AdminSettingsController::class, 'updateLocale'])->name('locale.update');
 
         // Shared Operational Views & Field Actions (Owner + Field Staff)
         Route::get('/bookings', [BookingManagementController::class, 'index'])->name('bookings.index');

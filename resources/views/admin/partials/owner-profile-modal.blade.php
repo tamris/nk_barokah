@@ -22,11 +22,11 @@
             <!-- Appearance Quick Selector (Accessible for Owner & Field Coordinator) -->
             <div class="pt-3 border-t border-slate-100 space-y-2 text-left">
                 <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Appearance</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('admin.settings.appearance_title') }}</span>
                     <span class="text-[10px] font-medium text-slate-400"
-                          x-text="$store.theme.preference === 'system' ? 'Device (' + ($store.theme.systemDark ? 'Dark' : 'Light') + ')' : ($store.theme.preference === 'dark' ? 'Dark' : 'Light')"></span>
+                          x-text="$store.theme.preference === 'system' ? '{{ __('admin.js.theme.device') }} (' + ($store.theme.systemDark ? '{{ __('admin.js.theme.dark') }}' : '{{ __('admin.js.theme.light') }}') + ')' : ($store.theme.preference === 'dark' ? '{{ __('admin.js.theme.dark') }}' : '{{ __('admin.js.theme.light') }}')"></span>
                 </div>
-                <div role="radiogroup" aria-label="Appearance" class="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-[#F4F7F6] border border-[#E5ECE9]">
+                <div role="radiogroup" aria-label="{{ __('admin.settings.appearance_title') }}" class="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-[#F4F7F6] border border-[#E5ECE9]">
                     <button type="button"
                             role="radio"
                             :aria-checked="$store.theme.preference === 'light'"
@@ -34,7 +34,7 @@
                             :class="$store.theme.preference === 'light' ? 'bg-brand-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                             class="py-1.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        <span>Light</span>
+                        <span>{{ __('admin.settings.theme_light') }}</span>
                     </button>
                     <button type="button"
                             role="radio"
@@ -43,7 +43,7 @@
                             :class="$store.theme.preference === 'dark' ? 'bg-brand-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                             class="py-1.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                        <span>Dark</span>
+                        <span>{{ __('admin.settings.theme_dark') }}</span>
                     </button>
                     <button type="button"
                             role="radio"
@@ -52,8 +52,37 @@
                             :class="$store.theme.preference === 'system' ? 'bg-brand-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                             class="py-1.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        <span>System</span>
+                        <span>{{ __('admin.settings.theme_system') }}</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Language Quick Selector (Accessible for Owner & Field Coordinator) -->
+            @php $currentAdminLocale = app()->getLocale(); @endphp
+            <div class="pt-3 border-t border-slate-100 space-y-2 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ __('admin.settings.language_title') }}</span>
+                    <span class="text-[10px] font-mono font-semibold text-slate-400 uppercase">{{ $currentAdminLocale }}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-[#F4F7F6] border border-[#E5ECE9]">
+                    <form action="{{ route('admin.locale.update') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="locale" value="en">
+                        <button type="submit"
+                                class="w-full py-1.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer {{ $currentAdminLocale === 'en' ? 'bg-brand-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                            <span class="font-mono text-[10px] opacity-85">EN</span>
+                            <span>English</span>
+                        </button>
+                    </form>
+                    <form action="{{ route('admin.locale.update') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="locale" value="id">
+                        <button type="submit"
+                                class="w-full py-1.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer {{ $currentAdminLocale === 'id' ? 'bg-brand-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                            <span class="font-mono text-[10px] opacity-85">ID</span>
+                            <span>Indonesia</span>
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -61,11 +90,11 @@
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="w-full py-2.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition cursor-pointer">
-                        Sign Out
+                        {{ __('admin.nav.sign_out') }}
                     </button>
                 </form>
                 <button type="button" @click="profileModalOpen = false" class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-700 cursor-pointer">
-                    Close
+                    {{ __('admin.nav.close') }}
                 </button>
             </div>
         </div>

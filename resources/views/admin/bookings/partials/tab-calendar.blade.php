@@ -46,7 +46,7 @@
                             @click="goToTodayCalendar()"
                             :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs active:scale-95'"
                             class="lg:hidden px-3 py-1.5 rounded-xl border text-xs font-semibold transition shrink-0">
-                        Today
+                        {{ __('admin.calendar.today') }}
                     </button>
                 </div>
 
@@ -57,7 +57,7 @@
                         <button type="button"
                                 @click="calendarModeOpen = !calendarModeOpen"
                                 class="w-full sm:w-auto inline-flex items-center justify-between gap-2 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs">
-                            <span class="truncate" x-text="calendarMode === 'events' ? 'Event Schedule' : 'Field Operations'"></span>
+                            <span class="truncate" x-text="calendarMode === 'events' ? '{{ __('admin.calendar.event_schedule') }}' : '{{ __('admin.calendar.field_operations') }}'"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div x-show="calendarModeOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
@@ -66,14 +66,14 @@
                                     @click="calendarMode = 'events'; calendarModeOpen = false"
                                     :class="calendarMode === 'events' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
-                                <span>Event Schedule</span>
+                                <span>{{ __('admin.calendar.event_schedule') }}</span>
                                 <span x-show="calendarMode === 'events'" class="text-brand-600 font-bold">✓</span>
                             </button>
                             <button type="button"
                                     @click="calendarMode = 'operations'; calendarModeOpen = false"
                                     :class="calendarMode === 'operations' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
-                                <span>Field Operations</span>
+                                <span>{{ __('admin.calendar.field_operations') }}</span>
                                 <span x-show="calendarMode === 'operations'" class="text-brand-600 font-bold">✓</span>
                             </button>
                             @else
@@ -81,14 +81,14 @@
                                     @click="calendarMode = 'operations'; calendarModeOpen = false"
                                     :class="calendarMode === 'operations' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
-                                <span>Field Operations</span>
+                                <span>{{ __('admin.calendar.field_operations') }}</span>
                                 <span x-show="calendarMode === 'operations'" class="text-brand-600 font-bold">✓</span>
                             </button>
                             <button type="button"
                                     @click="calendarMode = 'events'; calendarModeOpen = false"
                                     :class="calendarMode === 'events' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
-                                <span>Event Schedule</span>
+                                <span>{{ __('admin.calendar.event_schedule') }}</span>
                                 <span x-show="calendarMode === 'events'" class="text-brand-600 font-bold">✓</span>
                             </button>
                             @endif
@@ -100,7 +100,7 @@
                             @click="goToTodayCalendar()"
                             :class="(calYear === currentRealYear && calMonth === currentRealMonth) ? 'bg-[#F4F7F6] text-slate-400 border-[#E5ECE9] cursor-default' : 'bg-white hover:bg-[#F4F7F6] text-slate-700 border-[#E5ECE9] cursor-pointer shadow-2xs active:scale-95'"
                             class="hidden lg:inline-flex px-3 py-2 rounded-xl border text-xs font-semibold transition shrink-0">
-                        Today
+                        {{ __('admin.calendar.today') }}
                     </button>
 
                     <!-- View Switcher Dropdown (Monthly View vs Agenda List) -->
@@ -108,8 +108,8 @@
                         <button type="button"
                                 @click="calendarViewOpen = !calendarViewOpen"
                                 class="w-full sm:w-auto inline-flex items-center justify-between gap-2 bg-white hover:bg-[#FAFDFC] rounded-xl border border-[#E5ECE9] px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs">
-                            <span x-text="calendarView === 'Monthly View' ? 'Monthly' : 'Agenda'" class="sm:hidden"></span>
-                            <span x-text="calendarView" class="hidden sm:inline truncate"></span>
+                            <span x-text="calendarView === 'Monthly View' ? '{{ __('admin.calendar.monthly_short') }}' : '{{ __('admin.calendar.agenda_short') }}'" class="sm:hidden"></span>
+                            <span x-text="tCalendarView(calendarView)" class="hidden sm:inline truncate"></span>
                             <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div x-show="calendarViewOpen" class="absolute right-0 sm:left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
@@ -117,7 +117,7 @@
                                 <button type="button" @click="calendarView = v; calendarViewOpen = false"
                                         :class="calendarView === v ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                         class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between cursor-pointer">
-                                    <span x-text="v"></span>
+                                    <span x-text="tCalendarView(v)"></span>
                                     <span x-show="calendarView === v" class="text-brand-600 font-bold">✓</span>
                                 </button>
                             </template>
@@ -134,21 +134,21 @@
                     @if($isOwner ?? false)
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
-                        Inquiry
+                        {{ __('admin.calendar.legend_inquiry') }}
                     </span>
                     @endif
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
-                        Confirmed
+                        {{ __('admin.calendar.legend_confirmed') }}
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-500 shrink-0"></span>
-                        Complete
+                        {{ __('admin.calendar.legend_complete') }}
                     </span>
                     @if($isOwner ?? false)
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-rose-500 shrink-0"></span>
-                        Cancelled
+                        {{ __('admin.calendar.legend_cancelled') }}
                     </span>
                     @endif
                 </div>
@@ -157,19 +157,19 @@
                      class="grid grid-cols-4 gap-1 py-1.5 px-2 bg-[#F8FAFA] border border-[#EAF0EE] rounded-xl text-[11px] font-medium text-slate-600 lg:bg-transparent lg:border-0 lg:p-0 lg:flex lg:flex-wrap lg:items-center lg:gap-4 lg:text-xs">
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-purple-600 shrink-0"></span>
-                        Site Survey
+                        {{ __('admin.calendar.legend_survey') }}
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-emerald-500 shrink-0"></span>
-                        Survey Done
+                        {{ __('admin.calendar.legend_survey_done') }}
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-blue-600 shrink-0"></span>
-                        Setup
+                        {{ __('admin.calendar.legend_setup') }}
                     </span>
                     <span class="inline-flex items-center justify-center lg:justify-start gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[3px] bg-amber-500 shrink-0"></span>
-                        Teardown
+                        {{ __('admin.calendar.legend_teardown') }}
                     </span>
                 </div>
             </div>
@@ -179,13 +179,9 @@
         <div x-show="calendarView === 'Monthly View'" class="overflow-x-auto">
             <div class="min-w-[780px]">
                 <div class="grid grid-cols-7 border-b border-[#EFF4F2] bg-[#FCFDFD]">
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Sun</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Mon</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Tue</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Wed</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Thu</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Fri</div>
-                    <div class="py-3 text-center text-xs font-semibold text-slate-700">Sat</div>
+                    <template x-for="dName in dayNamesShort" :key="dName">
+                        <div class="py-3 text-center text-xs font-semibold text-slate-700" x-text="dName"></div>
+                    </template>
                 </div>
 
                 <div class="grid grid-cols-7">
@@ -210,7 +206,7 @@
                                                   x-text="cell.day"></span>
                                             <template x-if="cell.isToday">
                                                 <span class="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
-                                                    Today
+                                                    {{ __('admin.calendar.today') }}
                                                 </span>
                                             </template>
                                         </div>
@@ -245,7 +241,7 @@
                                             <button type="button"
                                                     @click.stop="openDayModal(cell)"
                                                     class="w-full py-1 px-2 rounded-lg bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-slate-700 font-bold text-[10px] text-center transition flex items-center justify-center gap-1 border border-[#E2EAE7] cursor-pointer">
-                                                <span x-text="'+ ' + (cell.events.length - 2) + ' more'"></span>
+                                                <span x-text="'+ ' + (cell.events.length - 2) + ' {{ __('admin.calendar.more_items') }}'"></span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </template>
@@ -268,7 +264,7 @@
                                             <button type="button"
                                                     @click.stop="openDayModal(cell)"
                                                     class="w-full py-1 px-2 rounded-lg bg-[#F4F7F6] hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-slate-700 font-bold text-[10px] text-center transition flex items-center justify-center gap-1 border border-[#E2EAE7] cursor-pointer">
-                                                <span x-text="'+ ' + (cell.operations.length - 2) + ' more'"></span>
+                                                <span x-text="'+ ' + (cell.operations.length - 2) + ' {{ __('admin.calendar.more_items') }}'"></span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </template>
@@ -288,18 +284,18 @@
                 <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900 leading-snug">
-                            <span class="sm:hidden" x-text="'Agenda · ' + calHeaderLabel"></span>
-                            <span class="hidden sm:inline" x-text="'Monthly Booking Agenda · ' + calHeaderLabel"></span>
+                            <span class="sm:hidden" x-text="'{{ __('admin.calendar.agenda_short') }} · ' + calHeaderLabel"></span>
+                            <span class="hidden sm:inline" x-text="'{{ __('admin.calendar.monthly_agenda') }} · ' + calHeaderLabel"></span>
                         </h3>
-                        <p class="text-[11px] text-slate-400 sm:hidden">All scheduled bookings</p>
+                        <p class="text-[11px] text-slate-400 sm:hidden">{{ __('admin.calendar.all_scheduled') }}</p>
                     </div>
                     <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
-                          x-text="monthBookings.length + ' Bookings'"></span>
+                          x-text="monthBookings.length + ' {{ __('admin.calendar.bookings_unit') }}'"></span>
                 </div>
 
                 <template x-if="monthBookings.length === 0">
                     <div class="py-12 text-center text-xs text-slate-400">
-                        No bookings scheduled for this month.
+                        {{ __('admin.calendar.no_events_month') }}
                     </div>
                 </template>
 
@@ -321,7 +317,7 @@
                                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                         <span class="text-xs font-bold font-mono text-[#0284C7]" x-text="'#' + ev.code"></span>
                                         <span class="text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="ev.name"></span>
-                                        <span x-show="ev.duration_days > 1" class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' Days'"></span>
+                                        <span x-show="ev.duration_days > 1" class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" x-text="ev.duration_days + ' {{ __('admin.calendar.days_unit') }}'"></span>
                                     </div>
                                     <p class="text-[11.5px] sm:text-xs text-slate-500 truncate mt-0.5" x-text="ev.service + ' · ' + ev.date"></p>
                                 </div>
@@ -333,7 +329,7 @@
                                     <p class="text-xs sm:text-xs font-bold text-slate-900" x-text="ev.grand_total_formatted"></p>
                                     <span class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.2 sm:px-0 sm:py-0 rounded sm:rounded-none inline-block"
                                           :class="ev.remaining_balance <= 0 ? 'text-emerald-700 bg-emerald-50 sm:bg-transparent' : 'text-amber-700 bg-amber-50 sm:bg-transparent'"
-                                          x-text="ev.remaining_balance <= 0 ? 'Paid' : 'Due ' + ev.remaining_formatted"></span>
+                                          x-text="ev.remaining_balance <= 0 ? tInvoiceStatus('Paid') : '{{ __('admin.calendar.due_prefix') }} ' + ev.remaining_formatted"></span>
                                 </div>
 
                                 <div class="flex items-center gap-2">
@@ -344,7 +340,7 @@
                                             'bg-[#FEECEB] text-rose-600': ev.bookingStatus === 'Cancelled'
                                           }"
                                           class="px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
-                                          x-text="ev.bookingStatus"></span>
+                                          x-text="tStatus(ev.bookingStatus)"></span>
                                     <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-600 group-hover:translate-x-0.5 transition hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
@@ -361,18 +357,18 @@
                 <div class="flex items-center justify-between gap-3 pb-3 border-b border-[#EFF4F2]">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900 leading-snug">
-                            <span class="sm:hidden" x-text="'Operations · ' + calHeaderLabel"></span>
-                            <span class="hidden sm:inline" x-text="'Monthly Field Operations · ' + calHeaderLabel"></span>
+                            <span class="sm:hidden" x-text="'{{ __('admin.calendar.field_operations') }} · ' + calHeaderLabel"></span>
+                            <span class="hidden sm:inline" x-text="'{{ __('admin.calendar.monthly_ops') }} · ' + calHeaderLabel"></span>
                         </h3>
-                        <p class="text-[11px] text-slate-400">H-2 tent setup and H+1 teardown logistics schedule</p>
+                        <p class="text-[11px] text-slate-400">{{ __('admin.calendar.ops_subtitle') }}</p>
                     </div>
                     <span class="px-2.5 py-1 rounded-full bg-[#F4F7F6] border border-[#E8EEEB] text-xs font-bold text-slate-700 whitespace-nowrap shrink-0"
-                          x-text="monthOperations.length + ' Tasks'"></span>
+                          x-text="monthOperations.length + ' {{ __('admin.calendar.tasks_unit') }}'"></span>
                 </div>
 
                 <template x-if="monthOperations.length === 0">
                     <div class="py-12 text-center text-xs text-slate-400">
-                        No field operations (setup or teardown) scheduled for this month.
+                        {{ __('admin.calendar.no_ops_month') }}
                     </div>
                 </template>
 
@@ -456,13 +452,13 @@
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight" x-text="selectedDayModal?.dateFull"></h3>
                                     <template x-if="selectedDayModal?.isToday">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Today</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">{{ __('admin.calendar.today') }}</span>
                                     </template>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-0.5"
                                    x-text="calendarMode === 'operations' 
-                                       ? ((selectedDayModal?.operations?.length || 0) + ' Field Operations') 
-                                       : ((selectedDayModal?.events?.length || 0) + ' Scheduled Bookings')"></p>
+                                       ? ((selectedDayModal?.operations?.length || 0) + ' {{ __('admin.calendar.field_ops_unit') }}') 
+                                       : ((selectedDayModal?.events?.length || 0) + ' {{ __('admin.calendar.scheduled_bookings') }}')"></p>
                             </div>
                         </div>
                         <button type="button"
@@ -491,8 +487,8 @@
                                 <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
-                                <p class="text-xs font-semibold text-slate-700">No bookings on this date</p>
-                                <p class="text-[11px] text-slate-400">This date is currently open and ready for new bookings.</p>
+                                <p class="text-xs font-semibold text-slate-700">{{ __('admin.calendar.no_bookings_date') }}</p>
+                                <p class="text-[11px] text-slate-400">{{ __('admin.calendar.date_open_desc') }}</p>
                             </div>
                         </template>
 
@@ -521,7 +517,7 @@
                                                     'bg-blue-500': ev.bookingStatus === 'Inquiry',
                                                     'bg-rose-500': ev.bookingStatus === 'Cancelled'
                                                   }"></span>
-                                            <span x-text="ev.bookingStatus"></span>
+                                            <span x-text="tStatus(ev.bookingStatus)"></span>
                                         </span>
                                     </div>
 
@@ -542,10 +538,10 @@
 
                                     <div class="pt-2.5 border-t border-[#EDF2F0] flex flex-wrap items-center justify-between gap-2.5 text-xs">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-[11px] text-slate-400">Payment:</span>
+                                            <span class="text-[11px] text-slate-400">{{ __('admin.calendar.payment_label') }}</span>
                                             <span class="font-bold text-[11.5px]"
                                                   :class="ev.remaining_balance <= 0 ? 'text-emerald-600' : 'text-amber-600'"
-                                                  x-text="ev.remaining_balance <= 0 ? 'Paid in Full (100%)' : 'Due ' + ev.remaining_formatted"></span>
+                                                  x-text="ev.remaining_balance <= 0 ? '{{ __('admin.calendar.paid_full') }}' : '{{ __('admin.calendar.due_prefix') }} ' + ev.remaining_formatted"></span>
                                         </div>
                                         <div class="flex items-center gap-2 ml-auto">
                                             <template x-if="ev.whatsapp_url">
@@ -558,7 +554,7 @@
                                             <button type="button"
                                                     @click="closeDayModal(); openDetail(ev)"
                                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
-                                                <span>View Details</span>
+                                                <span>{{ __('admin.calendar.view_details') }}</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </div>
@@ -575,8 +571,8 @@
                                 <div class="w-12 h-12 rounded-2xl bg-[#F4F7F6] text-slate-400 mx-auto flex items-center justify-center">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                 </div>
-                                <p class="text-xs font-semibold text-slate-700">No field operations scheduled</p>
-                                <p class="text-[11px] text-slate-400">There are no setup, teardown, or survey tasks on this date.</p>
+                                <p class="text-xs font-semibold text-slate-700">{{ __('admin.calendar.no_ops_date') }}</p>
+                                <p class="text-[11px] text-slate-400">{{ __('admin.calendar.no_ops_date_desc') }}</p>
                             </div>
                         </template>
 
@@ -617,7 +613,7 @@
                                     <!-- Location & Landmark -->
                                     <div class="text-[11px] sm:text-xs text-slate-600 flex items-start gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span class="line-clamp-2" x-text="op.booking.venue_address + (op.booking.address_landmark && op.booking.address_landmark !== '-' ? ' (Landmark: ' + op.booking.address_landmark + ')' : '')"></span>
+                                        <span class="line-clamp-2" x-text="op.booking.venue_address + (op.booking.address_landmark && op.booking.address_landmark !== '-' ? ' ({{ __('admin.calendar.landmark_prefix') }} ' + op.booking.address_landmark + ')' : '')"></span>
                                     </div>
 
                                     <!-- SOP Instruction -->
@@ -628,7 +624,7 @@
 
                                     <!-- Bottom Row: WhatsApp & Detail Buttons -->
                                     <div class="pt-2 border-t border-[#EDF2F0] flex items-center justify-between gap-2 text-xs">
-                                        <span class="text-[11px] text-slate-400 font-medium" x-text="op.booking.duration_days + ' Days Event'"></span>
+                                        <span class="text-[11px] text-slate-400 font-medium" x-text="op.booking.duration_days + ' {{ __('admin.calendar.days_event') }}'"></span>
                                         <div class="flex items-center gap-2 ml-auto">
                                             <template x-if="op.booking.whatsapp_url">
                                                 <a :href="op.booking.whatsapp_url" target="_blank"
@@ -640,7 +636,7 @@
                                             <button type="button"
                                                     @click="closeDayModal(); openDetail(op.booking)"
                                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-xs cursor-pointer">
-                                                <span>View Details</span>
+                                                <span>{{ __('admin.calendar.view_details') }}</span>
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                             </button>
                                         </div>
@@ -652,14 +648,18 @@
 
                     <!-- Footer Modal -->
                     <div class="pt-3 border-t border-[#EFF4F2] flex items-center justify-between gap-3">
+                        @if($isOwner ?? false)
                         <a href="{{ route('booking.create') }}" target="_blank"
                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline">
-                            <span>+ New Booking</span>
+                            <span>+ {{ __('admin.bookings.new_booking') }}</span>
                         </a>
+                        @else
+                        <span></span>
+                        @endif
                         <button type="button"
                                 @click="closeDayModal()"
                                 class="px-5 py-2 rounded-full bg-[#F4F7F6] hover:bg-[#EAEFEA] text-slate-700 text-xs font-semibold transition cursor-pointer">
-                            Close
+                            {{ __('admin.nav.close') }}
                         </button>
                     </div>
                 </div>

@@ -60,14 +60,14 @@
                     <svg class="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.2-5.2m2.2-4.8a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input type="text" x-model="clientSearch" placeholder="Search Clients..."
+                    <input type="text" x-model="clientSearch" placeholder="{{ __('admin.clients.search_placeholder') }}"
                            class="w-full bg-transparent pl-10 pr-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none">
                 </div>
 
                 <div class="relative" @click.away="clientMenuOpen = false">
                     <button type="button" @click="clientMenuOpen = !clientMenuOpen"
                             class="inline-flex items-center justify-between gap-4 bg-white hover:bg-[#FAFDFC] rounded-full border border-[#E7EEEC] px-4 py-2.5 text-xs font-medium text-slate-700 transition min-w-[148px]">
-                        <span x-text="clientFilter === 'all' ? 'All Clients' : clientFilter"></span>
+                        <span x-text="clientFilter === 'all' ? '{{ __('admin.clients.all_status') }}' : tClientStatus(clientFilter)"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="clientMenuOpen" class="absolute left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-[#EAF0EE] py-1.5 z-30" x-cloak>
@@ -75,7 +75,7 @@
                             <button type="button" @click="clientFilter = st; clientMenuOpen = false"
                                     :class="clientFilter === st ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between">
-                                <span x-text="st === 'all' ? 'All Clients' : st"></span>
+                                <span x-text="st === 'all' ? '{{ __('admin.clients.all_status') }}' : tClientStatus(st)"></span>
                                 <span x-show="clientFilter === st" class="text-brand-600">✓</span>
                             </button>
                         </template>
@@ -85,7 +85,7 @@
 
             <a href="{{ route('booking.create') }}" target="_blank"
                class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
-                <span>Add Client</span>
+                <span>{{ __('admin.bookings.new_booking') }}</span>
             </a>
         </div>
 
@@ -94,12 +94,12 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="text-xs font-semibold text-slate-600 border-b border-[#EFF4F2]">
-                            <th class="py-4 px-6">Client</th>
-                            <th class="py-4 px-5">Contact</th>
-                            <th class="py-4 px-5">Latest Package</th>
-                            <th class="py-4 px-5">Bookings</th>
-                            <th class="py-4 px-5">Total Spent</th>
-                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6">{{ __('admin.clients.col_client') }}</th>
+                            <th class="py-4 px-5">{{ __('admin.clients.col_contact') }}</th>
+                            <th class="py-4 px-5">{{ __('admin.clients.col_last_package') }}</th>
+                            <th class="py-4 px-5">{{ __('admin.clients.col_bookings') }}</th>
+                            <th class="py-4 px-5">{{ __('admin.clients.col_total_spent') }}</th>
+                            <th class="py-4 px-6">{{ __('admin.clients.col_status') }}</th>
                         </tr>
                     </thead>
                     <!-- Shimmer Rows during Pagination -->

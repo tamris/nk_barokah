@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-[#F6F8F7]">
+<html lang="{{ app()->getLocale() }}" class="h-full bg-[#F6F8F7]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -317,17 +317,17 @@
                 @php
                     $navItems = $isOwner
                         ? [
-                            ['key' => 'dashboard', 'label' => 'Dashboard'],
-                            ['key' => 'bookings',  'label' => 'Bookings'],
-                            ['key' => 'calendar',  'label' => 'Calendar'],
-                            ['key' => 'clients',   'label' => 'Clients'],
-                            ['key' => 'services',  'label' => 'Services'],
-                            ['key' => 'invoice',   'label' => 'Invoice'],
+                            ['key' => 'dashboard', 'label' => __('admin.nav.dashboard')],
+                            ['key' => 'bookings',  'label' => __('admin.nav.bookings')],
+                            ['key' => 'calendar',  'label' => __('admin.nav.calendar')],
+                            ['key' => 'clients',   'label' => __('admin.nav.clients')],
+                            ['key' => 'services',  'label' => __('admin.nav.services')],
+                            ['key' => 'invoice',   'label' => __('admin.nav.invoice')],
                         ]
                         : [
-                            ['key' => 'dashboard', 'label' => 'Dashboard'],
-                            ['key' => 'bookings',  'label' => 'Bookings'],
-                            ['key' => 'calendar',  'label' => 'Calendar'],
+                            ['key' => 'dashboard', 'label' => __('admin.nav.dashboard')],
+                            ['key' => 'bookings',  'label' => __('admin.nav.bookings')],
+                            ['key' => 'calendar',  'label' => __('admin.nav.calendar')],
                         ];
                 @endphp
 
@@ -360,7 +360,7 @@
                     @if($isDashboardPage)
                         <button type="button"
                                 @click="$store.nav.setTab('settings')"
-                                title="Settings & Configuration"
+                                title="{{ __('admin.nav.settings_tooltip') }}"
                                 :class="$store.nav.tab === 'settings'
                                     ? 'bg-brand-600 text-white shadow-pill font-semibold'
                                     : 'bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700'"
@@ -387,7 +387,7 @@
                 <!-- Avatar Owner -->
                 <button type="button"
                         @click="profileModalOpen = true"
-                        title="Owner Profile"
+                        title="{{ __('admin.nav.profile_tooltip') }}"
                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center ring-2 ring-brand-100 hover:ring-brand-200 transition overflow-hidden shrink-0">
                     <img src="https://ui-avatars.com/api/?name={{ urlencode($ownerName) }}&background=045D56&color=ffffff&bold=true&size=80"
                          alt="{{ $ownerName }}"

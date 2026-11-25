@@ -19,22 +19,22 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2.5 flex-wrap">
-                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Settings & Business Rules</h1>
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{{ __('admin.settings.title') }}</h1>
                     </div>
                 </div>
             </div>
 
             <a href="{{ route('booking.create') }}" target="_blank"
                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F6F8F7] hover:bg-[#EAF0EE] text-slate-700 text-xs font-semibold transition border border-[#E3ECE9] shrink-0">
-                <span>Open Client Form</span>
+                <span>{{ __('admin.settings.open_client_form') }}</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- APPEARANCE & THEME PREFERENCE (Col Span 12) -->
-            <div class="lg:col-span-12 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+            <!-- APPEARANCE & THEME PREFERENCE (Col Span 7) -->
+            <div class="lg:col-span-7 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#F0F4F2]">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-100 shrink-0">
@@ -43,20 +43,20 @@
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-900">Appearance</h2>
-                            <p class="text-xs text-slate-400">Choose how the admin workspace looks on this device. Applied immediately.</p>
+                            <h2 class="text-base font-bold text-slate-900">{{ __('admin.settings.appearance_title') }}</h2>
+                            <p class="text-xs text-slate-400">{{ __('admin.settings.appearance_desc') }}</p>
                         </div>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1 rounded-full text-[11px] font-semibold bg-[#F6F8F7] border border-[#E5ECE9] text-slate-600">
+                    <span class="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1 rounded-full text-[11px] font-semibold bg-[#F6F8F7] border border-[#E5ECE9] text-slate-600 shrink-0">
                         <span class="w-2 h-2 rounded-full"
                               :class="$store.theme.resolved === 'dark' ? 'bg-teal-400' : 'bg-amber-400'"></span>
                         <span x-text="$store.theme.preference === 'system'
-                            ? 'System (' + ($store.theme.systemDark ? 'Dark' : 'Light') + ')'
-                            : ($store.theme.preference === 'dark' ? 'Dark Mode' : 'Light Mode')"></span>
+                            ? '{{ __('admin.js.theme.system') }} (' + ($store.theme.systemDark ? '{{ __('admin.js.theme.dark') }}' : '{{ __('admin.js.theme.light') }}') + ')'
+                            : ($store.theme.preference === 'dark' ? '{{ __('admin.js.theme.dark_mode') }}' : '{{ __('admin.js.theme.light_mode') }}')"></span>
                     </span>
                 </div>
 
-                <div role="radiogroup" aria-label="Interface Appearance" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div role="radiogroup" aria-label="{{ __('admin.settings.appearance_title') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                     <!-- Option 1: Light -->
                     <button type="button"
                             role="radio"
@@ -65,37 +65,30 @@
                             :class="$store.theme.preference === 'light'
                                 ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
                                 : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
-                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                            class="group relative text-left rounded-2xl border p-3.5 transition-all cursor-pointer space-y-3 focus:outline-none">
                         <!-- Mini Light UI Wireframe -->
-                        <div class="h-16 rounded-xl border border-[#DCE5E2] overflow-hidden p-2.5 flex flex-col justify-between" style="background-color: #F6F8F7;">
+                        <div class="h-14 rounded-xl border border-[#DCE5E2] overflow-hidden p-2 flex flex-col justify-between" style="background-color: #F6F8F7;">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="w-3 h-3 rounded-full" style="background-color: #045D56;"></span>
-                                    <span class="w-10 h-2 rounded-full" style="background-color: #CBD5E1;"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #045D56;"></span>
+                                    <span class="w-8 h-1.5 rounded-full" style="background-color: #CBD5E1;"></span>
                                 </div>
-                                <span class="w-4 h-2 rounded-full" style="background-color: #E2E8F0;"></span>
+                                <span class="w-3.5 h-1.5 rounded-full" style="background-color: #E2E8F0;"></span>
                             </div>
                             <div class="grid grid-cols-3 gap-1.5">
-                                <div class="h-6 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
-                                <div class="h-6 rounded-md border col-span-2" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                                <div class="h-5 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                                <div class="h-5 rounded-md border col-span-2" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
                             </div>
                         </div>
 
                         <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-start gap-2.5 min-w-0">
-                                <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                </span>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-bold text-slate-900">Light</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Bright, crisp daytime workspace</p>
-                                </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-900">{{ __('admin.settings.theme_light') }}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">{{ __('admin.settings.theme_light_desc') }}</p>
                             </div>
-                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition mt-0.5"
                                   :class="$store.theme.preference === 'light' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </span>
                         </div>
                     </button>
@@ -108,37 +101,30 @@
                             :class="$store.theme.preference === 'dark'
                                 ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
                                 : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
-                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                            class="group relative text-left rounded-2xl border p-3.5 transition-all cursor-pointer space-y-3 focus:outline-none">
                         <!-- Mini Dark UI Wireframe -->
-                        <div class="h-16 rounded-xl border overflow-hidden p-2.5 flex flex-col justify-between" style="background-color: #0D0E10; border-color: #26292E;">
+                        <div class="h-14 rounded-xl border overflow-hidden p-2 flex flex-col justify-between" style="background-color: #0D0E10; border-color: #26292E;">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="w-3 h-3 rounded-full" style="background-color: #168579;"></span>
-                                    <span class="w-10 h-2 rounded-full" style="background-color: #32363D;"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: #168579;"></span>
+                                    <span class="w-8 h-1.5 rounded-full" style="background-color: #32363D;"></span>
                                 </div>
-                                <span class="w-4 h-2 rounded-full" style="background-color: #22262A;"></span>
+                                <span class="w-3.5 h-1.5 rounded-full" style="background-color: #22262A;"></span>
                             </div>
                             <div class="grid grid-cols-3 gap-1.5">
-                                <div class="h-6 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
-                                <div class="h-6 rounded-md border col-span-2" style="background-color: #151719; border-color: #26292E;"></div>
+                                <div class="h-5 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
+                                <div class="h-5 rounded-md border col-span-2" style="background-color: #151719; border-color: #26292E;"></div>
                             </div>
                         </div>
 
                         <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-start gap-2.5 min-w-0">
-                                <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                                    </svg>
-                                </span>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-bold text-slate-900">Dark</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Low-glare night &amp; field workspace</p>
-                                </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-900">{{ __('admin.settings.theme_dark') }}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">{{ __('admin.settings.theme_dark_desc') }}</p>
                             </div>
-                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition mt-0.5"
                                   :class="$store.theme.preference === 'dark' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </span>
                         </div>
                     </button>
@@ -151,38 +137,98 @@
                             :class="$store.theme.preference === 'system'
                                 ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
                                 : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
-                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                            class="group relative text-left rounded-2xl border p-3.5 transition-all cursor-pointer space-y-3 focus:outline-none">
                         <!-- Mini Split System UI Wireframe -->
-                        <div class="h-16 rounded-xl border border-[#DCE5E2] overflow-hidden grid grid-cols-2">
+                        <div class="h-14 rounded-xl border border-[#DCE5E2] overflow-hidden grid grid-cols-2">
                             <div class="p-2 flex flex-col justify-between" style="background-color: #F6F8F7;">
-                                <span class="w-6 h-2 rounded-full" style="background-color: #CBD5E1;"></span>
-                                <div class="h-6 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                                <span class="w-5 h-1.5 rounded-full" style="background-color: #CBD5E1;"></span>
+                                <div class="h-5 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
                             </div>
                             <div class="p-2 flex flex-col justify-between" style="background-color: #0D0E10;">
-                                <span class="w-6 h-2 rounded-full ml-auto" style="background-color: #32363D;"></span>
-                                <div class="h-6 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
+                                <span class="w-5 h-1.5 rounded-full ml-auto" style="background-color: #32363D;"></span>
+                                <div class="h-5 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
                             </div>
                         </div>
 
                         <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-start gap-2.5 min-w-0">
-                                <span class="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                    </svg>
-                                </span>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-bold text-slate-900">System</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5"
-                                       x-text="'Follows device (Currently ' + ($store.theme.systemDark ? 'Dark' : 'Light') + ')'"></p>
-                                </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-900">{{ __('admin.settings.theme_system') }}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug"
+                                   x-text="'{{ __('admin.js.theme.follows', ['mode' => '__MODE__']) }}'.replace('__MODE__', $store.theme.systemDark ? '{{ __('admin.js.theme.dark') }}' : '{{ __('admin.js.theme.light') }}')"></p>
                             </div>
-                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition mt-0.5"
                                   :class="$store.theme.preference === 'system' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </span>
                         </div>
                     </button>
+                </div>
+            </div>
+
+            <!-- LANGUAGE PREFERENCE (Col Span 5) -->
+            @php $activeLocale = app()->getLocale(); @endphp
+            <div class="lg:col-span-5 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5 h-full flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between gap-3 pb-4 border-b border-[#F0F4F2]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900">{{ __('admin.settings.language_title') }}</h2>
+                                <p class="text-xs text-slate-400">{{ __('admin.settings.language_desc') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Option: English (Default) -->
+                        <form action="{{ route('admin.locale.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="locale" value="en">
+                            <button type="submit"
+                                    class="w-full text-left rounded-2xl border p-4 transition-all cursor-pointer flex items-center justify-between gap-3 {{ $activeLocale === 'en' ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40' : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300' }}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-10 h-10 rounded-xl bg-white border border-[#E5ECE9] flex items-center justify-center font-mono text-xs font-extrabold text-brand-700 shrink-0 shadow-2xs">
+                                        EN
+                                    </span>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-xs font-bold text-slate-900">{{ __('admin.settings.lang_en') }}</p>
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F6F8F7] border border-[#E5ECE9] text-slate-500">{{ __('admin.settings.default_badge') }}</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ __('admin.settings.lang_en_desc') }}</p>
+                                    </div>
+                                </div>
+                                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition {{ $activeLocale === 'en' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent' }}">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                            </button>
+                        </form>
+
+                        <!-- Option: Bahasa Indonesia -->
+                        <form action="{{ route('admin.locale.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="locale" value="id">
+                            <button type="submit"
+                                    class="w-full text-left rounded-2xl border p-4 transition-all cursor-pointer flex items-center justify-between gap-3 {{ $activeLocale === 'id' ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40' : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300' }}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-10 h-10 rounded-xl bg-white border border-[#E5ECE9] flex items-center justify-center font-mono text-xs font-extrabold text-brand-700 shrink-0 shadow-2xs">
+                                        ID
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-slate-900">{{ __('admin.settings.lang_id') }}</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ __('admin.settings.lang_id_desc') }}</p>
+                                    </div>
+                                </div>
+                                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition {{ $activeLocale === 'id' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent' }}">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -194,8 +240,8 @@
                             ⚖
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-900">Operational Rules & Event Policies</h2>
-                            <p class="text-xs text-slate-400">Parameters directly affecting price calculation, quotas, and client calendar.</p>
+                            <h2 class="text-base font-bold text-slate-900">{{ __('admin.settings.rules_title') }}</h2>
+                            <p class="text-xs text-slate-400">{{ __('admin.settings.rules_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -387,7 +433,7 @@
                         <button type="submit"
                                 class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Policy Changes</span>
+                            <span>{{ __('admin.settings.save_policy') }}</span>
                         </button>
                     </div>
                 </form>
@@ -401,8 +447,8 @@
                             💳
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-900">Official Payment Bank Accounts</h2>
-                            <p class="text-xs text-slate-400">Displayed automatically on client forms, invoices, and payment receipts.</p>
+                            <h2 class="text-base font-bold text-slate-900">{{ __('admin.settings.banks_title') }}</h2>
+                            <p class="text-xs text-slate-400">{{ __('admin.settings.banks_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -458,7 +504,7 @@
                         <button type="submit"
                                 class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Bank Accounts</span>
+                            <span>{{ __('admin.settings.save_banks') }}</span>
                         </button>
                     </div>
                 </form>
@@ -472,11 +518,11 @@
                             G
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-900">Google Cloud Integration (Sheets & Calendar)</h2>
-                            <p class="text-xs text-slate-400">Configure spreadsheet and calendar identifiers for live automatic data synchronization.</p>
+                            <h2 class="text-base font-bold text-slate-900">{{ __('admin.settings.google_title') }}</h2>
+                            <p class="text-xs text-slate-400">{{ __('admin.settings.google_desc') }}</p>
                         </div>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">Connected</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">{{ __('admin.settings.connected') }}</span>
                 </div>
 
                 <form action="{{ route('admin.settings.update_google') }}" method="POST" class="space-y-5">
@@ -521,7 +567,7 @@
                         <button type="submit"
                                 class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-pill cursor-pointer shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Google IDs</span>
+                            <span>{{ __('admin.settings.save_google') }}</span>
                         </button>
                     </div>
                 </form>
@@ -529,9 +575,9 @@
                 <!-- Box Sinkronisasi Ulang Semua Data -->
                 <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-50/50 to-brand-100/30 border border-brand-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="space-y-0.5">
-                        <h3 class="text-sm font-bold text-slate-900">Resynchronize Database to Google Cloud</h3>
+                        <h3 class="text-sm font-bold text-slate-900">{{ __('admin.settings.resync_title') }}</h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Push or refresh all local database booking records directly to Google Sheets and Google Calendar.
+                            {{ __('admin.settings.resync_desc') }}
                         </p>
                     </div>
 
@@ -540,7 +586,7 @@
                         <button type="submit"
                                 class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-brand-200 text-brand-700 hover:text-brand-800 text-xs font-bold transition shadow-2xs cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            <span>Sync All Records Now</span>
+                            <span>{{ __('admin.settings.sync_now') }}</span>
                         </button>
                     </form>
                 </div>
@@ -556,9 +602,9 @@
                             <div class="space-y-0.5">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                    <h2 class="text-base font-bold text-slate-900 tracking-tight">Owner PIN Access (6 Digits)</h2>
+                                    <h2 class="text-base font-bold text-slate-900 tracking-tight">{{ __('admin.settings.owner_pin_title') }}</h2>
                                 </div>
-                                <p class="text-xs text-slate-400">Full administrative access to financials, approvals, and settings.</p>
+                                <p class="text-xs text-slate-400">{{ __('admin.settings.owner_pin_desc') }}</p>
                             </div>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">Owner</span>
                         </div>
@@ -584,7 +630,7 @@
                                 <button type="submit"
                                         class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                                    <span>Update Owner PIN</span>
+                                    <span>{{ __('admin.settings.update_owner_pin') }}</span>
                                 </button>
                             </div>
                         </form>
@@ -602,9 +648,9 @@
                         <div class="space-y-0.5">
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full" :class="staffEnabled ? 'bg-teal-500' : 'bg-slate-300'"></span>
-                                <h2 class="text-base font-bold text-slate-900 tracking-tight">Field Coordinator Access</h2>
+                                <h2 class="text-base font-bold text-slate-900 tracking-tight">{{ __('admin.settings.staff_access_title') }}</h2>
                             </div>
-                            <p class="text-xs text-slate-400">Shared field account for calendar, survey notes, crew SPK, and adding items.</p>
+                            <p class="text-xs text-slate-400">{{ __('admin.settings.staff_access_desc') }}</p>
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
                               :class="staffEnabled ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
@@ -657,7 +703,7 @@
                             <button type="submit"
                                     class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
-                                <span>Save Staff Access</span>
+                                <span>{{ __('admin.settings.save_staff_access') }}</span>
                             </button>
                         </div>
                     </form>

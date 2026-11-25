@@ -1,18 +1,22 @@
 @extends('admin.layout')
 
-@section('title', 'Dashboard')
+@section('title', __('admin.meta.dashboard_title'))
 
 @section('content')
 @php
     $isOwner = Auth::user()?->isOwner() ?? false;
     $ownerName = Auth::user()->name ?? 'Owner NK Barokah';
     $hour = now()->hour;
-    $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
+    $greeting = $hour < 12
+        ? __('admin.greetings.morning')
+        : ($hour < 17 ? __('admin.greetings.afternoon') : __('admin.greetings.evening'));
 @endphp
 
 <script>
     window.__ADMIN_DASHBOARD_CONFIG__ = @js([
         'isOwner' => $isOwner,
+        'locale' => app()->getLocale(),
+        'i18n' => trans('admin.js'),
         'allBookings' => $bookingsPayload,
         'clientsList' => $clientsPayload,
         'packagesList' => $isOwner ? $packagesPayload : [],

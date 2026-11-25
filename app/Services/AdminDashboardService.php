@@ -14,7 +14,7 @@ class AdminDashboardService
 {
     public function getDashboardData(bool $isOwner = true): array
     {
-        Carbon::setLocale('en');
+        Carbon::setLocale(app()->getLocale());
 
         $bookingsQuery = Booking::with(['package', 'addons'])
             ->orderByDesc('created_at');
@@ -58,17 +58,17 @@ class AdminDashboardService
             $durationDays = max(1, (int) ($b->duration_days ?: ($eventDate->diffInDays($eventEndDate) + 1)));
 
             if ($durationDays > 1 && !$eventDate->isSameDay($eventEndDate)) {
-                $dateFormatted = $eventDate->format('D, M d, Y') . ' – ' . $eventEndDate->format('D, M d, Y');
+                $dateFormatted = $eventDate->isoFormat('ddd, D MMM Y') . ' – ' . $eventEndDate->isoFormat('ddd, D MMM Y');
                 if ($eventDate->year !== $eventEndDate->year) {
-                    $dateShortFormatted = $eventDate->format('j M Y') . ' - ' . $eventEndDate->format('j M Y');
+                    $dateShortFormatted = $eventDate->isoFormat('D MMM Y') . ' - ' . $eventEndDate->isoFormat('D MMM Y');
                 } elseif ($eventDate->month === $eventEndDate->month) {
-                    $dateShortFormatted = $eventDate->format('j') . ' - ' . $eventEndDate->format('j M Y');
+                    $dateShortFormatted = $eventDate->isoFormat('D') . ' - ' . $eventEndDate->isoFormat('D MMM Y');
                 } else {
-                    $dateShortFormatted = $eventDate->format('j M') . ' - ' . $eventEndDate->format('j M Y');
+                    $dateShortFormatted = $eventDate->isoFormat('D MMM') . ' - ' . $eventEndDate->isoFormat('D MMM Y');
                 }
             } else {
-                $dateFormatted = $eventDate->format('l, M d, Y');
-                $dateShortFormatted = $eventDate->format('M d, Y');
+                $dateFormatted = $eventDate->isoFormat('dddd, D MMM Y');
+                $dateShortFormatted = $eventDate->isoFormat('D MMM Y');
             }
 
             $bookingStatusMap = [
@@ -147,10 +147,14 @@ class AdminDashboardService
                 'date'                               => $dateFormatted,
                 'date_short'                         => $dateShortFormatted,
                 'formatted_event_date'               => $b->formatted_event_date,
-                'time'                               => $b->created_at->format('h:i A'),
+                'time'                               => app()->getLocale() === 'id' ? $b->created_at->format('H:i') : $b->created_at->format('h:i A'),
                 'relative_date'                      => $relativeDate,
-                'created_at_label'                   => $b->created_at->format('M d, Y · h:i A'),
-                'updated_at_label'                   => $b->updated_at->format('M d, Y · h:i A'),
+                'created_at_label'                   => app()->getLocale() === 'id'
+                    ? $b->created_at->isoFormat('D MMM Y · HH:mm')
+                    : $b->created_at->isoFormat('MMM D, Y · h:mm A'),
+                'updated_at_label'                   => app()->getLocale() === 'id'
+                    ? $b->updated_at->isoFormat('D MMM Y · HH:mm')
+                    : $b->updated_at->isoFormat('MMM D, Y · h:mm A'),
                 'payment_proof_url'                  => $b->payment_proof_path ? asset('storage/' . $b->payment_proof_path) : null,
                 'is_proof_pdf'                       => $isPdf,
                 'synced_to_sheets'                   => (bool) $b->synced_to_sheets,
@@ -182,13 +186,13 @@ class AdminDashboardService
                 'maps_route_url'                     => 'https://www.google.com/maps/dir/?api=1&origin=' . urlencode($warehouseAddress) . '&destination=' . urlencode($b->venue_address ?? ''),
                 'survey_requested'                   => (bool) $b->survey_requested,
                 'survey_date'                        => $b->survey_date ? $b->survey_date->format('Y-m-d') : null,
-                'survey_date_formatted'              => $b->survey_date ? $b->survey_date->format('D, M d, Y') : null,
+                'survey_date_formatted'              => $b->survey_date ? $b->survey_date->isoFormat('ddd, D MMM Y') : null,
                 'survey_time_slot'                   => $b->survey_time_slot,
                 'survey_time_slot_label'             => match ($b->survey_time_slot) {
-                    'morning'   => 'Morning (09:00 - 12:00)',
-                    'afternoon' => 'Afternoon (13:00 - 17:00)',
-                    'flexible'  => 'Flexible Time',
-                    default     => $b->survey_time_slot ?: 'Flexible',
+                    'morning'   => __('admin.survey_slots.morning'),
+                    'afternoon' => __('admin.survey_slots.afternoon'),
+                    'flexible'  => __('admin.survey_slots.flexible'),
+                    default     => $b->survey_time_slot ?: __('admin.survey_slots.flexible'),
                 },
                 'survey_notes'                       => $b->survey_notes,
                 'survey_status'                      => $b->survey_status ?? 'none',
@@ -204,7 +208,7 @@ class AdminDashboardService
                 'setup_date_iso'                     => $b->effective_setup_date->format('Y-m-d'),
                 'setup_date_formatted'               => $b->formatted_setup_date,
                 'teardown_date_iso'                  => $eventEndDate->copy()->addDay()->format('Y-m-d'),
-                'teardown_date_formatted'            => $eventEndDate->copy()->addDay()->format('D, M d, Y'),
+                'teardown_date_formatted'            => $eventEndDate->copy()->addDay()->isoFormat('ddd, D MMM Y'),
                 'is_custom_setup_date'               => !empty($b->setup_date),
                 'spk_url'                            => route('admin.bookings.spk', $b->id),
                 'operations_url'                     => route('admin.bookings.operations', $b->id),
@@ -220,48 +224,60 @@ class AdminDashboardService
         $daysDiff = (int) $todayStart->diffInDays($eventStart, false);
 
         if ($eventDate->isToday()) {
-            return 'Today';
+            return __('admin.relative_date.today');
         }
         if ($eventEndDate && $today->between($eventStart, $eventEndDate->copy()->endOfDay())) {
-            return 'Ongoing';
+            return __('admin.relative_date.ongoing');
         }
         if ($daysDiff === 1) {
-            return '1 day from now';
+            return __('admin.relative_date.day_from_now');
         }
 
         if ($daysDiff > 1) {
             if ($daysDiff < 14) {
-                return "{$daysDiff} days from now";
+                return __('admin.relative_date.days_from', ['count' => $daysDiff]);
             }
             if ($daysDiff < 30) {
                 $weeks = (int) round($daysDiff / 7);
-                return "{$weeks} " . ($weeks === 1 ? 'week' : 'weeks') . ' from now';
+                return $weeks === 1
+                    ? __('admin.relative_date.week_from')
+                    : __('admin.relative_date.weeks_from', ['count' => $weeks]);
             }
             $months = (int) round($daysDiff / 30.416);
             if ($months < 12) {
-                return "{$months} " . ($months === 1 ? 'month' : 'months') . ' from now';
+                return $months === 1
+                    ? __('admin.relative_date.month_from')
+                    : __('admin.relative_date.months_from', ['count' => $months]);
             }
             $years = (int) round($daysDiff / 365);
-            return "{$years} " . ($years === 1 ? 'year' : 'years') . ' from now';
+            return $years === 1
+                ? __('admin.relative_date.year_from')
+                : __('admin.relative_date.years_from', ['count' => $years]);
         }
 
         $pastDays = abs($daysDiff);
         if ($pastDays === 1) {
-            return '1 day ago';
+            return __('admin.relative_date.day_ago');
         }
         if ($pastDays < 14) {
-            return "{$pastDays} days ago";
+            return __('admin.relative_date.days_ago', ['count' => $pastDays]);
         }
         if ($pastDays < 30) {
             $weeks = (int) round($pastDays / 7);
-            return "{$weeks} " . ($weeks === 1 ? 'week' : 'weeks') . ' ago';
+            return $weeks === 1
+                ? __('admin.relative_date.week_ago')
+                : __('admin.relative_date.weeks_ago', ['count' => $weeks]);
         }
         $months = (int) round($pastDays / 30.416);
         if ($months < 12) {
-            return "{$months} " . ($months === 1 ? 'month' : 'months') . ' ago';
+            return $months === 1
+                ? __('admin.relative_date.month_ago')
+                : __('admin.relative_date.months_ago', ['count' => $months]);
         }
         $years = (int) round($pastDays / 365);
-        return "{$years} " . ($years === 1 ? 'year' : 'years') . ' ago';
+        return $years === 1
+            ? __('admin.relative_date.year_ago')
+            : __('admin.relative_date.years_ago', ['count' => $years]);
     }
 
     private function formatClients(Collection $allBookings): Collection

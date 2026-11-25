@@ -356,7 +356,7 @@ class AdminBookingTest extends TestCase
         // 1. Assert settings elements are present in the admin bookings page
         $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
         $response->assertStatus(200);
-        $response->assertSee('Operational Rules & Event Policies', false);
+        $response->assertSee('Operational Rules & Event Policies');
         $response->assertSee('Standard Package Duration');
         $response->assertSee('Extra Day Charge Rate');
         $response->assertSee('Official Payment Bank Accounts');

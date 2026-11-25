@@ -65,7 +65,7 @@
                     </svg>
                     <input type="text"
                            x-model="bookingSearch"
-                           placeholder="Search Bookings..."
+                           placeholder="{{ __('admin.bookings.search_placeholder') }}"
                            class="w-full bg-transparent pl-10 pr-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none">
                 </div>
 
@@ -77,7 +77,7 @@
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4"/>
                             </svg>
-                            <span x-text="bookingFilter === 'all' ? '{{ ($isOwner ?? false) ? 'All Status' : 'All Surveys' }}' : bookingFilter"></span>
+                            <span x-text="bookingFilter === 'all' ? '{{ ($isOwner ?? false) ? __('admin.bookings.all_status') : __('admin.bookings.all_surveys') }}' : ({{ ($isOwner ?? false) ? 'tStatus(bookingFilter)' : 'tSurveyFilter(bookingFilter)' }})"></span>
                         </span>
                         <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="statusMenuOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
@@ -92,7 +92,7 @@
                                     @click="bookingFilter = st; statusMenuOpen = false"
                                     :class="bookingFilter === st ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                     class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between">
-                                <span x-text="st === 'all' ? '{{ ($isOwner ?? false) ? 'All Status' : 'All Surveys' }}' : st"></span>
+                                <span x-text="st === 'all' ? '{{ ($isOwner ?? false) ? __('admin.bookings.all_status') : __('admin.bookings.all_surveys') }}' : ({{ ($isOwner ?? false) ? 'tStatus(st)' : 'tSurveyFilter(st)' }})"></span>
                                 <span x-show="bookingFilter === st" class="text-brand-600">✓</span>
                             </button>
                         </template>
@@ -103,7 +103,7 @@
                     <button type="button"
                             @click="serviceMenuOpen = !serviceMenuOpen; statusMenuOpen = false"
                             class="inline-flex items-center justify-between gap-4 bg-white hover:bg-[#FAFDFC] rounded-full border border-[#E7EEEC] shadow-[0_2px_8px_rgba(0,0,0,0.02)] px-4 py-2.5 text-xs font-medium text-slate-700 transition min-w-[155px]">
-                        <span class="truncate max-w-[135px]" x-text="bookingServiceFilter === 'all' ? 'All Services' : bookingServiceFilter"></span>
+                        <span class="truncate max-w-[135px]" x-text="bookingServiceFilter === 'all' ? '{{ __('admin.bookings.all_services') }}' : bookingServiceFilter"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="serviceMenuOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -116,7 +116,7 @@
                                 @click="bookingServiceFilter = 'all'; serviceMenuOpen = false"
                                 :class="bookingServiceFilter === 'all' ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-[#F6F8F7]'"
                                 class="w-full text-left px-4 py-2 text-xs transition flex items-center justify-between">
-                            <span>All Services</span>
+                            <span>{{ __('admin.bookings.all_services') }}</span>
                             <span x-show="bookingServiceFilter === 'all'" class="text-brand-600">✓</span>
                         </button>
                         <template x-for="srv in availableServices" :key="srv">
@@ -136,7 +136,7 @@
             <a href="{{ route('booking.create') }}" target="_blank"
                class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>New Booking</span>
+                <span>{{ __('admin.bookings.new_booking') }}</span>
             </a>
             @endif
         </div>
@@ -146,14 +146,14 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="text-xs font-semibold text-slate-600 border-b border-[#EFF4F2]">
-                            <th class="py-4 px-6">Booking ID</th>
-                            <th class="py-4 px-5">Client</th>
-                            <th class="py-4 px-5">{{ ($isOwner ?? false) ? 'Event Due' : 'Crew Schedule' }}</th>
-                            <th class="py-4 px-5">Services</th>
+                            <th class="py-4 px-6">ID</th>
+                            <th class="py-4 px-5">{{ __('admin.bookings.col_client') }}</th>
+                            <th class="py-4 px-5">{{ ($isOwner ?? false) ? __('admin.bookings.col_event_due') : __('admin.bookings.col_crew_schedule') }}</th>
+                            <th class="py-4 px-5">{{ __('admin.bookings.col_service') }}</th>
                             @if($isOwner ?? false)
-                                <th class="py-4 px-5">Booking Status</th>
+                                <th class="py-4 px-5">{{ __('admin.bookings.col_booking_status') }}</th>
                             @endif
-                            <th class="py-4 px-6">{{ ($isOwner ?? false) ? 'Invoice Status' : 'Site Survey' }}</th>
+                            <th class="py-4 px-6">{{ ($isOwner ?? false) ? __('admin.bookings.col_invoice_status') : __('admin.bookings.col_site_survey') }}</th>
                         </tr>
                     </thead>
                     <!-- Shimmer Rows during Pagination -->
@@ -221,12 +221,12 @@
                                             <div class="space-y-1 text-[11.5px]">
                                                 <div class="flex items-center gap-1.5">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                                    <span class="text-slate-400 font-medium">Setup:</span>
+                                                    <span class="text-slate-400 font-medium">{{ __('admin.bookings.setup_label') }}:</span>
                                                     <span class="font-semibold text-slate-800" x-text="b.setup_date_formatted || '-'"></span>
                                                 </div>
                                                 <div class="flex items-center gap-1.5">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                                                    <span class="text-slate-400 font-medium">Teardown:</span>
+                                                    <span class="text-slate-400 font-medium">{{ __('admin.bookings.teardown_label') }}:</span>
                                                     <span class="font-semibold text-slate-700" x-text="b.teardown_date_formatted || '-'"></span>
                                                 </div>
                                             </div>
@@ -251,7 +251,7 @@
                                                     'bg-purple-500': b.bookingStatus === 'Complete',
                                                     'bg-rose-500': b.bookingStatus === 'Cancelled'
                                                   }"></span>
-                                            <span x-text="b.bookingStatus"></span>
+                                            <span x-text="tStatus(b.bookingStatus)"></span>
                                         </span>
                                     </td>
                                     @endif
@@ -271,7 +271,7 @@
                                                         'bg-slate-400': b.invoiceStatus === 'Draft',
                                                         'bg-rose-500': b.invoiceStatus === 'Overdue' || b.invoiceStatus === 'Cancelled'
                                                       }"></span>
-                                                <span x-text="b.invoiceStatus"></span>
+                                                <span x-text="tInvoiceStatus(b.invoiceStatus)"></span>
                                             </span>
                                         @else
                                             <template x-if="b.survey_requested">
@@ -281,7 +281,7 @@
                                                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold">
                                                     <span class="w-1.5 h-1.5 rounded-full"
                                                           :class="b.survey_status === 'completed' ? 'bg-emerald-500' : 'bg-teal-500'"></span>
-                                                    <span x-text="b.survey_status === 'completed' ? 'Done' : 'Scheduled'"></span>
+                                                    <span x-text="b.survey_status === 'completed' ? '{{ __('admin.bookings.survey_done') }}' : '{{ __('admin.bookings.survey_scheduled') }}'"></span>
                                                 </span>
                                             </template>
                                             <template x-if="!b.survey_requested">
@@ -294,7 +294,7 @@
 
                         <tr x-show="filteredBookings.length === 0">
                             <td colspan="{{ ($isOwner ?? false) ? 6 : 5 }}" class="py-12 text-center text-xs text-slate-400">
-                                No bookings match your search or filter.
+                                {{ __('admin.bookings.empty_desc') }}
                             </td>
                         </tr>
                     </tbody>
@@ -305,15 +305,15 @@
             <div class="px-6 py-4 bg-[#FAFDFC] border-t border-[#EFF4F2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium">
                 <div class="flex items-center gap-3">
                     <span x-show="filteredBookings.length > 0">
-                        Showing <strong class="text-slate-900 font-semibold" x-text="bookingFrom"></strong>–<strong class="text-slate-900 font-semibold" x-text="bookingTo"></strong> of <strong class="text-slate-900 font-semibold" x-text="filteredBookings.length"></strong> bookings
+                        {{ __('admin.bookings.showing') }} <strong class="text-slate-900 font-semibold" x-text="bookingFrom"></strong>–<strong class="text-slate-900 font-semibold" x-text="bookingTo"></strong> {{ __('admin.bookings.of') }} <strong class="text-slate-900 font-semibold" x-text="filteredBookings.length"></strong> {{ __('admin.bookings.entries') }}
                         <span x-show="filteredBookings.length !== allBookings.length" class="text-slate-400 text-[11px]" x-text="'(' + allBookings.length + ' total)'"></span>
                     </span>
                     <span x-show="filteredBookings.length === 0">
-                        0 bookings
+                        0 {{ __('admin.bookings.entries') }}
                     </span>
 
                     <div class="hidden sm:flex items-center gap-1.5 pl-3 border-l border-slate-200">
-                        <span class="text-slate-400 text-[11px]">Per page:</span>
+                        <span class="text-slate-400 text-[11px]">{{ __('admin.bookings.per_page') }}</span>
                         <select x-model.number="bookingPerPage"
                                 class="bg-white border border-[#E2EAE7] rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 cursor-pointer">
                             <option :value="10">10</option>
@@ -393,9 +393,9 @@
                             </template>
                             @if(!($isOwner ?? false))
                                 <p class="text-[10px] text-slate-500 truncate mt-0.5">
-                                    <span class="text-emerald-700 font-semibold" x-text="'Setup: ' + (b.setup_date_formatted || '-')"></span>
+                                    <span class="text-emerald-700 font-semibold" x-text="'{{ __('admin.bookings.setup_label') }}: ' + (b.setup_date_formatted || '-')"></span>
                                     <span class="mx-1 text-slate-300">·</span>
-                                    <span class="text-amber-700 font-semibold" x-text="'Teardown: ' + (b.teardown_date_formatted || '-')"></span>
+                                    <span class="text-amber-700 font-semibold" x-text="'{{ __('admin.bookings.teardown_label') }}: ' + (b.teardown_date_formatted || '-')"></span>
                                 </p>
                             @endif
                         </div>
@@ -409,24 +409,24 @@
                                     'bg-[#FEECEB] text-rose-600': b.bookingStatus === 'Cancelled'
                                   }"
                                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold">
-                                <span x-text="b.bookingStatus"></span>
+                                <span x-text="tStatus(b.bookingStatus)"></span>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F4F7F6] text-slate-700" x-text="b.invoiceStatus"></span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F4F7F6] text-slate-700" x-text="tInvoiceStatus(b.invoiceStatus)"></span>
                         @else
                             <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
-                                <span class="font-medium text-slate-400">Survey:</span>
+                                <span class="font-medium text-slate-400">{{ __('admin.bookings.col_site_survey') }}:</span>
                                 <template x-if="b.survey_requested">
                                     <span :class="b.survey_status === 'completed'
                                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                             : 'bg-teal-50 text-teal-800 border border-teal-200'"
                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold"
-                                          x-text="b.survey_status === 'completed' ? 'Done' : 'Scheduled'"></span>
+                                          x-text="b.survey_status === 'completed' ? '{{ __('admin.bookings.survey_done') }}' : '{{ __('admin.bookings.survey_scheduled') }}'"></span>
                                 </template>
                                 <template x-if="!b.survey_requested">
                                     <span class="text-slate-400 font-medium">—</span>
                                 </template>
                             </div>
-                            <span class="text-[11px] font-semibold text-brand-700">Details →</span>
+                            <span class="text-[11px] font-semibold text-brand-700">{{ __('admin.detail.field_info') }} →</span>
                         @endif
                     </div>
                 </div>
@@ -439,17 +439,17 @@
                         :disabled="bookingPage <= 1"
                         :class="bookingPage <= 1 ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
                         class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
-                    ← Prev
+                    ← {{ __('admin.bookings.prev') }}
                 </button>
                 <span class="text-xs text-slate-500 font-medium">
-                    Page <strong class="text-slate-900" x-text="bookingPage"></strong> of <strong class="text-slate-900" x-text="totalBookingPages"></strong>
+                    {{ __('admin.bookings.page') }} <strong class="text-slate-900" x-text="bookingPage"></strong> {{ __('admin.bookings.of') }} <strong class="text-slate-900" x-text="totalBookingPages"></strong>
                 </span>
                 <button type="button"
                         @click="if (bookingPage < totalBookingPages) { bookingPage++; }"
                         :disabled="bookingPage >= totalBookingPages"
                         :class="bookingPage >= totalBookingPages ? 'opacity-35 cursor-not-allowed text-slate-400' : 'text-brand-700 font-bold active:scale-95'"
                         class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer">
-                    Next →
+                    {{ __('admin.bookings.next') }} →
                 </button>
             </div>
         </div>

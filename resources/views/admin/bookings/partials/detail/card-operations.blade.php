@@ -23,8 +23,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900">Field Operations & Crew SPK</h3>
-                                
+                                <h3 class="text-sm font-bold text-slate-900">{{ __('admin.detail.field_operations') }}</h3>
                             </div>
                         </div>
 
@@ -59,7 +58,7 @@
                     <div x-show="!editingOperations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                         <!-- Tent Color Theme -->
                         <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tent Color Theme</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.tent_color_theme') }}</span>
                             <div class="pt-0.5">
                                 <template x-if="activeDetail?.tent_color_theme && activeDetail?.tent_color_theme !== '-'">
                                     <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-tight bg-rose-50 text-rose-700 border border-rose-200"
@@ -73,19 +72,19 @@
 
                         <!-- Tent Dimensions / Size -->
                         <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Custom Tent Size / Modul</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.custom_tent_size') }}</span>
                             <p class="font-bold text-slate-800 text-xs truncate" x-text="activeDetail?.custom_tent_size || '-'"></p>
                         </div>
 
                         <!-- Setup Schedule (H-2) -->
                         <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tent Setup (H-2)</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.setup_schedule') }}</span>
                             <p class="font-bold text-emerald-800 text-xs" x-text="activeDetail?.setup_date_formatted || '-'"></p>
                         </div>
 
                         <!-- Job Source / Partner -->
                         <div class="p-3 rounded-2xl bg-[#F8FAFA] border border-[#EFF4F2] space-y-1">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Job Source / Partner</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ __('admin.detail.job_source') }}</span>
                             <p class="font-bold text-indigo-700 text-xs truncate" x-text="activeDetail?.job_source || 'Direct Client'"></p>
                         </div>
 
@@ -93,7 +92,7 @@
                         <div class="sm:col-span-2 lg:col-span-4 p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-1">
                             <span class="text-[10px] uppercase font-black text-amber-900 tracking-wider flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                Crew & Logistics Instructions
+                                {{ __('admin.detail.operational_notes') }}
                             </span>
                             <p class="text-xs font-bold text-amber-950 leading-relaxed whitespace-pre-line"
                                x-text="activeDetail?.operational_notes || 'No special crew instructions recorded.'"></p>

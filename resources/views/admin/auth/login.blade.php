@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#F6F8F7]">
+<html lang="{{ app()->getLocale() }}" class="h-full bg-[#F6F8F7]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -27,7 +27,7 @@
             });
         })();
     </script>
-    <title>Portal Login | NK Barokah</title>
+    <title>{{ __('admin.meta.login_title') }} | NK Barokah</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -93,7 +93,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold text-slate-900 tracking-tight">NK Barokah</h1>
-                <p class="text-xs text-slate-400 font-medium">Management &amp; Field Portal</p>
+                <p class="text-xs text-slate-400 font-medium">{{ __('admin.meta.portal_subtitle') }}</p>
             </div>
         </div>
 
@@ -109,7 +109,7 @@
 
             <!-- Title -->
             <div class="text-center pt-1">
-                <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Enter 6-Digit PIN</p>
+                <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('admin.login.enter_pin') }}</p>
             </div>
 
             <!-- Form Hidden -->
@@ -143,7 +143,7 @@
                 <button type="button"
                         @click="clearPin()"
                         class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-slate-50/70 hover:bg-slate-100 active:scale-90 text-[11px] font-bold text-slate-400 uppercase tracking-wider transition-all flex items-center justify-center cursor-pointer select-none mx-auto">
-                    Clear
+                    {{ __('admin.login.clear') }}
                 </button>
                 <button type="button"
                         @click="addDigit(0)"
@@ -164,10 +164,10 @@
                         :disabled="pin.length !== 6 || isSubmitting"
                         class="w-full py-3.5 rounded-full font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2"
                         :class="pin.length === 6 && !isSubmitting ? 'bg-brand-600 hover:bg-brand-700 text-white cursor-pointer shadow-pill active:scale-[0.98]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
-                    <span x-show="!isSubmitting">Sign In to Dashboard</span>
+                    <span x-show="!isSubmitting">{{ __('admin.login.sign_in') }}</span>
                     <span x-show="isSubmitting" class="inline-flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                        Verifying PIN...
+                        {{ __('admin.login.verifying_pin') }}
                     </span>
                 </button>
             </div>
@@ -176,7 +176,7 @@
 
         <!-- Simple Minimal Footer -->
         <p class="text-center text-[11px] text-slate-400 font-medium">
-            © {{ date('Y') }} NK Barokah · Operations Management Portal
+            © {{ date('Y') }} NK Barokah · {{ __('admin.meta.portal_footer') }}
         </p>
 
     </div>

@@ -14,12 +14,12 @@
                     <button type="button" @click="serviceSubTab = 'packages'"
                             :class="serviceSubTab === 'packages' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
                             class="px-4 py-2 rounded-full text-xs font-semibold transition">
-                        Wedding Packages (<span x-text="packagesList.length"></span>)
+                        {{ __('admin.services.tab_packages') }} (<span x-text="packagesList.length"></span>)
                     </button>
                     <button type="button" @click="serviceSubTab = 'addons'"
                             :class="serviceSubTab === 'addons' ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
                             class="px-4 py-2 rounded-full text-xs font-semibold transition">
-                        Add-ons & Extras (<span x-text="addonsList.length"></span>)
+                        {{ __('admin.services.tab_addons') }} (<span x-text="addonsList.length"></span>)
                     </button>
                 </div>
 
@@ -27,7 +27,7 @@
                     <svg class="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.2-5.2m2.2-4.8a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input type="text" x-model="serviceSearch" placeholder="Search Services..."
+                    <input type="text" x-model="serviceSearch" placeholder="{{ __('admin.services.search_placeholder') }}"
                            class="w-full bg-transparent pl-10 pr-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none">
                 </div>
             </div>
@@ -36,7 +36,7 @@
                     @click="serviceSubTab === 'packages' ? openPackageModal() : openAddonModal()"
                     class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0 cursor-pointer active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
-                <span x-text="serviceSubTab === 'packages' ? 'Add New Package' : 'Add New Add-on'"></span>
+                <span x-text="serviceSubTab === 'packages' ? '{{ __('admin.services.add_package') }}' : '{{ __('admin.services.add_addon') }}'"></span>
             </button>
         </div>
 

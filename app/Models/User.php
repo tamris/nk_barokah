@@ -66,6 +66,6 @@ class User extends Authenticatable
 
     public function roleLabel(): string
     {
-        return $this->isFieldStaff() ? 'Field Coordinator' : 'NK Barokah Owner';
+        return $this->isFieldStaff() ? __('admin.roles.staff') : __('admin.roles.owner');
     }
 }
