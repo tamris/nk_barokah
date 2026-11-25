@@ -33,6 +33,159 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
+            <!-- APPEARANCE & THEME PREFERENCE (Col Span 12) -->
+            <div class="lg:col-span-12 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#F0F4F2]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-100 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Appearance</h2>
+                            <p class="text-xs text-slate-400">Choose how the admin workspace looks on this device. Applied immediately.</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1 rounded-full text-[11px] font-semibold bg-[#F6F8F7] border border-[#E5ECE9] text-slate-600">
+                        <span class="w-2 h-2 rounded-full"
+                              :class="$store.theme.resolved === 'dark' ? 'bg-teal-400' : 'bg-amber-400'"></span>
+                        <span x-text="$store.theme.preference === 'system'
+                            ? 'System (' + ($store.theme.systemDark ? 'Dark' : 'Light') + ')'
+                            : ($store.theme.preference === 'dark' ? 'Dark Mode' : 'Light Mode')"></span>
+                    </span>
+                </div>
+
+                <div role="radiogroup" aria-label="Interface Appearance" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Option 1: Light -->
+                    <button type="button"
+                            role="radio"
+                            :aria-checked="$store.theme.preference === 'light'"
+                            @click="$store.theme.set('light')"
+                            :class="$store.theme.preference === 'light'
+                                ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
+                                : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
+                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                        <!-- Mini Light UI Wireframe -->
+                        <div class="h-16 rounded-xl border border-[#DCE5E2] overflow-hidden p-2.5 flex flex-col justify-between" style="background-color: #F6F8F7;">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full" style="background-color: #045D56;"></span>
+                                    <span class="w-10 h-2 rounded-full" style="background-color: #CBD5E1;"></span>
+                                </div>
+                                <span class="w-4 h-2 rounded-full" style="background-color: #E2E8F0;"></span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <div class="h-6 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                                <div class="h-6 rounded-md border col-span-2" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-slate-900">Light</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Bright, crisp daytime workspace</p>
+                                </div>
+                            </div>
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                                  :class="$store.theme.preference === 'light' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- Option 2: Dark -->
+                    <button type="button"
+                            role="radio"
+                            :aria-checked="$store.theme.preference === 'dark'"
+                            @click="$store.theme.set('dark')"
+                            :class="$store.theme.preference === 'dark'
+                                ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
+                                : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
+                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                        <!-- Mini Dark UI Wireframe -->
+                        <div class="h-16 rounded-xl border overflow-hidden p-2.5 flex flex-col justify-between" style="background-color: #0D0E10; border-color: #26292E;">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full" style="background-color: #168579;"></span>
+                                    <span class="w-10 h-2 rounded-full" style="background-color: #32363D;"></span>
+                                </div>
+                                <span class="w-4 h-2 rounded-full" style="background-color: #22262A;"></span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <div class="h-6 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
+                                <div class="h-6 rounded-md border col-span-2" style="background-color: #151719; border-color: #26292E;"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-slate-900">Dark</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Low-glare night &amp; field workspace</p>
+                                </div>
+                            </div>
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                                  :class="$store.theme.preference === 'dark' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- Option 3: System -->
+                    <button type="button"
+                            role="radio"
+                            :aria-checked="$store.theme.preference === 'system'"
+                            @click="$store.theme.set('system')"
+                            :class="$store.theme.preference === 'system'
+                                ? 'border-brand-600 ring-2 ring-brand-500/20 bg-brand-50/40'
+                                : 'border-[#E5ECE9] bg-[#FAFDFC] hover:border-brand-300'"
+                            class="group relative text-left rounded-2xl border p-4 transition-all cursor-pointer space-y-3 focus:outline-none">
+                        <!-- Mini Split System UI Wireframe -->
+                        <div class="h-16 rounded-xl border border-[#DCE5E2] overflow-hidden grid grid-cols-2">
+                            <div class="p-2 flex flex-col justify-between" style="background-color: #F6F8F7;">
+                                <span class="w-6 h-2 rounded-full" style="background-color: #CBD5E1;"></span>
+                                <div class="h-6 rounded-md border" style="background-color: #FFFFFF; border-color: #E2EAE7;"></div>
+                            </div>
+                            <div class="p-2 flex flex-col justify-between" style="background-color: #0D0E10;">
+                                <span class="w-6 h-2 rounded-full ml-auto" style="background-color: #32363D;"></span>
+                                <div class="h-6 rounded-md border" style="background-color: #151719; border-color: #26292E;"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-slate-900">System</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5"
+                                       x-text="'Follows device (Currently ' + ($store.theme.systemDark ? 'Dark' : 'Light') + ')'"></p>
+                                </div>
+                            </div>
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition"
+                                  :class="$store.theme.preference === 'system' ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 text-transparent'">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
             <!-- FORM 1: OPERATIONAL RULES & EVENT POLICIES (Col Span 7) -->
             <div class="lg:col-span-7 bg-white rounded-[28px] p-6 sm:p-7 shadow-card border border-[#EDF2F0] space-y-6">
                 <div class="flex items-center justify-between pb-4 border-b border-[#F0F4F2]">

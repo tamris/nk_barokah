@@ -3,6 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function () {
+            function syncTheme() {
+                var stored = null;
+                try { stored = localStorage.getItem('color-scheme'); } catch (e) {}
+                var mode = (stored === 'light' || stored === 'dark') ? stored : 'light dark';
+                var meta = document.querySelector('meta[name="color-scheme"]');
+                if (meta) meta.content = mode;
+                var isDark = mode === 'dark' || (mode === 'light dark' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', isDark);
+                document.documentElement.classList.toggle('light', !isDark);
+            }
+            syncTheme();
+            if (window.matchMedia) {
+                var mql = window.matchMedia('(prefers-color-scheme: dark)');
+                if (mql.addEventListener) mql.addEventListener('change', syncTheme);
+                else if (mql.addListener) mql.addListener(syncTheme);
+            }
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'color-scheme') syncTheme();
+            });
+        })();
+    </script>
     <title>Portal Login | NK Barokah</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
@@ -15,9 +39,11 @@
     <!-- Tailwind CSS CDN & Alpine.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/admin-dark.css') }}?v={{ file_exists(public_path('css/admin-dark.css')) ? filemtime(public_path('css/admin-dark.css')) : time() }}">
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {

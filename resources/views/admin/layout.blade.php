@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function () {
+            var stored = null;
+            try { stored = localStorage.getItem('color-scheme'); } catch (e) {}
+            var mode = (stored === 'light' || stored === 'dark') ? stored : 'light dark';
+            var meta = document.querySelector('meta[name="color-scheme"]');
+            if (meta) meta.content = mode;
+            var isDark = mode === 'dark' || (mode === 'light dark' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList.toggle('dark', isDark);
+            document.documentElement.classList.toggle('light', !isDark);
+        })();
+    </script>
     <title>@yield('title', 'Dashboard') | NK Barokah Wedding Organizer</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
@@ -16,9 +29,11 @@
     <!-- Tailwind CSS CDN & Alpine.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/admin-dark.css') }}?v={{ file_exists(public_path('css/admin-dark.css')) ? filemtime(public_path('css/admin-dark.css')) : time() }}">
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -74,6 +89,69 @@
             if (!validMainTabs.includes(savedTab)) {
                 try { sessionStorage.setItem('admin_active_tab', 'dashboard'); } catch (e) {}
             }
+
+            Alpine.store('theme', {
+                preference: (() => {
+                    try {
+                        const s = localStorage.getItem('color-scheme');
+                        return (s === 'light' || s === 'dark') ? s : 'system';
+                    } catch (e) {
+                        return 'system';
+                    }
+                })(),
+                systemDark: window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false,
+
+                init() {
+                    this.apply();
+                    if (window.matchMedia) {
+                        const mql = window.matchMedia('(prefers-color-scheme: dark)');
+                        const onSystemChange = (e) => {
+                            this.systemDark = e.matches;
+                            this.apply();
+                        };
+                        if (mql.addEventListener) {
+                            mql.addEventListener('change', onSystemChange);
+                        } else if (mql.addListener) {
+                            mql.addListener(onSystemChange);
+                        }
+                    }
+                    window.addEventListener('storage', (e) => {
+                        if (e.key === 'color-scheme') {
+                            this.preference = (e.newValue === 'light' || e.newValue === 'dark') ? e.newValue : 'system';
+                            this.apply();
+                        }
+                    });
+                },
+
+                get resolved() {
+                    if (this.preference === 'dark') return 'dark';
+                    if (this.preference === 'light') return 'light';
+                    return this.systemDark ? 'dark' : 'light';
+                },
+
+                set(mode) {
+                    const next = (mode === 'light' || mode === 'dark') ? mode : 'system';
+                    this.preference = next;
+                    try {
+                        if (next === 'system') {
+                            localStorage.removeItem('color-scheme');
+                        } else {
+                            localStorage.setItem('color-scheme', next);
+                        }
+                    } catch (e) {}
+                    this.apply();
+                },
+
+                apply() {
+                    const meta = document.querySelector('meta[name="color-scheme"]');
+                    if (meta) {
+                        meta.content = this.preference === 'system' ? 'light dark' : this.preference;
+                    }
+                    const isDark = this.resolved === 'dark';
+                    document.documentElement.classList.toggle('dark', isDark);
+                    document.documentElement.classList.toggle('light', !isDark);
+                }
+            });
 
             Alpine.store('nav', {
                 tab: validMainTabs.includes(initialTab) ? initialTab : 'dashboard',
@@ -163,10 +241,6 @@
 
     <style>
         [x-cloak] { display: none !important; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #DCE4E2; border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: #C4D2CE; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         * { -webkit-tap-highlight-color: transparent; }

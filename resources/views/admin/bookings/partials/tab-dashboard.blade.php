@@ -545,7 +545,7 @@
                 </div>
 
                 <!-- Business Insight Card -->
-                <div class="rounded-[28px] bg-gradient-to-br from-[#023834] via-[#045D56] to-[#0D8278] p-6 text-white shadow-insight relative overflow-hidden">
+                <div class="nk-hero-card rounded-[28px] bg-gradient-to-br from-[#023834] via-[#045D56] to-[#0D8278] p-6 text-white shadow-insight relative overflow-hidden">
                     <div class="pointer-events-none absolute -top-12 -right-12 w-44 h-44 rounded-full bg-teal-300/20 blur-2xl"></div>
                     <div class="pointer-events-none absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-emerald-400/10 blur-2xl"></div>
 
@@ -585,7 +585,7 @@
                     <div class="flex items-center justify-between gap-2">
                         <h2 class="text-[17px] font-bold text-slate-900 tracking-tight">Pending Site Surveys</h2>
                         <button type="button"
-                                @click="$store.nav.setTab('calendar'); calendarMode = 'surveys'"
+                                @click="$store.nav.setTab('calendar'); calendarMode = 'operations'"
                                 class="px-3.5 py-1.5 rounded-full border border-[#E5ECE9] bg-white hover:bg-[#F6F8F7] text-xs font-medium text-slate-600 transition cursor-pointer">
                             Survey Calendar
                         </button>
@@ -622,7 +622,7 @@
                 </div>
 
                 <!-- Field Coordinator Quick Actions Card -->
-                <div class="rounded-[28px] bg-gradient-to-br from-[#023834] via-[#045D56] to-[#0D8278] p-6 text-white shadow-insight relative overflow-hidden">
+                <div class="nk-hero-card rounded-[28px] bg-gradient-to-br from-[#023834] via-[#045D56] to-[#0D8278] p-6 text-white shadow-insight relative overflow-hidden">
                     <div class="pointer-events-none absolute -top-12 -right-12 w-44 h-44 rounded-full bg-teal-300/20 blur-2xl"></div>
                     <div class="relative z-10 space-y-3.5">
                         <div class="flex items-center gap-3">
