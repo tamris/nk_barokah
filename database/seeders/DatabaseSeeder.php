@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Package;
 use App\Models\Addon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,29 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Default Owner Account
-        User::updateOrCreate(
-            ['email' => 'owner@nkbarokah.com'],
-            [
-                'name'      => 'Owner NK Barokah',
-                'role'      => User::ROLE_OWNER,
-                'password'  => Hash::make('password'),
-                'pin'       => '123456',
-                'is_active' => true,
-            ]
-        );
-
-        // Shared Field Coordinator / Staff Account (1 Shared Account)
-        User::updateOrCreate(
-            ['email' => 'staff@nkbarokah.com'],
-            [
-                'name'      => 'Field Coordinator',
-                'role'      => User::ROLE_STAFF,
-                'password'  => Hash::make('staffpassword'),
-                'pin'       => '112233',
-                'is_active' => true,
-            ]
-        );
+        $this->call(UserSeeder::class);
 
         // 5 Master Packages Resmi Sesuai Pricelist 2026 NK Barokah
         $packages = [
