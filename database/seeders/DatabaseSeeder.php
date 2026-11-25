@@ -201,6 +201,8 @@ class DatabaseSeeder extends Seeder
             Addon::updateOrCreate(['name' => $addon['name']], $addon);
         }
 
-        $this->call(BookingSeeder::class);
+        // BookingSeeder sengaja tidak dipanggil di sini agar db:seed hanya mengisi data master
+        // (User, Package, Addon). Jalankan manual jika butuh data dummy booking:
+        // php artisan db:seed --class=BookingSeeder
     }
 }
