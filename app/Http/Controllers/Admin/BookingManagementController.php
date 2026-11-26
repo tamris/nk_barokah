@@ -215,6 +215,110 @@ class BookingManagementController extends Controller
             ]));
     }
 
+    public function update(Request $request, $id): RedirectResponse
+    {
+        $booking = Booking::with('addons')->findOrFail($id);
+
+        if (in_array($booking->status, ['completed', 'rejected'], true)) {
+            return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+                ->with('error', __('admin.edit_booking.locked_status'));
+        }
+
+        $validated = $request->validate([
+            'event_type'       => ['required', 'string', 'in:pernikahan,khitanan,tasyakuran,instansi,sewa_alat'],
+            'customer_name'    => ['required', 'string', 'max:150'],
+            'customer_phone'   => ['required', 'string', 'max:25'],
+            'customer_email'   => ['nullable', 'email', 'max:100'],
+            'child_name'       => ['nullable', 'string', 'max:150'],
+            'event_date'       => ['required', 'date'],
+            'event_end_date'   => ['nullable', 'date', 'after_or_equal:event_date'],
+            'package_id'       => ['nullable', 'integer', 'exists:packages,id'],
+            'venue_address'    => ['nullable', 'string', 'max:500'],
+            'address_landmark' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $isSewaAlat = $validated['event_type'] === 'sewa_alat';
+
+        if ($isSewaAlat) {
+            $package = Package::where('slug', 'custom-alat-saja')
+                ->orWhere('base_price', 0)
+                ->first();
+            if (!$package) {
+                $package = Package::create([
+                    'name'        => 'Custom',
+                    'slug'        => 'custom-alat-saja',
+                    'base_price'  => 0,
+                    'description' => 'Sewa alat pesta lepas tanpa konstruksi tenda.',
+                    'is_active'   => true,
+                ]);
+            }
+        } else {
+            if (empty($validated['package_id'])) {
+                throw ValidationException::withMessages([
+                    'package_id' => __('admin.manual_booking.package_required'),
+                ]);
+            }
+            $package = Package::findOrFail($validated['package_id']);
+        }
+
+        DB::transaction(function () use ($booking, $validated, $package, $isSewaAlat) {
+            $oldStart = Carbon::parse($booking->event_date)->startOfDay();
+            $newEventDate = $validated['event_date'];
+            $newEventEndDate = !empty($validated['event_end_date']) ? $validated['event_end_date'] : $newEventDate;
+            $newStart = Carbon::parse($newEventDate)->startOfDay();
+            $newEnd = Carbon::parse($newEventEndDate)->startOfDay();
+            $durationDays = max(1, (int) ($newStart->diffInDays($newEnd) + 1));
+
+            // Keep custom setup_date aligned by shifting with the same day delta when rescheduled
+            $setupDate = $booking->setup_date;
+            if ($setupDate && !$oldStart->isSameDay($newStart)) {
+                $dayShift = (int) $oldStart->diffInDays($newStart, false);
+                $setupDate = Carbon::parse($setupDate)->addDays($dayShift)->format('Y-m-d');
+            }
+
+            $standardDays = (int) Setting::get('standard_package_max_days', 2);
+            $extraDays = max(0, $durationDays - $standardDays);
+            $extraDayChargeRate = Setting::getExtraDayChargeRateFloat();
+            $additionalDayCharge = $extraDays * $extraDayChargeRate * (float) $package->base_price;
+
+            $booking->update([
+                'event_type'            => $validated['event_type'],
+                'customer_name'         => strtoupper(trim($validated['customer_name'])),
+                'customer_phone'        => trim($validated['customer_phone']),
+                'customer_email'        => $validated['customer_email'] ?? null,
+                'child_name'            => $validated['event_type'] === 'khitanan' ? ($validated['child_name'] ?? null) : null,
+                'event_date'            => $newEventDate,
+                'event_end_date'        => $newEventEndDate,
+                'duration_days'         => $durationDays,
+                'setup_date'            => $setupDate,
+                'package_id'            => $package->id,
+                'package_name'          => $package->name,
+                'package_price'         => $package->base_price,
+                'additional_day_charge' => $additionalDayCharge,
+                'venue_address'         => $validated['venue_address'] ?? null,
+                'address_landmark'      => $validated['address_landmark'] ?? null,
+                'tent_color_theme'      => $isSewaAlat ? null : $booking->tent_color_theme,
+                'custom_tent_size'      => $isSewaAlat ? null : $booking->custom_tent_size,
+            ]);
+
+            $booking->recalculateTotals();
+            $booking->refresh();
+
+            $newPaymentType = ((float) $booking->remaining_balance > 0) ? 'dp' : 'lunas';
+            if ($booking->payment_type !== $newPaymentType) {
+                $booking->update(['payment_type' => $newPaymentType]);
+            }
+        });
+
+        SyncBookingToGoogleServicesJob::dispatch($booking->fresh('addons'));
+
+        return redirect()->route('admin.bookings.index', ['booking_id' => $booking->id])
+            ->with('success', __('admin.edit_booking.updated_success', [
+                'invoice' => $booking->invoice_number,
+                'name'    => $booking->fresh()->customer_name,
+            ]));
+    }
+
     public function confirm($id): RedirectResponse
     {
         $booking = Booking::with('addons')->findOrFail($id);

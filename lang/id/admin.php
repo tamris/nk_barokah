@@ -475,6 +475,21 @@ return [
         'created_success'          => 'Pesanan manual #:invoice atas nama :name berhasil dibuat!',
     ],
 
+    'edit_booking' => [
+        'btn_label'          => 'Edit / Reschedule',
+        'title'              => 'Edit Pesanan & Reschedule',
+        'subtitle'           => 'Perbarui data klien, geser tanggal acara, atau ubah/upgrade paket utama.',
+        'section_client'     => 'Data Klien & Alamat Lokasi',
+        'section_reschedule' => 'Reschedule Tanggal Acara',
+        'section_package'    => 'Jenis Acara & Paket Utama',
+        'reschedule_hint'    => 'Slot tanggal lama otomatis terbuka kembali dan jadwal pasang (H-2) / bongkar (H+1) otomatis menyesuaikan.',
+        'date_conflict_warn' => 'Info: Sudah ada :count pesanan aktif lain di rentang tanggal ini. Sebagai Pemilik, Anda tetap dapat menyimpan.',
+        'recalc_note'        => 'Total tagihan & sisa bayar akan otomatis dihitung ulang bersama add-on, transport, dan diskon yang sudah tercatat.',
+        'submit_btn'         => 'Simpan Perubahan',
+        'locked_status'      => 'Pesanan yang sudah selesai atau dibatalkan tidak dapat diubah.',
+        'updated_success'    => 'Pesanan #:invoice (:name) berhasil diperbarui & dihitung ulang!',
+    ],
+
     'settings' => [
         'title'                   => 'Pengaturan & Aturan Bisnis',
         'open_client_form'        => 'Buka Form Klien',

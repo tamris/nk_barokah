@@ -1418,6 +1418,119 @@ class AdminBookingTest extends TestCase
         $this->assertEquals(0.0, (float) $created->remaining_balance);
         Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
     }
+
+    public function test_owner_can_reschedule_and_upgrade_package_with_auto_recalculation(): void
+    {
+        Queue::fake();
+
+        $owner = User::where('role', User::ROLE_OWNER)->firstOrFail();
+        $paket1 = Package::where('slug', 'paket-1')->firstOrFail();
+        $decor6m = Package::where('slug', 'tenda-decor-6m')->firstOrFail();
+
+        $origDate = now()->addDays(10)->startOfDay();
+        $origSetup = $origDate->copy()->subDays(2);
+
+        $booking = Booking::create([
+            'invoice_number'     => 'NKB/11/RESCHED',
+            'customer_name'      => 'REZA & DIAN',
+            'customer_phone'     => '081234567890',
+            'event_type'         => 'pernikahan',
+            'event_date'         => $origDate->format('Y-m-d'),
+            'event_end_date'     => $origDate->format('Y-m-d'),
+            'duration_days'      => 1,
+            'setup_date'         => $origSetup->format('Y-m-d'),
+            'package_id'         => $paket1->id,
+            'package_name'       => $paket1->name,
+            'package_price'      => $paket1->base_price,
+            'addon_total_price'  => 0,
+            'grand_total'        => $paket1->base_price,
+            'amount_paid'        => $paket1->base_price,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => '',
+            'status'             => 'confirmed',
+        ]);
+
+        // Shift +5 days, extend to 3 days (1 extra day @ 15%), and upgrade to Tenda + Decor 6M
+        $newStart = $origDate->copy()->addDays(5);
+        $newEnd = $newStart->copy()->addDays(2);
+
+        $response = $this->actingAs($owner)->put(route('admin.bookings.update', $booking->id), [
+            'event_type'       => 'pernikahan',
+            'customer_name'    => 'Reza Pratama & Dian Ayu',
+            'customer_phone'   => '081299998888',
+            'event_date'       => $newStart->format('Y-m-d'),
+            'event_end_date'   => $newEnd->format('Y-m-d'),
+            'package_id'       => $decor6m->id,
+            'venue_address'    => 'Jl. Ahmad Yani No. 55, Slawi',
+            'address_landmark' => 'Depan Alun-Alun',
+        ]);
+
+        $response->assertRedirect(route('admin.bookings.index', ['booking_id' => $booking->id]));
+        $response->assertSessionHas('success');
+
+        $fresh = $booking->fresh();
+        $expectedExtra = 0.15 * (float) $decor6m->base_price;
+        $expectedTotal = (float) $decor6m->base_price + $expectedExtra;
+
+        $this->assertEquals('REZA PRATAMA & DIAN AYU', $fresh->customer_name);
+        $this->assertEquals($newStart->format('Y-m-d'), $fresh->event_date->format('Y-m-d'));
+        $this->assertEquals($newEnd->format('Y-m-d'), $fresh->event_end_date->format('Y-m-d'));
+        $this->assertEquals(3, $fresh->duration_days);
+        $this->assertEquals($origSetup->copy()->addDays(5)->format('Y-m-d'), $fresh->setup_date->format('Y-m-d'));
+        $this->assertEquals($decor6m->id, $fresh->package_id);
+        $this->assertEquals($expectedExtra, (float) $fresh->additional_day_charge);
+        $this->assertEquals($expectedTotal, (float) $fresh->grand_total);
+        $this->assertEquals($expectedTotal - (float) $paket1->base_price, (float) $fresh->remaining_balance);
+        $this->assertEquals('dp', $fresh->payment_type);
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_completed_or_cancelled_bookings_cannot_be_edited_and_staff_is_forbidden(): void
+    {
+        Queue::fake();
+
+        $owner = User::where('role', User::ROLE_OWNER)->firstOrFail();
+        $staff = User::where('role', User::ROLE_STAFF)->where('is_active', true)->firstOrFail();
+        $paket1 = Package::where('slug', 'paket-1')->firstOrFail();
+
+        $completed = Booking::create([
+            'invoice_number'     => 'NKB/11/LOCKED1',
+            'customer_name'      => 'SELESAI LOCK',
+            'customer_phone'     => '081234567890',
+            'event_date'         => now()->subDays(2)->format('Y-m-d'),
+            'package_id'         => $paket1->id,
+            'package_name'       => $paket1->name,
+            'package_price'      => $paket1->base_price,
+            'grand_total'        => $paket1->base_price,
+            'amount_paid'        => $paket1->base_price,
+            'remaining_balance'  => 0,
+            'payment_type'       => 'lunas',
+            'payment_proof_path' => '',
+            'status'             => 'completed',
+        ]);
+
+        // Owner blocked from editing completed booking
+        $this->actingAs($owner)->put(route('admin.bookings.update', $completed->id), [
+            'event_type'     => 'pernikahan',
+            'customer_name'  => 'COBA UBAH',
+            'customer_phone' => '081234567890',
+            'event_date'     => now()->addDays(5)->format('Y-m-d'),
+            'package_id'     => $paket1->id,
+        ])->assertSessionHas('error');
+        $this->assertEquals('SELESAI LOCK', $completed->fresh()->customer_name);
+
+        // Staff forbidden from editing any booking
+        $this->actingAs($staff)->put(route('admin.bookings.update', $completed->id), [
+            'event_type'     => 'pernikahan',
+            'customer_name'  => 'STAFF UBAH',
+            'customer_phone' => '081234567890',
+            'event_date'     => now()->addDays(5)->format('Y-m-d'),
+            'package_id'     => $paket1->id,
+        ])->assertForbidden();
+
+        Queue::assertNothingPushed();
+    }
 }
 
 

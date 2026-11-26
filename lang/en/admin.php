@@ -475,6 +475,21 @@ return [
         'created_success'          => 'Manual booking #:invoice for :name has been created successfully!',
     ],
 
+    'edit_booking' => [
+        'btn_label'          => 'Edit / Reschedule',
+        'title'              => 'Edit Booking & Reschedule',
+        'subtitle'           => 'Update client info, reschedule event dates, or change the core package.',
+        'section_client'     => 'Client & Venue Details',
+        'section_reschedule' => 'Reschedule Event Dates',
+        'section_package'    => 'Event Type & Core Package',
+        'reschedule_hint'    => 'Old date slot will reopen automatically and H-2 setup / H+1 teardown schedule will adjust.',
+        'date_conflict_warn' => 'Notice: :count other active booking(s) already scheduled on this date range. As Owner, you may still save.',
+        'recalc_note'        => 'Grand total & remaining balance will automatically recalculate with existing add-ons, transport, and discounts.',
+        'submit_btn'         => 'Save Changes',
+        'locked_status'      => 'Completed or cancelled bookings cannot be edited.',
+        'updated_success'    => 'Booking #:invoice (:name) has been updated & recalculated successfully!',
+    ],
+
     'settings' => [
         'title'                   => 'Settings & Business Rules',
         'open_client_form'        => 'Open Client Form',

@@ -50,6 +50,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
         // Strictly Owner-Only Actions (Financials, Verifications, Master Catalog & Settings)
         Route::middleware('owner')->group(function () {
             Route::post('/bookings', [BookingManagementController::class, 'store'])->name('bookings.store');
+            Route::put('/bookings/{id}', [BookingManagementController::class, 'update'])->name('bookings.update');
             Route::post('/bookings/{id}/confirm', [BookingManagementController::class, 'confirm'])->name('bookings.confirm');
             Route::post('/bookings/{id}/reject', [BookingManagementController::class, 'reject'])->name('bookings.reject');
             Route::post('/bookings/{id}/settle', [BookingManagementController::class, 'settle'])->name('bookings.settle');

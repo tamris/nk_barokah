@@ -57,6 +57,7 @@
     @include('admin.bookings.partials.modals')
     @if($isOwner)
         @include('admin.bookings.partials.modal-manual-booking')
+        @include('admin.bookings.partials.modal-edit-booking')
     @endif
 
 </div>

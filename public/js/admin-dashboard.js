@@ -361,6 +361,147 @@ document.addEventListener('alpine:init', () => {
             return true;
         },
 
+        editBookingModal: {
+            open: false,
+            id: null,
+            code: '',
+            action: '',
+            event_type: 'pernikahan',
+            customer_name: '',
+            child_name: '',
+            customer_phone: '',
+            customer_email: '',
+            event_date: '',
+            event_end_date: '',
+            package_id: '',
+            venue_address: '',
+            address_landmark: '',
+            addon_total: 0,
+            transport_fee: 0,
+            discount_percent: 0,
+            discount_amount: 0,
+            owner_discount: 0,
+            amount_paid: 0,
+            openMenu: null,
+            formError: ''
+        },
+        openEditBookingModal(item) {
+            if (!item) return;
+            const addonsSum = (item.addons || []).reduce((acc, a) => {
+                const num = Number(String(a.subtotal || '0').replace(/[^\d]/g, '')) || 0;
+                return acc + num;
+            }, 0);
+            this.editBookingModal = {
+                open: true,
+                id: item.id,
+                code: item.code || '',
+                action: item.update_url || ('/admin/bookings/' + item.id),
+                event_type: item.event_type || 'pernikahan',
+                customer_name: item.name || '',
+                child_name: item.child_name || '',
+                customer_phone: item.phone || '',
+                customer_email: (item.email && item.email !== '-') ? item.email : '',
+                event_date: item.event_date_iso || '',
+                event_end_date: item.event_end_date_iso || item.event_date_iso || '',
+                package_id: item.event_type === 'sewa_alat' ? '' : String(item.package_id || ''),
+                venue_address: (item.venue_address && item.venue_address !== '-') ? item.venue_address : '',
+                address_landmark: (item.address_landmark && item.address_landmark !== '-') ? item.address_landmark : '',
+                addon_total: addonsSum,
+                transport_fee: Number(item.transport_fee || 0),
+                discount_percent: Number(item.discount_percent || 0),
+                discount_amount: Number(item.discount_amount || 0),
+                owner_discount: Number(item.owner_discount || 0),
+                amount_paid: Number(item.amount_paid || 0),
+                openMenu: null,
+                formError: ''
+            };
+        },
+        closeEditBookingModal() {
+            this.editBookingModal.open = false;
+            this.editBookingModal.openMenu = null;
+        },
+        toggleEditMenu(name) {
+            this.editBookingModal.openMenu = this.editBookingModal.openMenu === name ? null : name;
+        },
+        syncEditEndDate() {
+            const m = this.editBookingModal;
+            if (!m.event_end_date || m.event_end_date < m.event_date) {
+                m.event_end_date = m.event_date;
+            }
+        },
+        onEditEventTypeChange() {
+            const m = this.editBookingModal;
+            m.formError = '';
+            if (m.event_type === 'sewa_alat') {
+                m.package_id = '';
+            } else if (!m.package_id) {
+                const activePkgs = this.activeManualPackages;
+                if (activePkgs.length > 0) m.package_id = String(activePkgs[0].id);
+            }
+        },
+        get selectedEditPackageObj() {
+            return (this.packagesList || []).find(p => String(p.id) === String(this.editBookingModal.package_id)) || null;
+        },
+        get editDurationDays() {
+            const start = this.editBookingModal.event_date;
+            const end = this.editBookingModal.event_end_date || start;
+            if (!start || !end || end < start) return 1;
+            const s = new Date(start + 'T00:00:00');
+            const e = new Date(end + 'T00:00:00');
+            return Math.max(1, Math.round((e - s) / 86400000) + 1);
+        },
+        get editPackagePrice() {
+            if (this.editBookingModal.event_type === 'sewa_alat') return 0;
+            const pkg = this.selectedEditPackageObj;
+            return pkg ? Number(pkg.price || 0) : 0;
+        },
+        get editExtraDayCharge() {
+            const stdDays = Number(config.standardDays || 2);
+            const rate = Number(config.extraDayRate || 0.15);
+            const extraDays = Math.max(0, this.editDurationDays - stdDays);
+            return Math.round(extraDays * rate * this.editPackagePrice);
+        },
+        get editGrandTotal() {
+            const m = this.editBookingModal;
+            const subtotal = this.editPackagePrice + this.editExtraDayCharge + Number(m.addon_total || 0) + Number(m.transport_fee || 0);
+            let vendorDisc = Number(m.discount_amount || 0);
+            if (Number(m.discount_percent || 0) > 0) {
+                vendorDisc = Math.min(subtotal, Math.round((Number(m.discount_percent) / 100) * subtotal));
+            } else {
+                vendorDisc = Math.min(vendorDisc, subtotal);
+            }
+            const ownerDisc = Math.min(Number(m.owner_discount || 0), Math.max(0, subtotal - vendorDisc));
+            return Math.max(0, subtotal - vendorDisc - ownerDisc);
+        },
+        get editRemaining() {
+            return Math.max(0, this.editGrandTotal - Number(this.editBookingModal.amount_paid || 0));
+        },
+        get editDateConflictCount() {
+            const m = this.editBookingModal;
+            const start = m.event_date;
+            const end = m.event_end_date || start;
+            if (!start) return 0;
+            return (this.allBookings || []).filter(b => {
+                if (String(b.id) === String(m.id)) return false;
+                if (b.raw_status === 'rejected' || b.raw_status === 'completed') return false;
+                const bStart = b.event_date_iso;
+                const bEnd = b.event_end_date_iso || bStart;
+                return bStart <= end && bEnd >= start;
+            }).length;
+        },
+        validateEditBookingSubmit(e) {
+            const m = this.editBookingModal;
+            m.formError = '';
+            if (m.event_type !== 'sewa_alat' && !m.package_id) {
+                e.preventDefault();
+                m.formError = this.locale === 'id'
+                    ? 'Silakan pilih paket tenda terlebih dahulu.'
+                    : 'Please select a tent package first.';
+                return false;
+            }
+            return true;
+        },
+
         addonModal: {
             open: false,
             isEdit: false,

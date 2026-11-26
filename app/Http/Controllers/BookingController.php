@@ -220,7 +220,7 @@ class BookingController extends Controller
 
     public function downloadReceipt(string $invoiceNumber)
     {
-        $booking = Booking::with('addons')->where('invoice_number', $invoiceNumber)->firstOrFail();
+        $booking = Booking::with(['package', 'addons'])->where('invoice_number', $invoiceNumber)->firstOrFail();
         $pdf = Pdf::loadView('pdf.receipt', compact('booking'))->setPaper('a4', 'portrait');
 
         $safeFilename = str_replace(['/', '\\'], '-', $booking->invoice_number);

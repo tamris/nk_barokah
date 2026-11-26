@@ -22,8 +22,23 @@
                 </span>
             </button>
 
-            <span class="text-xs font-mono font-bold text-[#0284C7] bg-white px-3.5 py-1.5 rounded-full border border-[#E5ECE9]"
-                  x-text="'#' + (activeDetail?.code || '')"></span>
+            <div class="flex items-center gap-2">
+                @if($isOwner ?? false)
+                <template x-if="activeDetail && (activeDetail.raw_status === 'pending_verification' || activeDetail.raw_status === 'confirmed')">
+                    <button type="button"
+                            @click="openEditBookingModal(activeDetail)"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#F4F7F6] text-slate-700 border border-[#E5ECE9] text-xs font-semibold transition shadow-2xs cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5 text-brand-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.1" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span>{{ __('admin.edit_booking.btn_label') }}</span>
+                    </button>
+                </template>
+                @endif
+
+                <span class="text-xs font-mono font-bold text-[#0284C7] bg-white px-3.5 py-1.5 rounded-full border border-[#E5ECE9]"
+                      x-text="'#' + (activeDetail?.code || '')"></span>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">

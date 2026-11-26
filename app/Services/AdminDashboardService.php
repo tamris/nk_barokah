@@ -115,6 +115,7 @@ class AdminDashboardService
                 'email'                              => $b->customer_email ?: '-',
                 'phone'                              => $b->customer_phone,
                 'service'                            => $b->package_name,
+                'package_id'                         => $b->package_id,
                 'package_price'                      => (float) $b->package_price,
                 'package_price_formatted'            => 'Rp ' . number_format((float) $b->package_price, 0, ',', '.'),
                 'addons'                             => $b->addons->map(fn ($a) => [
@@ -166,6 +167,7 @@ class AdminDashboardService
                 'whatsapp_url'                       => $b->whatsapp_url,
                 'receipt_url'                        => route('booking.receipt', $b->invoice_number),
                 'show_url'                           => route('admin.bookings.show', $b->id),
+                'update_url'                         => route('admin.bookings.update', $b->id),
                 'confirm_url'                        => route('admin.bookings.confirm', $b->id),
                 'reject_url'                         => route('admin.bookings.reject', $b->id),
                 'settle_url'                         => route('admin.bookings.settle', $b->id),
