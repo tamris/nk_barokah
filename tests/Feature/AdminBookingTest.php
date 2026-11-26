@@ -1332,6 +1332,92 @@ class AdminBookingTest extends TestCase
         $paketBooking->update(['custom_tent_size' => '8x14m Custom']);
         $this->assertEquals('8x14m Custom', $paketBooking->fresh()->effective_tent_size);
     }
+
+    public function test_owner_can_create_manual_booking_without_payment_proof(): void
+    {
+        Queue::fake();
+
+        $owner = User::where('role', User::ROLE_OWNER)->firstOrFail();
+        $paket1 = Package::where('slug', 'paket-1')->firstOrFail();
+        $addon = Addon::firstOrFail();
+        $eventDate = now()->addDays(12)->format('Y-m-d');
+
+        $response = $this->actingAs($owner)->post(route('admin.bookings.store'), [
+            'event_type'       => 'pernikahan',
+            'customer_name'    => 'Bpk. Gunawan & Ibu Sari',
+            'customer_phone'   => '081234567899',
+            'job_source'       => 'Walk-in Gudang',
+            'event_date'       => $eventDate,
+            'event_end_date'   => $eventDate,
+            'package_id'       => $paket1->id,
+            'tent_color_theme' => 'Putih + Mocca',
+            'venue_address'    => 'Jl. Garuda No. 8, Slawi',
+            'addons'           => [
+                ['id' => $addon->id, 'qty' => 2],
+            ],
+            'transport_fee'    => 300000,
+            'owner_discount'   => 200000,
+            'payment_type'     => 'dp',
+            'nominal_dp'       => 1500000,
+            'status'           => 'confirmed',
+        ]);
+
+        $created = Booking::where('customer_name', 'BPK. GUNAWAN & IBU SARI')->first();
+        $this->assertNotNull($created);
+        $response->assertRedirect(route('admin.bookings.index', ['booking_id' => $created->id]));
+        $response->assertSessionHas('success');
+
+        $expectedTotal = (float) $paket1->base_price + ((float) $addon->unit_price * 2) + 300000 - 200000;
+        $this->assertEquals('confirmed', $created->status);
+        $this->assertEquals('dp', $created->payment_type);
+        $this->assertEquals($expectedTotal, (float) $created->grand_total);
+        $this->assertEquals(1500000.0, (float) $created->amount_paid);
+        $this->assertEquals($expectedTotal - 1500000.0, (float) $created->remaining_balance);
+        $this->assertEquals('', $created->payment_proof_path);
+        $this->assertCount(1, $created->addons);
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
+
+    public function test_owner_can_create_manual_sewa_alat_booking_and_staff_is_forbidden(): void
+    {
+        Queue::fake();
+
+        $owner = User::where('role', User::ROLE_OWNER)->firstOrFail();
+        $staff = User::where('role', User::ROLE_STAFF)->where('is_active', true)->firstOrFail();
+        $addon = Addon::firstOrFail();
+        $eventDate = now()->addDays(15)->format('Y-m-d');
+
+        // Field staff must be forbidden from creating manual bookings
+        $this->actingAs($staff)->post(route('admin.bookings.store'), [
+            'event_type'     => 'sewa_alat',
+            'customer_name'  => 'Percobaan Staff',
+            'customer_phone' => '081234567890',
+            'event_date'     => $eventDate,
+            'addons'         => [['id' => $addon->id, 'qty' => 5]],
+            'payment_type'   => 'lunas',
+            'status'         => 'confirmed',
+        ])->assertForbidden();
+
+        // Owner creates a Lunas Sewa Alat Lepas booking
+        $response = $this->actingAs($owner)->post(route('admin.bookings.store'), [
+            'event_type'     => 'sewa_alat',
+            'customer_name'  => 'Hotel Grand Slawi',
+            'customer_phone' => '081298765432',
+            'event_date'     => $eventDate,
+            'addons'         => [['id' => $addon->id, 'qty' => 10]],
+            'payment_type'   => 'lunas',
+            'status'         => 'confirmed',
+        ]);
+
+        $created = Booking::where('customer_name', 'HOTEL GRAND SLAWI')->first();
+        $this->assertNotNull($created);
+        $response->assertRedirect(route('admin.bookings.index', ['booking_id' => $created->id]));
+        $this->assertEquals('sewa_alat', $created->event_type);
+        $this->assertEquals('lunas', $created->payment_type);
+        $this->assertEquals((float) $addon->unit_price * 10, (float) $created->grand_total);
+        $this->assertEquals(0.0, (float) $created->remaining_balance);
+        Queue::assertPushed(SyncBookingToGoogleServicesJob::class);
+    }
 }
 
 

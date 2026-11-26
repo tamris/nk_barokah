@@ -138,6 +138,229 @@ document.addEventListener('alpine:init', () => {
             this.packageModal.open = false;
         },
 
+        manualBookingModal: {
+            open: false,
+            action: config.bookingStoreUrl || '/admin/bookings',
+            event_type: 'pernikahan',
+            customer_name: '',
+            child_name: '',
+            customer_phone: '',
+            customer_email: '',
+            job_source: '',
+            event_date: config.todayIso || '',
+            event_end_date: config.todayIso || '',
+            package_id: '',
+            tent_color_theme: '',
+            custom_tent_size: '',
+            venue_address: '',
+            address_landmark: '',
+            survey_requested: false,
+            survey_date: '',
+            survey_time_slot: 'morning',
+            operational_notes: '',
+            transport_fee: 0,
+            transport_display: '',
+            owner_discount: 0,
+            owner_discount_display: '',
+            payment_type: 'dp',
+            nominal_dp: config.minDpAmount || 1000000,
+            nominal_dp_display: new Intl.NumberFormat('id-ID').format(config.minDpAmount || 1000000),
+            status: 'confirmed',
+            addons: [],
+            openMenu: null,
+            addonSearch: '',
+            formError: ''
+        },
+        openManualBookingModal() {
+            const activePkgs = (this.packagesList || []).filter(p => p.is_active);
+            const defaultPkgId = activePkgs.length > 0 ? String(activePkgs[0].id) : '';
+            const defaultDate = this.addDaysToIso(this.todayIso, 3);
+            const minDp = Math.round(Number(config.minDpAmount || 1000000));
+            this.manualBookingModal = {
+                open: true,
+                action: config.bookingStoreUrl || '/admin/bookings',
+                event_type: 'pernikahan',
+                customer_name: '',
+                child_name: '',
+                customer_phone: '',
+                customer_email: '',
+                job_source: '',
+                event_date: defaultDate,
+                event_end_date: defaultDate,
+                package_id: defaultPkgId,
+                tent_color_theme: '',
+                custom_tent_size: '',
+                venue_address: '',
+                address_landmark: '',
+                survey_requested: false,
+                survey_date: '',
+                survey_time_slot: 'morning',
+                operational_notes: '',
+                transport_fee: 0,
+                transport_display: '',
+                owner_discount: 0,
+                owner_discount_display: '',
+                payment_type: 'dp',
+                nominal_dp: minDp,
+                nominal_dp_display: minDp > 0 ? new Intl.NumberFormat('id-ID').format(minDp) : '',
+                status: 'confirmed',
+                addons: [],
+                openMenu: null,
+                addonSearch: '',
+                formError: ''
+            };
+        },
+        closeManualBookingModal() {
+            this.manualBookingModal.open = false;
+            this.manualBookingModal.openMenu = null;
+        },
+        toggleManualMenu(name) {
+            this.manualBookingModal.openMenu = this.manualBookingModal.openMenu === name ? null : name;
+            if (name && name.startsWith('addon-')) {
+                this.manualBookingModal.addonSearch = '';
+            }
+        },
+        get selectedManualPackageObj() {
+            return (this.packagesList || []).find(p => String(p.id) === String(this.manualBookingModal.package_id)) || null;
+        },
+        getAddonById(id) {
+            return (this.addonsList || []).find(a => String(a.id) === String(id)) || null;
+        },
+        filteredManualAddons() {
+            const list = this.activeManualAddons;
+            const q = (this.manualBookingModal.addonSearch || '').trim().toLowerCase();
+            if (!q) return list;
+            return list.filter(item =>
+                (item.name || '').toLowerCase().includes(q) ||
+                (item.unit || '').toLowerCase().includes(q) ||
+                (item.price_formatted || '').toLowerCase().includes(q)
+            );
+        },
+        onManualEventTypeChange() {
+            const m = this.manualBookingModal;
+            m.formError = '';
+            if (m.event_type === 'sewa_alat') {
+                m.package_id = '';
+                m.survey_requested = false;
+                if (m.addons.length === 0) {
+                    this.addManualAddonRow();
+                }
+            } else if (!m.package_id) {
+                const activePkgs = (this.packagesList || []).filter(p => p.is_active);
+                if (activePkgs.length > 0) m.package_id = String(activePkgs[0].id);
+            }
+        },
+        syncManualEndDate() {
+            const m = this.manualBookingModal;
+            if (!m.event_end_date || m.event_end_date < m.event_date) {
+                m.event_end_date = m.event_date;
+            }
+        },
+        addManualAddonRow() {
+            const activeAddons = (this.addonsList || []).filter(a => a.is_active);
+            const firstId = activeAddons.length > 0 ? String(activeAddons[0].id) : '';
+            this.manualBookingModal.addons.push({
+                uid: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                id: firstId,
+                qty: 1
+            });
+        },
+        removeManualAddonRow(index) {
+            this.manualBookingModal.addons.splice(index, 1);
+        },
+        formatManualMoney(field, displayField, e) {
+            const clean = (e.target.value || '').replace(/\D/g, '');
+            if (!clean) {
+                this.manualBookingModal[field] = 0;
+                this.manualBookingModal[displayField] = '';
+                e.target.value = '';
+                return;
+            }
+            const num = parseInt(clean, 10);
+            this.manualBookingModal[field] = num;
+            this.manualBookingModal[displayField] = new Intl.NumberFormat('id-ID').format(num);
+            e.target.value = this.manualBookingModal[displayField];
+        },
+        formatRupiah(val) {
+            return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(val) || 0));
+        },
+        get activeManualPackages() {
+            return (this.packagesList || []).filter(p => p.is_active);
+        },
+        get activeManualAddons() {
+            return (this.addonsList || []).filter(a => a.is_active);
+        },
+        get manualDurationDays() {
+            const start = this.manualBookingModal.event_date;
+            const end = this.manualBookingModal.event_end_date || start;
+            if (!start || !end || end < start) return 1;
+            const s = new Date(start + 'T00:00:00');
+            const e = new Date(end + 'T00:00:00');
+            return Math.max(1, Math.round((e - s) / 86400000) + 1);
+        },
+        get manualPackagePrice() {
+            if (this.manualBookingModal.event_type === 'sewa_alat') return 0;
+            const pkg = (this.packagesList || []).find(p => String(p.id) === String(this.manualBookingModal.package_id));
+            return pkg ? Number(pkg.price || 0) : 0;
+        },
+        get manualExtraDayCharge() {
+            const stdDays = Number(config.standardDays || 2);
+            const rate = Number(config.extraDayRate || 0.15);
+            const extraDays = Math.max(0, this.manualDurationDays - stdDays);
+            return Math.round(extraDays * rate * this.manualPackagePrice);
+        },
+        get manualAddonsTotal() {
+            return (this.manualBookingModal.addons || []).reduce((sum, row) => {
+                const addon = (this.addonsList || []).find(a => String(a.id) === String(row.id));
+                const qty = Math.max(0, parseInt(row.qty, 10) || 0);
+                return sum + (addon ? Number(addon.price || 0) * qty : 0);
+            }, 0);
+        },
+        get manualGrandTotal() {
+            const gross = this.manualPackagePrice + this.manualExtraDayCharge + this.manualAddonsTotal + Number(this.manualBookingModal.transport_fee || 0);
+            const disc = Math.min(gross, Math.max(0, Number(this.manualBookingModal.owner_discount || 0)));
+            return Math.max(0, gross - disc);
+        },
+        get manualAmountPaid() {
+            if (this.manualBookingModal.payment_type === 'lunas') return this.manualGrandTotal;
+            return Math.min(this.manualGrandTotal, Math.max(0, Number(this.manualBookingModal.nominal_dp || 0)));
+        },
+        get manualRemaining() {
+            return Math.max(0, this.manualGrandTotal - this.manualAmountPaid);
+        },
+        get manualDateConflictCount() {
+            const start = this.manualBookingModal.event_date;
+            const end = this.manualBookingModal.event_end_date || start;
+            if (!start) return 0;
+            return (this.allBookings || []).filter(b => {
+                if (b.raw_status === 'rejected' || b.raw_status === 'completed') return false;
+                const bStart = b.event_date_iso;
+                const bEnd = b.event_end_date_iso || bStart;
+                return bStart <= end && bEnd >= start;
+            }).length;
+        },
+        validateManualBookingSubmit(e) {
+            const m = this.manualBookingModal;
+            m.formError = '';
+            if (m.event_type === 'sewa_alat') {
+                const validRows = (m.addons || []).filter(r => r.id && Number(r.qty) > 0);
+                if (validRows.length === 0) {
+                    e.preventDefault();
+                    m.formError = this.locale === 'id'
+                        ? 'Tambahkan minimal 1 item alat untuk pesanan Sewa Alat Lepas.'
+                        : 'Please add at least 1 equipment item for Equipment Rental Only.';
+                    return false;
+                }
+            } else if (!m.package_id) {
+                e.preventDefault();
+                m.formError = this.locale === 'id'
+                    ? 'Silakan pilih paket tenda terlebih dahulu.'
+                    : 'Please select a tent package first.';
+                return false;
+            }
+            return true;
+        },
+
         addonModal: {
             open: false,
             isEdit: false,

@@ -225,11 +225,11 @@
                     <!-- Pilihan Kategori / Jenis Acara (Custom Dropdown matching UI/UX) -->
                     <div class="space-y-1.5 pt-3 border-t border-slate-100">
                         <label class="block text-xs font-semibold text-slate-700 tracking-tight">
-                            Jenis Acara
+                            Jenis Acara <span class="text-rose-500">*</span>
                         </label>
                         
                         <!-- Hidden input for form submission -->
-                        <input type="hidden" name="event_type" :value="eventType">
+                        <input type="hidden" name="event_type" :value="eventType" required>
 
                         <!-- Custom Dropdown Container -->
                         <div class="relative" @click.away="eventTypeOpen = false">
@@ -240,8 +240,11 @@
                                         ? 'bg-white border-brand-600 ring-2 ring-brand-600/15 text-slate-900 shadow-subtle' 
                                         : 'bg-white hover:bg-slate-50/80 border-slate-200 text-slate-800 shadow-2xs'">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <span class="w-2 h-2 rounded-full bg-brand-600 shrink-0"></span>
-                                    <span class="truncate text-xs sm:text-sm font-bold text-slate-800" x-text="eventTypeLabel"></span>
+                                    <span class="w-2 h-2 rounded-full shrink-0 transition-colors"
+                                          :class="eventType ? 'bg-brand-600' : 'bg-slate-300'"></span>
+                                    <span class="truncate text-xs sm:text-sm"
+                                          :class="eventType ? 'font-bold text-slate-800' : 'font-medium text-slate-400'"
+                                          x-text="eventTypeLabel"></span>
                                 </div>
                                 <div class="flex items-center shrink-0 pl-2 text-slate-400">
                                     <svg class="w-4 h-4 transition-transform duration-200"
@@ -293,9 +296,9 @@
 
                     <!-- DESKTOP & TABLET INLINE ACTION FOOTER (RIGHT BENEATH THE CALENDAR!) -->
                     <div x-show="step === 1" class="hidden md:flex items-center justify-end pt-3 border-t border-slate-100">
-                        <button type="button" @click="goToStep(2)" :disabled="!selectedDate || isDateBooked"
+                        <button type="button" @click="goToStep(2)" :disabled="!selectedDate || isDateBooked || !eventType"
                                 class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-2 cursor-pointer shadow-subtle">
-                            <span>Lanjut ke Pilih Paket</span>
+                            <span x-text="eventType === 'sewa_alat' ? 'Lanjut ke Pilih Alat' : 'Lanjut ke Pilih Paket'"></span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
                     </div>

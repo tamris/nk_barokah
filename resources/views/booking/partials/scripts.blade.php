@@ -22,7 +22,7 @@
 
             // Form inputs
             eventTypeOpen: false,
-            eventType: '{{ old("event_type", "pernikahan") }}',
+            eventType: '{{ old("event_type", "") }}',
             childName: '{{ old("child_name", "") }}',
             eventTypes: [
                 { id: 'pernikahan', label: 'Pernikahan (Akad & Resepsi)' },
@@ -35,6 +35,7 @@
             setEventType(type) {
                 this.eventType = type;
                 this.eventTypeOpen = false;
+                this.formErrors.step1 = null;
                 if (type === 'sewa_alat') {
                     const customPkg = this.packages.find(p => 
                         p.base_price == 0 || 
@@ -66,7 +67,8 @@
                     case 'khitanan': return 'Kapan tanggal acara khitanan?';
                     case 'tasyakuran': return 'Kapan tanggal tasyakuran / pengajian?';
                     case 'instansi': return 'Kapan jadwal kegiatan instansi?';
-                    default: return 'Kapan tanggal pernikahan Anda?';
+                    case 'pernikahan': return 'Kapan tanggal pernikahan Anda?';
+                    default: return 'Kapan tanggal acara Anda?';
                 }
             },
             get step1Subtitle() {
@@ -158,7 +160,7 @@
             },
             get eventTypeLabel() {
                 const found = this.eventTypes.find(e => e.id === this.eventType);
-                return found ? found.label : 'Pernikahan (Akad & Resepsi)';
+                return found ? found.label : 'Pilih jenis acara Anda...';
             },
 
             customerName: '{{ old("customer_name", "") }}'.toUpperCase(),
@@ -779,6 +781,11 @@
                     }
                     if (this.isDateBooked) {
                         this.formErrors.step1 = 'Rentang tanggal yang Anda pilih melewati tanggal yang sudah terisi (PENUH). Silakan pilih rentang tanggal lain.';
+                        return;
+                    }
+                    if (!this.eventType) {
+                        this.formErrors.step1 = 'Silakan pilih jenis acara Anda terlebih dahulu.';
+                        this.eventTypeOpen = true;
                         return;
                     }
                     this.formErrors.step1 = null;

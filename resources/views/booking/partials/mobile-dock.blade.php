@@ -9,7 +9,7 @@
                 <div x-show="step === 1">
                     <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status Tanggal</p>
                     <p class="text-xs font-bold text-slate-900 truncate"
-                       x-text="selectedDate ? formattedSelectedDate : 'Belum pilih tanggal'"></p>
+                       x-text="!selectedDate ? 'Belum pilih tanggal' : (!eventType ? 'Pilih jenis acara' : formattedSelectedDate)"></p>
                 </div>
 
                 <div x-show="step > 1" x-cloak>
@@ -27,9 +27,9 @@
                 </button>
 
                 <button type="button" x-show="step < 4" @click="goToStep(step + 1)"
-                        :disabled="step === 1 && (!selectedDate || isDateBooked)"
+                        :disabled="step === 1 && (!selectedDate || isDateBooked || !eventType)"
                         class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95 text-white font-bold text-xs tracking-wide transition flex items-center gap-1.5 cursor-pointer shadow-subtle">
-                    <span x-text="step === 1 ? 'Pilih Paket' : (step === 2 ? 'Data Pemesan' : 'Pembayaran')"></span>
+                    <span x-text="step === 1 ? (eventType === 'sewa_alat' ? 'Pilih Alat' : 'Pilih Paket') : (step === 2 ? 'Data Pemesan' : 'Pembayaran')"></span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
 

@@ -133,11 +133,12 @@
             </div>
 
             @if($isOwner ?? false)
-            <a href="{{ route('booking.create') }}" target="_blank"
-               class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0">
+            <button type="button"
+                    @click="openManualBookingModal()"
+                    class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition shadow-pill shrink-0 cursor-pointer active:scale-95">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>{{ __('admin.bookings.new_booking') }}</span>
-            </a>
+            </button>
             @endif
         </div>
 

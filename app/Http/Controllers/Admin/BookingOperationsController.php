@@ -125,9 +125,11 @@ class BookingOperationsController extends Controller
                     ->map(fn ($group, $name) => "{$name} (" . $group->sum('quantity') . ')')
                     ->implode(', ');
                 $isCustomOnly = $b->event_type === 'sewa_alat' || strtolower(trim((string) $b->package_name)) === 'custom';
-                $tentInfo = $isCustomOnly
-                    ? ''
-                    : trim(($b->effective_tent_size ?: '') . ($b->tent_color_theme ? ' · ' . $b->tent_color_theme : ''), ' ·');
+                $tentSize = $isCustomOnly ? '' : ($b->effective_tent_size ?: '');
+                $tentTheme = $isCustomOnly ? '' : trim((string) ($b->tent_color_theme ?? ''));
+                if ($tentTheme === '-') {
+                    $tentTheme = '';
+                }
 
                 // 1. Site Survey
                 if ($b->survey_requested && $b->survey_date) {
@@ -146,7 +148,8 @@ class BookingOperationsController extends Controller
                             'client'     => $b->customer_name,
                             'phone'      => $b->customer_phone,
                             'service'    => $b->package_name,
-                            'tent_info'  => $tentInfo,
+                            'tent_size'  => $tentSize,
+                            'tent_theme' => $tentTheme,
                             'addons'     => $addonsSummary,
                             'address'    => $b->venue_address ?: '-',
                             'landmark'   => $b->address_landmark ?: '',
@@ -170,7 +173,8 @@ class BookingOperationsController extends Controller
                         'client'     => $b->customer_name,
                         'phone'      => $b->customer_phone,
                         'service'    => $b->package_name,
-                        'tent_info'  => $tentInfo,
+                        'tent_size'  => $tentSize,
+                        'tent_theme' => $tentTheme,
                         'addons'     => $addonsSummary,
                         'address'    => $b->venue_address ?: '-',
                         'landmark'   => $b->address_landmark ?: '',
@@ -193,7 +197,8 @@ class BookingOperationsController extends Controller
                         'client'     => $b->customer_name,
                         'phone'      => $b->customer_phone,
                         'service'    => $b->package_name,
-                        'tent_info'  => $tentInfo,
+                        'tent_size'  => $tentSize,
+                        'tent_theme' => $tentTheme,
                         'addons'     => $addonsSummary,
                         'address'    => $b->venue_address ?: '-',
                         'landmark'   => $b->address_landmark ?: '',
@@ -218,6 +223,11 @@ class BookingOperationsController extends Controller
                         ->map(fn ($group, $name) => "{$name} (" . $group->sum('quantity') . ')')
                         ->implode(', ');
                     $isCustomOnly = $b->event_type === 'sewa_alat' || strtolower(trim((string) $b->package_name)) === 'custom';
+                    $tentSize = $isCustomOnly ? '' : ($b->effective_tent_size ?: '');
+                    $tentTheme = $isCustomOnly ? '' : trim((string) ($b->tent_color_theme ?? ''));
+                    if ($tentTheme === '-') {
+                        $tentTheme = '';
+                    }
                     $setupLabel = $b->effective_setup_date->copy()->locale('id')->isoFormat('D MMM');
                     $teardownLabel = $eventEnd->copy()->addDay()->locale('id')->isoFormat('D MMM');
 
@@ -234,7 +244,8 @@ class BookingOperationsController extends Controller
                         'client'     => $b->customer_name,
                         'phone'      => $b->customer_phone,
                         'service'    => $b->package_name . ' (' . $b->event_type_label . ')',
-                        'tent_info'  => $isCustomOnly ? '' : trim(($b->effective_tent_size ?: '') . ($b->tent_color_theme ? ' · ' . $b->tent_color_theme : ''), ' ·'),
+                        'tent_size'  => $tentSize,
+                        'tent_theme' => $tentTheme,
                         'addons'     => $addonsSummary,
                         'address'    => $b->venue_address ?: '-',
                         'landmark'   => $b->address_landmark ?: '',

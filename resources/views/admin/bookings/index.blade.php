@@ -28,6 +28,10 @@
         'calYear' => $initialCalYear,
         'calMonth' => $initialCalMonth,
         'maxEventsPerDay' => (int) ($settings['max_events_per_day'] ?? 1),
+        'standardDays' => (int) ($settings['standard_package_max_days'] ?? 2),
+        'extraDayRate' => (($settings['extra_day_charge_rate'] ?? 15) > 1 ? ($settings['extra_day_charge_rate'] ?? 15) / 100 : ($settings['extra_day_charge_rate'] ?? 0.15)),
+        'minDpAmount' => (float) ($settings['min_dp_amount'] ?? 1000000),
+        'bookingStoreUrl' => route('admin.bookings.store'),
         'packageStoreUrl' => route('admin.packages.store'),
         'addonStoreUrl' => route('admin.addons.store'),
     ]);
@@ -51,6 +55,9 @@
     @include('admin.bookings.partials.view-client-profile')
     @include('admin.bookings.partials.view-booking-detail')
     @include('admin.bookings.partials.modals')
+    @if($isOwner)
+        @include('admin.bookings.partials.modal-manual-booking')
+    @endif
 
 </div>
 @endsection

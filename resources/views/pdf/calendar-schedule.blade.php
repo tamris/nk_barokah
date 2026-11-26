@@ -273,8 +273,11 @@
                         </td>
                         <td>
                             <div class="service-name">{{ $row['service'] }}</div>
-                            @if(!empty($row['tent_info']))
-                                <div class="sub-meta"><strong>Ukuran / Tema:</strong> {{ $row['tent_info'] }}</div>
+                            @if(!empty($row['tent_size']))
+                                <div class="sub-meta"><strong>Ukuran:</strong> {{ $row['tent_size'] }}</div>
+                            @endif
+                            @if(!empty($row['tent_theme']))
+                                <div class="sub-meta"><strong>Tema:</strong> {{ $row['tent_theme'] }}</div>
                             @endif
                             @if(!empty($row['addons']))
                                 <div class="addons-list"><strong>Item:</strong> {{ $row['addons'] }}</div>
